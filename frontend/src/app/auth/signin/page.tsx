@@ -29,7 +29,7 @@ export default function AuthPage() {
   const [error, setError] = useState<string | null>(null)
 
   // signin
-  const [siEmail, setSiEmail] = useState('')
+  const [siEmailOrUsername, setSiEmailOrUsername] = useState('')
   const [siPw, setSiPw] = useState('')
   const [siShow, setSiShow] = useState(false)
   const [siBusy, setSiBusy] = useState(false)
@@ -56,8 +56,13 @@ export default function AuthPage() {
     setSiBusy(true)
     setError(null)
     try {
-      await signin(siEmail, siPw)
-      router.push('/dashboard')
+      const u = await signin(siEmailOrUsername.trim(), siPw)
+      // admin → /admin, user biasa → /dashboard
+      if (u && (u as any).role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard')
+      }
     } catch (err: unknown) {
       const msg = (err as {message?: string})?.message
       setError(msg || tIn('error.default'))
@@ -79,8 +84,12 @@ export default function AuthPage() {
     setSuBusy(true)
     setError(null)
     try {
-      await signup(suName.trim(), suEmail.trim(), suPw)
-      router.push('/dashboard')
+      const u = await signup(suName.trim(), suEmail.trim(), suPw)
+      if (u && (u as any).role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/dashboard')
+      }
     } catch (err: unknown) {
       const msg = (err as {message?: string})?.message
       setError(msg || tUp('error.default'))
@@ -146,15 +155,16 @@ export default function AuthPage() {
             {mode === 'signin' ? (
               <form onSubmit={onSignin} noValidate className="space-y-4">
                 <label className="block">
-                  <span className="mb-1 block text-xs text-slate-600">{tIn('form.email')}</span>
+                  {/* Ubah label jadi Email / Username */}
+                  <span className="mb-1 block text-xs text-slate-600">Email / Username</span>
                   <input
-                    type="email"
-                    value={siEmail}
-                    onChange={(e) => setSiEmail(e.target.value)}
+                    type="text" // penting: bukan "email"
+                    value={siEmailOrUsername}
+                    onChange={(e) => setSiEmailOrUsername(e.target.value)}
                     required
-                    autoComplete="email"
+                    autoComplete="username email"
                     className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                    placeholder="you@example.com"
+                    placeholder="you@example.com atau admin_username"
                   />
                 </label>
 

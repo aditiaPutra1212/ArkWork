@@ -1,24 +1,44 @@
-// src/routes/auth.ts
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import cookie from "cookie";
 
 const router = Router();
-
-// Prisma singleton supaya aman di dev (ts-node-dev)
-const prisma: PrismaClient = (global as any).prisma || new PrismaClient();
-if (process.env.NODE_ENV !== "production") (global as any).prisma = prisma;
+const prisma = new PrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
+  .split(",")
+  .map(s => s.trim().toLowerCase())
+  .filter(Boolean);
 
-// ---------- helpers ----------
-type JWTPayload = { uid: string };
-const signToken = (p: JWTPayload) => jwt.sign(p, JWT_SECRET, { expiresIn: "7d" });
+// ---- Helpers ----
+type JWTPayload = { uid: string; role: "admin" | "user" };
 
-// ---------- validators ----------
+function signToken(p: JWTPayload) {
+  return jwt.sign(p, JWT_SECRET, { expiresIn: "7d" });
+}
+
+function verifyToken(t: string) {
+  return jwt.verify(t, JWT_SECRET) as JWTPayload;
+}
+
+function setAuthCookie(res: Response, token: string) {
+  res.setHeader(
+    "Set-Cookie",
+    cookie.serialize("token", token, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+    })
+  );
+}
+
+// ---- Validators ----
 const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -29,15 +49,27 @@ const signinSchema = z.object({
   password: z.string().min(8),
 });
 
-// ---------- routes ----------
-router.get("/", (_req, res) => res.json({ message: "Auth route works!" }));
+// ---- Routes ----
 
+// GET /auth
+router.get("/", (_req, res) => {
+  res.json({ message: "Auth route works!" });
+});
+
+// POST /auth/signup
 router.post("/signup", async (req: Request, res: Response) => {
   try {
     const parsed = signupSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.format() });
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.format() });
+    }
 
     const { email, password, name } = parsed.data;
+
+    const exists = await prisma.user.findUnique({ where: { email } });
+    if (exists) {
+      return res.status(409).json({ message: "Email sudah terdaftar" });
+    }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -45,46 +77,40 @@ router.post("/signup", async (req: Request, res: Response) => {
       select: { id: true, email: true, name: true, photoUrl: true, cvUrl: true },
     });
 
-    const token = signToken({ uid: user.id });
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+    const token = signToken({ uid: user.id, role: isAdmin ? "admin" : "user" });
+    setAuthCookie(res, token);
 
-    return res.status(201).json(user);
+    return res.status(201).json({ ...user, role: isAdmin ? "admin" : "user" });
   } catch (e) {
-    if (e instanceof PrismaClientKnownRequestError && e.code === "P2002") {
-      return res.status(409).json({ message: "Email sudah terdaftar" });
-    }
-    console.error("SIGNUP ERROR:", (e as any)?.message || e);
+    console.error("SIGNUP ERROR:", e);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
 
+// POST /auth/signin
 router.post("/signin", async (req: Request, res: Response) => {
   try {
     const parsed = signinSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.format() });
+    if (!parsed.success) {
+      return res.status(400).json({ error: parsed.error.format() });
+    }
 
     const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ message: "Email atau password salah" });
+    if (!user) {
+      return res.status(401).json({ message: "Email atau password salah" });
+    }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    if (!ok) return res.status(401).json({ message: "Email atau password salah" });
+    if (!ok) {
+      return res.status(401).json({ message: "Email atau password salah" });
+    }
 
-    const token = signToken({ uid: user.id });
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    const isAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+    const token = signToken({ uid: user.id, role: isAdmin ? "admin" : "user" });
+    setAuthCookie(res, token);
 
     return res.json({
       id: user.id,
@@ -92,38 +118,46 @@ router.post("/signin", async (req: Request, res: Response) => {
       name: user.name,
       photoUrl: user.photoUrl,
       cvUrl: user.cvUrl,
+      role: isAdmin ? "admin" : "user",
     });
   } catch (e) {
-    console.error("SIGNIN ERROR:", (e as any)?.message || e);
+    console.error("SIGNIN ERROR:", e);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
 
-router.post("/signout", (_req, res) => {
-  res.cookie("token", "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  });
+// POST /auth/signout
+router.post("/signout", (_req: Request, res: Response) => {
+  res.setHeader(
+    "Set-Cookie",
+    cookie.serialize("token", "", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 0,
+    })
+  );
   return res.status(204).end();
 });
 
-// ⬇️ SEKARANG me balikin user lengkap, bukan cuma payload
-router.get("/me", async (req, res) => {
+// GET /auth/me
+router.get("/me", async (req: Request, res: Response) => {
   try {
-    const token = req.cookies?.token;
+    const raw = req.headers.cookie || "";
+    const cookies = cookie.parse(raw);
+    const token = cookies["token"];
     if (!token) return res.status(401).json({ message: "Unauthorized" });
-    const { uid } = jwt.verify(token, JWT_SECRET) as JWTPayload;
 
+    const payload = verifyToken(token); // { uid, role }
     const user = await prisma.user.findUnique({
-      where: { id: uid },
+      where: { id: payload.uid },
       select: { id: true, email: true, name: true, photoUrl: true, cvUrl: true },
     });
     if (!user) return res.status(401).json({ message: "Unauthorized" });
 
-    return res.json(user);
+    // role dari token sudah cukup; atau bisa juga recompute dari email
+    return res.json({ ...user, role: payload.role });
   } catch {
     return res.status(401).json({ message: "Invalid token" });
   }

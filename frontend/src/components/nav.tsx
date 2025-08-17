@@ -16,20 +16,16 @@ export default function Nav() {
   const locale = useLocale()
   const router = useRouter()
 
-  // Sembunyikan navbar di /admin/*
-  if (pathname?.startsWith('/admin')) return null
-
+  // ✅ Panggil semua hooks dulu
   const [open, setOpen] = useState(false)          // mobile drawer
   const [menuOpen, setMenuOpen] = useState(false)  // avatar dropdown
-  const { user, loading, signout } = useAuth()     // ⬅️ pakai loading
+  const { user, loading, signout } = useAuth()
 
-  // guard mounted untuk hindari mismatch SSR
   const [mounted, setMounted] = useState(false)
   useEffect(() => setMounted(true), [])
 
   const menuRef = useRef<HTMLDivElement>(null)
 
-  // Tutup saat klik di luar / tekan ESC
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       if (!(e.target instanceof HTMLElement)) return
@@ -50,7 +46,6 @@ export default function Nav() {
     }
   }, [])
 
-  // Prevent body scroll saat drawer open
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
   }, [open])
@@ -66,19 +61,16 @@ export default function Nav() {
     [t]
   )
 
-  // shape user dari backend
   const displayName = user?.name?.trim() || t('user.fallback')
   const email = user?.email || null
   const photoURL = user?.photoUrl || undefined
 
-  // Toggle bahasa via cookie + refresh (tanpa ubah URL)
   const switchLocale = () => {
     const next = locale === 'en' ? 'id' : 'en'
     document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=31536000`
     router.refresh()
   }
 
-  // Handler sign out
   const handleSignout = async () => {
     try {
       await signout()
@@ -86,6 +78,10 @@ export default function Nav() {
       router.push('/auth/signin')
     } catch {}
   }
+
+  // ✅ Baru hide nav setelah semua hooks dipanggil
+  const hideNav = pathname?.startsWith('/admin')
+  if (hideNav) return null
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-neutral-200/60 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-neutral-800 dark:bg-neutral-950/60">
@@ -114,9 +110,8 @@ export default function Nav() {
           })}
         </div>
 
-        {/* Right actions (desktop): Lang + Auth */}
+        {/* Right actions (desktop) */}
         <div className="hidden items-center gap-3 md:flex">
-          {/* Language button */}
           <button
             onClick={switchLocale}
             aria-label={t('lang.switch')}
@@ -127,9 +122,7 @@ export default function Nav() {
             <span className="font-semibold">{locale === 'en' ? 'EN' : 'ID'}</span>
           </button>
 
-          {/* Auth (desktop) */}
           {!mounted || loading ? (
-            // skeleton biar tidak flicker
             <div className="h-9 w-28 rounded-xl bg-neutral-200 animate-pulse dark:bg-neutral-800" />
           ) : !user ? (
             <>
@@ -148,7 +141,6 @@ export default function Nav() {
             </>
           ) : (
             <div className="relative" ref={menuRef}>
-              {/* Tombol avatar */}
               <button
                 id="avatarBtn"
                 onClick={() => setMenuOpen((v) => !v)}
@@ -164,7 +156,6 @@ export default function Nav() {
                 <ChevronDownIcon className={`h-4 w-4 text-neutral-500 transition ${menuOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Dropdown */}
               <div
                 id="avatarMenu"
                 role="menu"
@@ -175,7 +166,6 @@ export default function Nav() {
                   'transition-all duration-150'
                 ].join(' ')}
               >
-                {/* Header di dalam: avatar + nama + email */}
                 <div className="px-3 py-3 border-b border-neutral-200 dark:border-neutral-800">
                   <div className="flex items-center gap-3">
                     <Avatar src={photoURL} alt={displayName} size={40} />
@@ -247,9 +237,7 @@ export default function Nav() {
         role="dialog"
         aria-modal="true"
       >
-        {/* Card container */}
         <div className="relative m-3 ms-auto h-[calc(100vh-1.5rem)] w-full overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-950">
-          {/* Header */}
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
             <div className="flex items-center gap-3">
               <Image
@@ -272,9 +260,7 @@ export default function Nav() {
             </button>
           </div>
 
-          {/* Body: scrollable */}
           <div className="flex h-[calc(100%-7.5rem)] flex-col">
-            {/* Links */}
             <nav className="flex-1 overflow-y-auto px-3 py-2">
               <ul className="space-y-1">
                 {links.map(({ href, label, icon: Icon }) => {
@@ -299,10 +285,8 @@ export default function Nav() {
                 })}
               </ul>
 
-              {/* Divider */}
               <hr className="my-4 border-neutral-200 dark:border-neutral-800" />
 
-              {/* Account area */}
               {!mounted || loading ? (
                 <div className="h-10 w-full rounded-xl bg-neutral-200 animate-pulse dark:bg-neutral-800" />
               ) : !user ? (
@@ -324,7 +308,6 @@ export default function Nav() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {/* Kartu user */}
                   <div className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
                     <Avatar src={photoURL} alt={displayName} size={40} />
                     <div className="min-w-0">
@@ -365,7 +348,6 @@ export default function Nav() {
               )}
             </nav>
 
-            {/* Sticky CTA bottom */}
             <div className="border-t border-neutral-200 bg-white px-3 py-3 dark:border-neutral-800 dark:bg-neutral-950 [padding-bottom:calc(env(safe-area-inset-bottom)+12px)] space-y-2">
               <Link
                 href="/news"
@@ -376,7 +358,6 @@ export default function Nav() {
                 {t('cta.energy')}
               </Link>
 
-              {/* Language button (mobile) */}
               <button
                 onClick={() => {
                   switchLocale()

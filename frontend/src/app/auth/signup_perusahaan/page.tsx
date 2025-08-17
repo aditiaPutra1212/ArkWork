@@ -10,21 +10,6 @@ import Logo from '@/app/Images/Ungu__1_-removebg-preview.png';
 /* --------------------------------- Types --------------------------------- */
 type Step = 1 | 2 | 3 | 4 | 5;
 
-type MaybeFn<T extends (...args: any[]) => any> = T | undefined;
-
-interface SignupCompanyPayload {
-  companyName: string;
-  email: string;
-  password: string;
-  website?: string;
-}
-
-interface Auth {
-  signup: (name: string, email: string, password: string) => Promise<void>;
-  social?: (provider: 'google', intent?: 'signup' | 'signin') => Promise<void>;
-  signupCompany?: MaybeFn<(payload: SignupCompanyPayload) => Promise<void>>;
-}
-
 type PackageId = 'free' | 'starter' | 'basic' | 'business' | 'premium';
 type Package = { id: PackageId; title: string; price: number; features: string[] };
 
@@ -54,6 +39,13 @@ type NewJob = {
   tags: string;
 };
 
+type SignupCompanyPayload = {
+  companyName: string;
+  email: string;
+  password: string;
+  website?: string;
+};
+
 /* ----------------------------- Static packages ---------------------------- */
 const PACKAGES: Package[] = [
   { id: 'free', title: 'Free Trial', price: 0, features: ['1 job post', '7 hari aktif', 'Basic listing'] },
@@ -79,7 +71,9 @@ function normalizeUrl(u: string) {
 /* --------------------------------- Page ---------------------------------- */
 export default function Page() {
   const t = useTranslations('companySignup');
-  const { signup, signupCompany } = useAuth() as Auth;
+
+  // ⬇️ langsung pakai API dari hook (tanpa cast)
+  const { signup, signupCompany } = useAuth();
 
   const [step, setStep] = useState<Step>(1);
   const [busy, setBusy] = useState(false);
@@ -117,10 +111,11 @@ export default function Page() {
         website: normalizeUrl(website),
       };
 
+      // kalau hook punya signupCompany → pakai itu,
+      // kalau belum ada endpoint backend-nya, fallback ke signup user biasa
       if (typeof signupCompany === 'function') {
         await signupCompany(payload);
       } else {
-        // fallback demo (pastikan backend-mu tidak auto login)
         await signup(payload.companyName, payload.email, payload.password);
       }
 
@@ -191,8 +186,8 @@ export default function Page() {
     setBusy(true);
     setError(null);
     try {
+      // TODO: kirim profile + paket + job ke backend kalau endpointnya sudah ada
       await new Promise((r) => setTimeout(r, 900));
-      // eslint-disable-next-line no-alert
       alert('Data terkirim! Akun perusahaan akan diverifikasi.');
     } catch (err: unknown) {
       setError((err as { message?: string })?.message || 'Gagal mengirim.');
@@ -382,8 +377,6 @@ export default function Page() {
                   t('createBtn')
                 )}
               </button>
-
-              {/* no Sign In button here */}
             </form>
           )}
 
