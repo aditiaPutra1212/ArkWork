@@ -1,7 +1,6 @@
 // src/routes/auth.ts
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -9,17 +8,17 @@ import jwt from "jsonwebtoken";
 
 const router = Router();
 
-// hindari multiple instance saat dev
+// Prisma singleton supaya aman di dev (ts-node-dev)
 const prisma: PrismaClient = (global as any).prisma || new PrismaClient();
 if (process.env.NODE_ENV !== "production") (global as any).prisma = prisma;
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 
-// ------- helpers -------
+// ---------- helpers ----------
 type JWTPayload = { uid: string };
 const signToken = (p: JWTPayload) => jwt.sign(p, JWT_SECRET, { expiresIn: "7d" });
 
-// ------- validators -------
+// ---------- validators ----------
 const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -30,7 +29,7 @@ const signinSchema = z.object({
   password: z.string().min(8),
 });
 
-// ------- routes -------
+// ---------- routes ----------
 router.get("/", (_req, res) => res.json({ message: "Auth route works!" }));
 
 router.post("/signup", async (req: Request, res: Response) => {
@@ -40,9 +39,7 @@ router.post("/signup", async (req: Request, res: Response) => {
 
     const { email, password, name } = parsed.data;
 
-    // hash pakai bcryptjs (bukan argon2)
     const passwordHash = await bcrypt.hash(password, 10);
-
     const user = await prisma.user.create({
       data: { email, name, passwordHash },
       select: { id: true, email: true, name: true, photoUrl: true, cvUrl: true },
@@ -60,7 +57,6 @@ router.post("/signup", async (req: Request, res: Response) => {
     return res.status(201).json(user);
   } catch (e) {
     if (e instanceof PrismaClientKnownRequestError && e.code === "P2002") {
-      // unique constraint (email sudah ada)
       return res.status(409).json({ message: "Email sudah terdaftar" });
     }
     console.error("SIGNUP ERROR:", (e as any)?.message || e);
@@ -114,12 +110,20 @@ router.post("/signout", (_req, res) => {
   return res.status(204).end();
 });
 
-router.get("/me", (req, res) => {
+// ⬇️ SEKARANG me balikin user lengkap, bukan cuma payload
+router.get("/me", async (req, res) => {
   try {
-    const token = req.cookies?.token; // kamu sudah pakai cookieParser di index.ts
+    const token = req.cookies?.token;
     if (!token) return res.status(401).json({ message: "Unauthorized" });
-    const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
-    return res.json(payload);
+    const { uid } = jwt.verify(token, JWT_SECRET) as JWTPayload;
+
+    const user = await prisma.user.findUnique({
+      where: { id: uid },
+      select: { id: true, email: true, name: true, photoUrl: true, cvUrl: true },
+    });
+    if (!user) return res.status(401).json({ message: "Unauthorized" });
+
+    return res.json(user);
   } catch {
     return res.status(401).json({ message: "Invalid token" });
   }
