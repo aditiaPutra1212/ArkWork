@@ -63,9 +63,12 @@ export default function AuthPage() {
       } else {
         router.push('/dashboard')
       }
-    } catch (err: unknown) {
-      const msg = (err as {message?: string})?.message
-      setError(msg || tIn('error.default'))
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        (err as {message?: string})?.message ||
+        tIn('error.default')
+      setError(msg)
     } finally {
       setSiBusy(false)
     }
@@ -90,9 +93,12 @@ export default function AuthPage() {
       } else {
         router.push('/dashboard')
       }
-    } catch (err: unknown) {
-      const msg = (err as {message?: string})?.message
-      setError(msg || tUp('error.default'))
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        (err as {message?: string})?.message ||
+        tUp('error.default')
+      setError(msg)
     } finally {
       setSuBusy(false)
     }
