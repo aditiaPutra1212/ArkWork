@@ -16,7 +16,7 @@ export default function Nav() {
   const locale = useLocale()
   const router = useRouter()
 
-  // ✅ Panggil semua hooks dulu
+  // semua hooks dipanggil di atas
   const [open, setOpen] = useState(false)          // mobile drawer
   const [menuOpen, setMenuOpen] = useState(false)  // avatar dropdown
   const { user, loading, signout } = useAuth()
@@ -71,15 +71,17 @@ export default function Nav() {
     router.refresh()
   }
 
+  // OPSI #2: langsung signout + redirect (tanpa /logout)
   const handleSignout = async () => {
     try {
-      await signout()
+      await signout()                  // hapus sesi (cookie) di backend + context
+    } finally {
       setMenuOpen(false)
-      router.push('/auth/signin')
-    } catch {}
+      router.replace('/auth/signin')   // arahkan ke halaman Sign In
+    }
   }
 
-  // ✅ Baru hide nav setelah semua hooks dipanggil
+  // sembunyikan nav di /admin/*
   const hideNav = pathname?.startsWith('/admin')
   if (hideNav) return null
 
