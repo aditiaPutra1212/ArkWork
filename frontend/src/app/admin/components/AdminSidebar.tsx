@@ -1,73 +1,64 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback, useMemo } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
-/**
- * AdminSidebar (final, merged)
- * - Logout langsung ke /auth/signin (router.replace)
- * - Mobile drawer + desktop collapsed
- * - A11y & UX kecil
- */
 export default function AdminSidebar() {
-  const currentPath = usePathname() ?? ''
-  const router = useRouter()
-  const { signout, user } = useAuth()
+  const currentPath = usePathname() ?? '';
+  const router = useRouter();
+  const { signout, user } = useAuth();
 
-  const [open, setOpen] = useState(false)      // mobile
-  const [busy, setBusy] = useState(false)      // logout state
-  const [collapsed, setCollapsed] = useState(false) // desktop collapse
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
-  // tutup drawer saat route berubah
-  useEffect(() => setOpen(false), [currentPath])
+  useEffect(() => setOpen(false), [currentPath]);
 
-  // lock body scroll saat drawer open
   useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = open ? 'hidden' : prev || ''
-    return () => { document.body.style.overflow = prev || '' }
-  }, [open])
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = open ? 'hidden' : prev || '';
+    return () => { document.body.style.overflow = prev || ''; };
+  }, [open]);
 
-  // ESC menutup drawer
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
-  const handleOpenMenu = useCallback(() => setOpen(true), [])
-  const handleCloseMenu = useCallback(() => setOpen(false), [])
+  const handleOpenMenu = useCallback(() => setOpen(true), []);
+  const handleCloseMenu = useCallback(() => setOpen(false), []);
 
-  // LOGOUT → hapus sesi + redirect ke /auth/signin
   const handleLogout = useCallback(async () => {
     try {
-      setBusy(true)
-      await signout()
-      router.replace('/auth/signin')
-      router.refresh()
+      setBusy(true);
+      await signout();
+      router.replace('/auth/signin');
+      router.refresh();
     } catch (e) {
-      console.error('Logout failed:', e)
+      console.error('Logout failed:', e);
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
-  }, [router, signout])
+  }, [router, signout]);
 
-  // menu
   const menu = useMemo(() => ([
     { name: 'Dashboard', path: '/admin', icon: HomeIcon },
     { name: 'Manage Landing Page', path: '/admin/landing', icon: LayoutIcon },
     { name: 'Jobs Management', path: '/admin/jobs', icon: BriefcaseIcon },
     { name: 'Tenders Management', path: '/admin/tenders', icon: LayersIcon },
     { name: 'User Management', path: '/admin/users', icon: UsersIcon },
-  ]), [])
+    { name: 'Monetisasi (Plans)', path: '/admin/monet', icon: MoneyIcon },
+    { name: 'Payments (Midtrans)', path: '/admin/payments', icon: CreditCardIcon },
+  ]), []);
 
   const isActive = (path: string) =>
-    path === '/admin' ? currentPath === path : currentPath === path || currentPath.startsWith(path + '/')
+    path === '/admin' ? currentPath === path : currentPath === path || currentPath.startsWith(path + '/');
 
   function Item({ name, path, Icon }: { name: string; path: string; Icon: (p: React.SVGProps<SVGSVGElement>) => JSX.Element }) {
-    const active = isActive(path)
+    const active = isActive(path);
     return (
       <li>
         <Link
@@ -91,10 +82,9 @@ export default function AdminSidebar() {
           <span className="truncate">{name}</span>
         </Link>
       </li>
-    )
+    );
   }
 
-  /* ---------------------- Desktop Sidebar ---------------------- */
   const Desktop = (
     <aside
       aria-label="Admin navigation"
@@ -132,7 +122,8 @@ export default function AdminSidebar() {
           {menu.map(({ name, path, icon: Icon }) => (
             <Item key={path} name={name} path={path} Icon={Icon} />
           ))}
-          {/* Logout item (desktop list) */}
+
+          {/* Logout (desktop) */}
           <li>
             <button
               onClick={handleLogout}
@@ -155,7 +146,7 @@ export default function AdminSidebar() {
           <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10 grid place-items-center ring-1 ring-white/10">
             <UsersIcon className="h-4 w-4" />
           </div>
-        {!collapsed && (
+          {!collapsed && (
             <div className="min-w-0 leading-tight">
               <div className="text-xs font-semibold">Administrator</div>
               <div className="text-[11px] text-white/60 truncate">{user?.email ?? 'admin@arkwork.local'}</div>
@@ -178,9 +169,8 @@ export default function AdminSidebar() {
         </div>
       </div>
     </aside>
-  )
+  );
 
-  /* ---------------------- Render ---------------------- */
   return (
     <>
       {/* Mobile Topbar */}
@@ -253,6 +243,7 @@ export default function AdminSidebar() {
                       'group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition',
                       isActive(path) ? 'bg-white/10 text-white' : 'text-white/85 hover:bg-white/8 hover:text-white',
                     ].join(' ')}
+                    onClick={() => setOpen(false)}
                   >
                     <span
                       className={[
@@ -268,7 +259,7 @@ export default function AdminSidebar() {
               {/* Logout mobile */}
               <li>
                 <button
-                  onClick={async () => { await handleLogout(); setOpen(false) }}
+                  onClick={async () => { await handleLogout(); setOpen(false); }}
                   disabled={busy}
                   className="group relative w-full flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition text-left text-red-100 hover:bg-red-500/10 hover:text-white disabled:opacity-60"
                 >
@@ -288,33 +279,33 @@ export default function AdminSidebar() {
 
       {Desktop}
     </>
-  )
+  );
 }
 
 /* ----------------------------- Icons ----------------------------- */
 function BurgerIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
 }
 function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
 }
 function SparkIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M12 2l2.2 5.4L20 9l-5 3.8L16 20l-4-3-4 3 1-7.2L4 9l5.8-1.6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M12 2l2.2 5.4L20 9l-5 3.8L16 20l-4-3-4 3 1-7.2L4 9l5.8-1.6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>;
 }
 function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>;
 }
 function LayoutIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M3 10h18M10 20V10" stroke="currentColor" strokeWidth="2"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M3 10h18M10 20V10" stroke="currentColor" strokeWidth="2"/></svg>;
 }
 function BriefcaseIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2"/></svg>;
 }
 function LayersIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M12 3l8 4-8 4-8-4 8-4Z" stroke="currentColor" strokeWidth="2"/><path d="M4 11l8 4 8-4" stroke="currentColor" strokeWidth="2"/><path d="M4 15l8 4 8-4" stroke="currentColor" strokeWidth="2"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M12 3l8 4-8 4-8-4 8-4Z" stroke="currentColor" strokeWidth="2"/><path d="M4 11l8 4 8-4" stroke="currentColor" strokeWidth="2"/><path d="M4 15l8 4 8-4" stroke="currentColor" strokeWidth="2"/></svg>;
 }
 function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
-  return <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="2"/><circle cx="16" cy="11" r="3" stroke="currentColor" strokeWidth="2"/><path d="M3 20a5 5 0 0 1 7-4.6M14 20a5 5 0 0 1 5-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+  return <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="2"/><circle cx="16" cy="11" r="3" stroke="currentColor" strokeWidth="2"/><path d="M3 20a5 5 0 0 1 7-4.6M14 20a5 5 0 0 1 5-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>;
 }
 function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -322,5 +313,22 @@ function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
       <path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
       <path d="M10 12h10M17 9l3 3-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
-  )
+  );
+}
+function MoneyIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+    </svg>
+  );
+}
+function CreditCardIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+      <path d="M2 10h20" stroke="currentColor" strokeWidth="2"/>
+      <rect x="6" y="14" width="6" height="2" rx="1" stroke="currentColor" strokeWidth="2"/>
+    </svg>
+  );
 }
