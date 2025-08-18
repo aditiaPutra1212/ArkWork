@@ -1,11 +1,14 @@
+// frontend/src/app/auth/signup_perusahaan/page.tsx
 'use client';
 
 import { useMemo, useRef, useState, type FormEvent, type MouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
-import { useAuth } from '@/hooks/useAuth';
 import Logo from '@/app/Images/Ungu__1_-removebg-preview.png';
+
+/* --------------------------------- Config --------------------------------- */
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:4000';
 
 /* --------------------------------- Types --------------------------------- */
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -14,12 +17,12 @@ type PackageId = 'free' | 'starter' | 'basic' | 'business' | 'premium';
 type Package = { id: PackageId; title: string; price: number; features: string[] };
 
 type CompanyProfile = {
-  logo?: string;
+  logo?: string; // dataURL preview (opsional)
   name: string;
   email: string;
   website?: string;
   industry?: string;
-  size?: string;
+  size?: string; // UI string, nanti di-map ke enum backend
   about?: string;
   address?: string;
   city?: string;
@@ -62,22 +65,49 @@ function cx(...s: (string | false | null | undefined)[]) {
 function formatIDR(n: number) {
   return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n);
 }
-function normalizeUrl(u: string) {
-  const v = u.trim();
-  if (!v) return '';
+function normalizeUrl(u?: string) {
+  const v = (u ?? '').trim();
+  if (!v) return undefined;
   return /^https?:\/\//i.test(v) ? v : `https://${v}`;
+}
+// Map ukuran UI → enum backend CompanySize
+function mapSizeToEnum(ui?: string): string | undefined {
+  switch ((ui ?? '').trim()) {
+    case '1-10': return '_1_10';
+    case '11-50': return '_11_50';
+    case '51-200': return '_51_200';
+    case '201-500': return '_201_500';
+    case '500+':   return '_501_1000'; // fallback aman
+    default: return undefined;
+  }
+}
+// helper POST
+async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    let msg = 'Request failed';
+    try {
+      const j = await res.json();
+      msg = j?.error || j?.message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+  return res.json();
 }
 
 /* --------------------------------- Page ---------------------------------- */
 export default function Page() {
   const t = useTranslations('companySignup');
 
-  // ⬇️ langsung pakai API dari hook (tanpa cast)
-  const { signup, signupCompany } = useAuth();
-
   const [step, setStep] = useState<Step>(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [employerId, setEmployerId] = useState<string | null>(null);
 
   /* ------------------------------ Step 1 form ----------------------------- */
   const [company, setCompany] = useState('');
@@ -111,14 +141,18 @@ export default function Page() {
         website: normalizeUrl(website),
       };
 
-      // kalau hook punya signupCompany → pakai itu,
-      // kalau belum ada endpoint backend-nya, fallback ke signup user biasa
-      if (typeof signupCompany === 'function') {
-        await signupCompany(payload);
-      } else {
-        await signup(payload.companyName, payload.email, payload.password);
-      }
+      // Backend Step 1 (samakan dengan validator backend)
+      const resp = await apiPost<{ ok: true; employerId: string; slug: string }>('/api/employers/step1', {
+        companyName: payload.companyName,
+        displayName: payload.companyName,
+        email: payload.email,
+        website: payload.website,
+        password: payload.password,
+        confirmPassword: confirm,
+        agree: true,
+      });
 
+      setEmployerId(resp.employerId);
       setStep(2);
     } catch (err: unknown) {
       setError((err as { message?: string })?.message ?? t('error.default'));
@@ -147,9 +181,35 @@ export default function Page() {
     return null;
   }
 
+  async function submitStep2() {
+    const emsg = validateStep2();
+    if (emsg) throw new Error(emsg);
+    if (!employerId) throw new Error('EmployerId belum tersedia.');
+
+    await apiPost('/api/employers/step2', {
+      employerId,
+      industry: profile.industry || undefined,
+      size: mapSizeToEnum(profile.size),
+      foundedYear: undefined,
+      about: profile.about || undefined,
+      hqCity: profile.city || undefined,
+      hqCountry: undefined,
+      logoUrl: undefined,   // kalau sudah upload ke storage, kirim URL-nya di sini
+      bannerUrl: undefined,
+    });
+  }
+
   /* ------------------------------ Step 3: Paket ------------------------------ */
   const [selectedPkg, setSelectedPkg] = useState<PackageId>('free');
   const currentPkg = useMemo<Package | undefined>(() => PACKAGES.find((p) => p.id === selectedPkg), [selectedPkg]);
+
+  async function submitStep3() {
+    if (!employerId) throw new Error('EmployerId belum tersedia.');
+    await apiPost('/api/employers/step3', {
+      employerId,
+      planSlug: selectedPkg,
+    });
+  }
 
   /* ----------------------------- Step 4: Job form ---------------------------- */
   const [job, setJob] = useState<NewJob>({
@@ -171,6 +231,60 @@ export default function Page() {
     return null;
   }
 
+  async function submitStep4() {
+    const emsg = validateStep4();
+    if (emsg) throw new Error(emsg);
+    if (!employerId) throw new Error('EmployerId belum tersedia.');
+
+    // Backend job hanya menampung sebagian field → gabungkan sisanya ke deskripsi
+    const extra = [
+      job.functionArea && `Bidang: ${job.functionArea}`,
+      job.level && `Level: ${job.level}`,
+      job.workMode && `Mode: ${job.workMode}`,
+      job.deadline && `Batas Lamar: ${job.deadline}`,
+      job.requirements && `\n\nKualifikasi:\n${job.requirements}`,
+      job.tags && `\n\nTags: ${job.tags}`,
+    ].filter(Boolean).join('\n');
+
+    await apiPost<{ ok: true; jobId: string }>('/api/employers/step4', {
+      employerId,
+      title: job.title.trim(),
+      description: `${job.description}${extra ? `\n\n${extra}` : ''}`,
+      location: job.location,
+      employment: job.type.replace('_', '-'),
+    });
+  }
+
+  /* -------------------------------- Submit step 5 ------------------------------- */
+  async function onFinish(e: MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      if (!employerId) throw new Error('EmployerId belum tersedia.');
+
+      // Step 2 → Step 3 → Step 4 kalau user lompat (guard)
+      if (step <= 2) await submitStep2();
+      if (step <= 3) await submitStep3();
+      if (step <= 4) await submitStep4();
+
+      // Step 5: Verifikasi (tanpa file dahulu)
+      await apiPost('/api/employers/step5', {
+        employerId,
+        note: `Verifikasi otomatis dari UI. Company: ${profile.name}`,
+        files: [],
+      });
+
+      alert('Data terkirim! Akun perusahaan akan diverifikasi.');
+    } catch (err: unknown) {
+      setError((err as { message?: string })?.message || 'Gagal mengirim.');
+      return;
+    } finally {
+      setBusy(false);
+    }
+  }
+
   /* ------------------------------ Stepper UI ------------------------------ */
   const steps = [
     { n: 1, label: 'Buat Akun' },
@@ -179,22 +293,6 @@ export default function Page() {
     { n: 4, label: 'Pasang Lowongan' },
     { n: 5, label: 'Verifikasi' },
   ];
-
-  /* -------------------------------- Submit -------------------------------- */
-  async function onFinish(e: MouseEvent<HTMLButtonElement>) {
-    e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      // TODO: kirim profile + paket + job ke backend kalau endpointnya sudah ada
-      await new Promise((r) => setTimeout(r, 900));
-      alert('Data terkirim! Akun perusahaan akan diverifikasi.');
-    } catch (err: unknown) {
-      setError((err as { message?: string })?.message || 'Gagal mengirim.');
-    } finally {
-      setBusy(false);
-    }
-  }
 
   /* --------------------------------- Render --------------------------------- */
   return (
@@ -533,15 +631,22 @@ export default function Page() {
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    const emsg = validateStep2();
-                    if (emsg) return setError(emsg);
-                    setError(null);
-                    setStep(3);
+                  onClick={async () => {
+                    try {
+                      setBusy(true);
+                      setError(null);
+                      await submitStep2();
+                      setStep(3);
+                    } catch (e: any) {
+                      setError(e?.message || 'Gagal menyimpan profil.');
+                    } finally {
+                      setBusy(false);
+                    }
                   }}
-                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                  disabled={busy}
                 >
-                  Selanjutnya
+                  {busy ? 'Menyimpan…' : 'Selanjutnya'}
                 </button>
               </div>
             </div>
@@ -604,10 +709,22 @@ export default function Page() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStep(4)}
-                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+                  onClick={async () => {
+                    try {
+                      setBusy(true);
+                      setError(null);
+                      await submitStep3();
+                      setStep(4);
+                    } catch (e: any) {
+                      setError(e?.message || 'Gagal memilih paket.');
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                  disabled={busy}
                 >
-                  Selanjutnya
+                  {busy ? 'Menyimpan…' : 'Selanjutnya'}
                 </button>
               </div>
             </div>
@@ -766,15 +883,22 @@ export default function Page() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    const emsg = validateStep4();
-                    if (emsg) return setError(emsg);
-                    setError(null);
-                    setStep(5);
+                  onClick={async () => {
+                    try {
+                      setBusy(true);
+                      setError(null);
+                      await submitStep4();
+                      setStep(5);
+                    } catch (e: any) {
+                      setError(e?.message || 'Gagal menyimpan lowongan.');
+                    } finally {
+                      setBusy(false);
+                    }
                   }}
-                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+                  className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+                  disabled={busy}
                 >
-                  Selanjutnya
+                  {busy ? 'Menyimpan…' : 'Selanjutnya'}
                 </button>
               </div>
             </div>
