@@ -9,7 +9,8 @@ import path from 'node:path';
 import authRouter from './routes/auth';
 import newsRouter from './routes/news';
 import chatRouter from './routes/chat';
-import adminRouter from './routes/admin';            // ⬅️ tambahkan ini
+import adminRouter from './routes/admin';          // ⬅️ admin
+import { employerRouter } from './routes/employer' // ⬅️ employer (5 step signup)
 
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
@@ -49,9 +50,10 @@ app.get('/health', (_req, res) => res.json({ ok: true }));
 
 // --- Routes ---
 app.use('/auth', authRouter);
-app.use('/admin', adminRouter);                     // ⬅️ mount router admin di sini
+app.use('/admin', adminRouter);                      // ⬅️ admin route
 app.use('/api/news', newsRouter);
 app.use('/api/chat', chatRouter);
+app.use('/api/employers', employerRouter);           // ⬅️ employer signup API
 
 // 404 (letakkan PALING AKHIR)
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
