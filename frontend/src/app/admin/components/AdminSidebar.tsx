@@ -1,88 +1,189 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 
+/**
+ * AdminSidebar (final, merged)
+ * - Logout langsung ke /auth/signin (router.replace)
+ * - Mobile drawer + desktop collapsed
+ * - A11y & UX kecil
+ */
 export default function AdminSidebar() {
   const currentPath = usePathname() ?? ''
-  const [open, setOpen] = useState(false)
+  const router = useRouter()
+  const { signout, user } = useAuth()
 
+  const [open, setOpen] = useState(false)      // mobile
+  const [busy, setBusy] = useState(false)      // logout state
+  const [collapsed, setCollapsed] = useState(false) // desktop collapse
+
+  // tutup drawer saat route berubah
   useEffect(() => setOpen(false), [currentPath])
 
+  // lock body scroll saat drawer open
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = open ? 'hidden' : prev || ''
     return () => { document.body.style.overflow = prev || '' }
   }, [open])
 
+  // ESC menutup drawer
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   const handleOpenMenu = useCallback(() => setOpen(true), [])
   const handleCloseMenu = useCallback(() => setOpen(false), [])
 
-  const menu = [
+  // LOGOUT → hapus sesi + redirect ke /auth/signin
+  const handleLogout = useCallback(async () => {
+    try {
+      setBusy(true)
+      await signout()
+      router.replace('/auth/signin')
+      router.refresh()
+    } catch (e) {
+      console.error('Logout failed:', e)
+    } finally {
+      setBusy(false)
+    }
+  }, [router, signout])
+
+  // menu
+  const menu = useMemo(() => ([
     { name: 'Dashboard', path: '/admin', icon: HomeIcon },
     { name: 'Manage Landing Page', path: '/admin/landing', icon: LayoutIcon },
     { name: 'Jobs Management', path: '/admin/jobs', icon: BriefcaseIcon },
     { name: 'Tenders Management', path: '/admin/tenders', icon: LayersIcon },
     { name: 'User Management', path: '/admin/users', icon: UsersIcon },
-  ]
+  ]), [])
 
   const isActive = (path: string) =>
     path === '/admin' ? currentPath === path : currentPath === path || currentPath.startsWith(path + '/')
 
+  function Item({ name, path, Icon }: { name: string; path: string; Icon: (p: React.SVGProps<SVGSVGElement>) => JSX.Element }) {
+    const active = isActive(path)
+    return (
+      <li>
+        <Link
+          href={path}
+          aria-current={active ? 'page' : undefined}
+          className={[
+            'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition',
+            'ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60',
+            active
+              ? 'bg-white/10 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]'
+              : 'text-white/85 hover:bg-white/8 hover:text-white',
+          ].join(' ')}
+        >
+          <span
+            className={[
+              'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full',
+              active ? 'bg-amber-400' : 'bg-transparent group-hover:bg-white/20',
+            ].join(' ')}
+          />
+          <Icon className="h-5 w-5 opacity-95" />
+          <span className="truncate">{name}</span>
+        </Link>
+      </li>
+    )
+  }
+
+  /* ---------------------- Desktop Sidebar ---------------------- */
   const Desktop = (
     <aside
       aria-label="Admin navigation"
-      className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-72 flex-col border-r border-blue-900/15 bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 text-white"
+      className={[
+        'hidden md:flex fixed left-0 top-0 z-40 h-screen flex-col border-r border-white/10',
+        'bg-[radial-gradient(1200px_600px_at_-200px_-200px,#1e3a8a_0%,#0b1736_40%,#0a1228_100%)] text-white',
+        'transition-[width] duration-300 ease-in-out',
+        collapsed ? 'w-20' : 'w-72',
+      ].join(' ')}
     >
-      <div className="flex h-16 items-center px-4 border-b border-white/10">
-        <div className="h-9 w-9 rounded-xl bg-white/10 grid place-items-center">
+      <div className="flex h-16 items-center px-3 border-b border-white/10/50">
+        <button
+          onClick={() => setCollapsed(v => !v)}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 hover:bg-white/5 active:scale-95 transition"
+        >
           <SparkIcon className="h-5 w-5 text-white" />
-        </div>
-        <div className="ml-3 leading-tight">
-          <div className="text-sm font-semibold">Admin Panel</div>
-          <div className="text-xs text-white/70">ArkWork CMS</div>
-        </div>
+        </button>
+        {!collapsed && (
+          <div className="ml-3 leading-tight">
+            <div className="text-sm font-semibold">Admin Panel</div>
+            <div className="text-xs text-white/70">ArkWork CMS</div>
+          </div>
+        )}
       </div>
 
-      <nav className="mt-1 flex-1 overflow-y-auto px-2">
+      <nav className="mt-2 flex-1 overflow-y-auto px-2">
+        <p className={[
+          'px-3 text-[10px] uppercase tracking-wider text-white/50 mb-2',
+          collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100',
+        ].join(' ')}>
+          Main
+        </p>
         <ul className="space-y-1" role="list">
-          {menu.map(({ name, path, icon: Icon }) => {
-            const active = isActive(path)
-            return (
-              <li key={path}>
-                <Link
-                  href={path}
-                  aria-current={active ? 'page' : undefined}
-                  className={[
-                    'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition',
-                    active ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white',
-                  ].join(' ')}
-                >
-                  <span
-                    className={[
-                      'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full',
-                      active ? 'bg-amber-400' : 'bg-transparent',
-                    ].join(' ')}
-                  />
-                  <Icon className="h-5 w-5" />
-                  <span className="truncate">{name}</span>
-                </Link>
-              </li>
-            )
-          })}
+          {menu.map(({ name, path, icon: Icon }) => (
+            <Item key={path} name={name} path={path} Icon={Icon} />
+          ))}
+          {/* Logout item (desktop list) */}
+          <li>
+            <button
+              onClick={handleLogout}
+              disabled={busy}
+              className={[
+                'group relative w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition text-left',
+                'text-red-100 hover:bg-red-500/10 hover:text-white ring-0 focus-visible:ring-2 focus-visible:ring-red-400/60 disabled:opacity-60',
+              ].join(' ')}
+            >
+              <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-transparent group-hover:bg-red-400" />
+              <LogoutIcon className="h-5 w-5" />
+              {!collapsed && <span className="truncate">{busy ? 'Logging out…' : 'Logout'}</span>}
+            </button>
+          </li>
         </ul>
       </nav>
 
-      <div className="mt-auto border-t border-white/10 px-4 py-3 text-xs text-white/70">
-        © {new Date().getFullYear()} ArkWork Admin
+      <div className="mt-auto border-t border-white/10 px-3 py-3">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10 grid place-items-center ring-1 ring-white/10">
+            <UsersIcon className="h-4 w-4" />
+          </div>
+        {!collapsed && (
+            <div className="min-w-0 leading-tight">
+              <div className="text-xs font-semibold">Administrator</div>
+              <div className="text-[11px] text-white/60 truncate">{user?.email ?? 'admin@arkwork.local'}</div>
+            </div>
+          )}
+          {!collapsed && (
+            <button
+              onClick={handleLogout}
+              disabled={busy}
+              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs hover:bg-white/10 active:scale-95 transition disabled:opacity-60"
+              aria-label="Logout"
+            >
+              <LogoutIcon className="h-3.5 w-3.5" />
+              <span>{busy ? 'Logging…' : 'Logout'}</span>
+            </button>
+          )}
+        </div>
+        <div className={['mt-3 text-[11px] text-white/60', collapsed ? 'text-center' : ''].join(' ')}>
+          © {new Date().getFullYear()} ArkWork Admin
+        </div>
       </div>
     </aside>
   )
 
+  /* ---------------------- Render ---------------------- */
   return (
     <>
-      {/* Topbar mobile */}
+      {/* Mobile Topbar */}
       <div className="md:hidden sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-neutral-200">
         <div className="h-14 flex items-center justify-between px-3">
           <button
@@ -94,7 +195,7 @@ export default function AdminSidebar() {
           </button>
 
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-blue-600 grid place-items-center">
+            <div className="h-8 w-8 rounded-xl bg-blue-600 grid place-items-center shadow-sm">
               <SparkIcon className="h-4 w-4 text-white" />
             </div>
             <div className="text-sm font-semibold">Admin Panel</div>
@@ -112,7 +213,7 @@ export default function AdminSidebar() {
         />
       )}
 
-      {/* Drawer mobile */}
+      {/* Mobile Drawer */}
       <aside
         role="dialog"
         aria-modal="true"
@@ -143,30 +244,39 @@ export default function AdminSidebar() {
 
           <nav className="flex-1 overflow-y-auto px-2">
             <ul className="space-y-1" role="list">
-              {menu.map(({ name, path, icon: Icon }) => {
-                const active = isActive(path)
-                return (
-                  <li key={path}>
-                    <Link
-                      href={path}
-                      aria-current={active ? 'page' : undefined}
+              {menu.map(({ name, path, icon: Icon }) => (
+                <li key={path}>
+                  <Link
+                    href={path}
+                    aria-current={isActive(path) ? 'page' : undefined}
+                    className={[
+                      'group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition',
+                      isActive(path) ? 'bg-white/10 text-white' : 'text-white/85 hover:bg-white/8 hover:text-white',
+                    ].join(' ')}
+                  >
+                    <span
                       className={[
-                        'group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition',
-                        active ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white',
+                        'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full',
+                        isActive(path) ? 'bg-amber-400' : 'bg-transparent',
                       ].join(' ')}
-                    >
-                      <span
-                        className={[
-                          'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full',
-                          active ? 'bg-amber-400' : 'bg-transparent',
-                        ].join(' ')}
-                      />
-                      <Icon className="h-5 w-5" />
-                      <span className="truncate">{name}</span>
-                    </Link>
-                  </li>
-                )
-              })}
+                    />
+                    <Icon className="h-5 w-5" />
+                    <span className="truncate">{name}</span>
+                  </Link>
+                </li>
+              ))}
+              {/* Logout mobile */}
+              <li>
+                <button
+                  onClick={async () => { await handleLogout(); setOpen(false) }}
+                  disabled={busy}
+                  className="group relative w-full flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition text-left text-red-100 hover:bg-red-500/10 hover:text-white disabled:opacity-60"
+                >
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-transparent group-hover:bg-red-400" />
+                  <LogoutIcon className="h-5 w-5" />
+                  <span className="truncate">{busy ? 'Logging out…' : 'Logout'}</span>
+                </button>
+              </li>
             </ul>
           </nav>
 
@@ -181,7 +291,7 @@ export default function AdminSidebar() {
   )
 }
 
-/* Icons */
+/* ----------------------------- Icons ----------------------------- */
 function BurgerIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
 }
@@ -205,4 +315,12 @@ function LayersIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
   return <svg viewBox="0 0 24 24" fill="none" {...props}><circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="2"/><circle cx="16" cy="11" r="3" stroke="currentColor" strokeWidth="2"/><path d="M3 20a5 5 0 0 1 7-4.6M14 20a5 5 0 0 1 5-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+}
+function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <path d="M10 12h10M17 9l3 3-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
 }
