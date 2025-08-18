@@ -1,10 +1,19 @@
 // frontend/src/lib/api.ts
 
-// ====== Backend helper (admin & lainnya) ======
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+/* ====================== Backend helper (admin & lainnya) ====================== */
 
-type Opts = RequestInit & { json?: any };
+export const API_BASE =
+  // dukung dua nama env, pilih salah satu yang ada
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE ||
+  'http://localhost:4000';
+
+type ApiOpts = RequestInit & {
+  /** Jika diisi, otomatis method=POST dan body=JSON.stringify(json) */
+  json?: any;
+  /** Jika respons 204 No Content, default return null */
+  expectJson?: boolean; // default: true
+};
 
 /**
  * Panggil backend Express (cookie ikut terkirim).
@@ -12,31 +21,36 @@ type Opts = RequestInit & { json?: any };
  *   await api('/admin/signin', { json: { username, password } })
  *   const me = await api('/admin/me')
  */
-export async function api(path: string, opts: Opts = {}) {
-  const { json, headers, ...rest } = opts;
-  const res = await fetch(`${API_BASE}${path}`, {
+export async function api<T = any>(path: string, opts: ApiOpts = {}): Promise<T> {
+  const { json, headers, expectJson = true, ...rest } = opts;
+
+  const init: RequestInit = {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
       ...(headers || {}),
     },
-    ...(json !== undefined ? { method: 'POST', body: JSON.stringify(json) } : {}),
+    ...(json !== undefined ? { method: rest.method ?? 'POST', body: JSON.stringify(json) } : {}),
     ...rest,
-  });
+  };
+
+  const res = await fetch(`${API_BASE}${path}`, init);
 
   if (!res.ok) {
-    let msg = 'Request failed';
+    // coba ambil pesan error dari JSON; kalau gagal pakai fallback
+    let msg = `Request failed ${res.status}`;
     try {
       const data = await res.json();
-      msg = data?.message || data?.error || msg;
-    } catch {}
+      msg = (data?.message || data?.error || msg);
+    } catch { /* ignore */ }
     throw new Error(msg);
   }
-  if (res.status === 204) return null;
-  return res.json();
+
+  if (res.status === 204 || !expectJson) return null as unknown as T;
+  return res.json() as Promise<T>;
 }
 
-// ====== Energy News (Google News RSS → rss2json) ======
+/* ================== Energy News (Google News RSS → rss2json) ================= */
 
 export type Scope = 'id' | 'global' | 'both';
 
@@ -87,8 +101,8 @@ function buildGoogleNewsRssUrl(params: { q: string; lang: string; country: strin
 }
 
 async function fetchRssAsJson(rssUrl: string) {
-  const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-  const res = await fetch(api, { cache: 'no-store' });
+  const rss2jsonUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+  const res = await fetch(rss2jsonUrl, { cache: 'no-store' });
   if (!res.ok) throw new Error(`RSS fetch failed: ${res.status} ${res.statusText}`);
   return res.json() as Promise<{
     items: Array<{
