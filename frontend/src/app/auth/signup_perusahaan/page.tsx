@@ -1,7 +1,7 @@
 // frontend/src/app/auth/signup_perusahaan/page.tsx
 'use client';
 
-import { useMemo, useRef, useState, type FormEvent, type MouseEvent } from 'react';
+import { useMemo, useRef, useState, type FormEvent, type MouseEvent, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
@@ -13,16 +13,25 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:4000';
 /* --------------------------------- Types --------------------------------- */
 type Step = 1 | 2 | 3 | 4 | 5;
 
-type PackageId = 'free' | 'starter' | 'basic' | 'business' | 'premium';
-type Package = { id: PackageId; title: string; price: number; features: string[] };
+// Paket dari backend (publik)
+type Plan = {
+  id: string;
+  slug: string;         // contoh: 'free' | 'starter' | 'basic' | ...
+  name: string;         // judul paket
+  description?: string | null;
+  amount: number;       // IDR integer
+  currency: string;     // 'IDR'
+  interval: string;     // 'month' | 'year'
+  active: boolean;
+};
 
 type CompanyProfile = {
-  logo?: string; // dataURL preview (opsional)
+  logo?: string;
   name: string;
   email: string;
   website?: string;
   industry?: string;
-  size?: string; // UI string, nanti di-map ke enum backend
+  size?: string;
   about?: string;
   address?: string;
   city?: string;
@@ -49,15 +58,6 @@ type SignupCompanyPayload = {
   website?: string;
 };
 
-/* ----------------------------- Static packages ---------------------------- */
-const PACKAGES: Package[] = [
-  { id: 'free', title: 'Free Trial', price: 0, features: ['1 job post', '7 hari aktif', 'Basic listing'] },
-  { id: 'starter', title: 'Starter', price: 149000, features: ['3 job post', '14 hari', 'Highlight listing'] },
-  { id: 'basic', title: 'Basic', price: 249000, features: ['5 job post', '30 hari', 'Badge + highlight'] },
-  { id: 'business', title: 'Business', price: 499000, features: ['12 job post', '45 hari', 'Spotlight beranda'] },
-  { id: 'premium', title: 'Premium', price: 899000, features: ['Unlimited aktif', '60 hari', 'Advanced analytics'] },
-];
-
 /* ------------------------------- Utilities -------------------------------- */
 function cx(...s: (string | false | null | undefined)[]) {
   return s.filter(Boolean).join(' ');
@@ -70,18 +70,18 @@ function normalizeUrl(u?: string) {
   if (!v) return undefined;
   return /^https?:\/\//i.test(v) ? v : `https://${v}`;
 }
-// Map ukuran UI → enum backend CompanySize
+// Map ukuran UI → enum backend CompanySize (opsional, bisa kamu perluas)
 function mapSizeToEnum(ui?: string): string | undefined {
   switch ((ui ?? '').trim()) {
-    case '1-10': return '_1_10';
-    case '11-50': return '_11_50';
-    case '51-200': return '_51_200';
-    case '201-500': return '_201_500';
-    case '500+':   return '_501_1000'; // fallback aman
+    case '1-10': return 'S1_10';
+    case '11-50': return 'S11_50';
+    case '51-200': return 'S51_200';
+    case '201-500': return 'S201_500';
+    case '500+':   return 'S501_1000';
     default: return undefined;
   }
 }
-// helper POST
+// helper POST JSON
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
@@ -141,7 +141,6 @@ export default function Page() {
         website: normalizeUrl(website),
       };
 
-      // Backend Step 1 (samakan dengan validator backend)
       const resp = await apiPost<{ ok: true; employerId: string; slug: string }>('/api/employers/step1', {
         companyName: payload.companyName,
         displayName: payload.companyName,
@@ -194,20 +193,47 @@ export default function Page() {
       about: profile.about || undefined,
       hqCity: profile.city || undefined,
       hqCountry: undefined,
-      logoUrl: undefined,   // kalau sudah upload ke storage, kirim URL-nya di sini
+      logoUrl: undefined,
       bannerUrl: undefined,
     });
   }
 
-  /* ------------------------------ Step 3: Paket ------------------------------ */
-  const [selectedPkg, setSelectedPkg] = useState<PackageId>('free');
-  const currentPkg = useMemo<Package | undefined>(() => PACKAGES.find((p) => p.id === selectedPkg), [selectedPkg]);
+  /* ------------------------------ Step 3: Paket (dinamis) ------------------------------ */
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [selectedSlug, setSelectedSlug] = useState<string>(''); // slug dari plan
+
+  // Ambil paket publik dari backend (aktif saja)
+  useEffect(() => {
+    if (step !== 3) return;
+    (async () => {
+      try {
+        setPlansLoading(true);
+        setError(null);
+        const res = await fetch(`${API_BASE}/api/payments/plans`, { credentials: 'include' });
+        if (!res.ok) throw new Error('Gagal memuat paket');
+        const data = (await res.json()) as Plan[];
+        const active = (data || []).filter(p => p.active);
+        setPlans(active);
+        // default pilih paket pertama kalau belum ada pilihan
+        if (!selectedSlug && active.length > 0) setSelectedSlug(active[0].slug);
+      } catch (e: any) {
+        setError(e?.message || 'Gagal memuat paket');
+      } finally {
+        setPlansLoading(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const currentPlan = useMemo(() => plans.find(p => p.slug === selectedSlug), [plans, selectedSlug]);
 
   async function submitStep3() {
     if (!employerId) throw new Error('EmployerId belum tersedia.');
+    if (!selectedSlug) throw new Error('Silakan pilih paket.');
     await apiPost('/api/employers/step3', {
       employerId,
-      planSlug: selectedPkg,
+      planSlug: selectedSlug, // backend akan mencari plan berdasar slug
     });
   }
 
@@ -236,7 +262,6 @@ export default function Page() {
     if (emsg) throw new Error(emsg);
     if (!employerId) throw new Error('EmployerId belum tersedia.');
 
-    // Backend job hanya menampung sebagian field → gabungkan sisanya ke deskripsi
     const extra = [
       job.functionArea && `Bidang: ${job.functionArea}`,
       job.level && `Level: ${job.level}`,
@@ -263,13 +288,10 @@ export default function Page() {
     setError(null);
     try {
       if (!employerId) throw new Error('EmployerId belum tersedia.');
-
-      // Step 2 → Step 3 → Step 4 kalau user lompat (guard)
       if (step <= 2) await submitStep2();
       if (step <= 3) await submitStep3();
       if (step <= 4) await submitStep4();
 
-      // Step 5: Verifikasi (tanpa file dahulu)
       await apiPost('/api/employers/step5', {
         employerId,
         note: `Verifikasi otomatis dari UI. Company: ${profile.name}`,
@@ -656,46 +678,58 @@ export default function Page() {
           {step === 3 && (
             <div>
               <h2 className="text-xl font-semibold text-slate-900">Pilih Paket</h2>
-              <p className="mt-1 text-sm text-slate-600">Pilih paket sesuai kebutuhan. Bisa upgrade kapan saja.</p>
+              <p className="mt-1 text-sm text-slate-600">Paket di bawah berasal dari konfigurasi admin (Monetisasi).</p>
 
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {PACKAGES.map((p) => {
-                  const active = p.id === selectedPkg;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setSelectedPkg(p.id)}
-                      className={cx(
-                        'text-left rounded-2xl border p-5 transition focus:outline-none',
-                        active ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-300',
-                      )}
-                    >
-                      <div className="flex items-baseline justify-between">
-                        <h3 className={cx('text-lg font-semibold', active ? 'text-blue-700' : 'text-slate-900')}>{p.title}</h3>
-                        <div className={cx('text-sm', active ? 'text-blue-600' : 'text-slate-500')}>{formatIDR(p.price)}</div>
-                      </div>
-                      <ul className="mt-3 space-y-2 text-sm text-slate-600">
-                        {p.features.map((f, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="mt-[2px] h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                            {f}
-                          </li>
-                        ))}
-                      </ul>
-                    </button>
-                  );
-                })}
-              </div>
+              {plansLoading ? (
+                <div className="mt-6 text-slate-500">Memuat paket…</div>
+              ) : (
+                <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {plans.map((p) => {
+                    const active = p.slug === selectedSlug;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setSelectedSlug(p.slug)}
+                        className={cx(
+                          'text-left rounded-2xl border p-5 transition focus:outline-none',
+                          active ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-300',
+                        )}
+                      >
+                        <div className="flex items-baseline justify-between">
+                          <h3 className={cx('text-lg font-semibold', active ? 'text-blue-700' : 'text-slate-900')}>{p.name}</h3>
+                          <div className={cx('text-sm', active ? 'text-blue-600' : 'text-slate-500')}>
+                            {formatIDR(p.amount)}
+                          </div>
+                        </div>
+                        <div className="mt-1 text-xs text-slate-500">/{p.interval}</div>
+                        <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                          {(p.description || '').split('\n').filter(Boolean).slice(0, 4).map((line, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="mt-[2px] h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                              {line}
+                            </li>
+                          ))}
+                          {!p.description && (
+                            <li className="text-slate-500/80">—</li>
+                          )}
+                        </ul>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="mt-6 rounded-2xl border border-slate-200 p-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-600">Paket dipilih</span>
-                  <span className="font-semibold text-slate-900">{currentPkg?.title ?? '-'}</span>
+                  <span className="font-semibold text-slate-900">{currentPlan?.name ?? '-'}</span>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-sm">
                   <span className="text-slate-600">Subtotal</span>
-                  <span className="font-semibold text-slate-900">{currentPkg ? formatIDR(currentPkg.price) : '-'}</span>
+                  <span className="font-semibold text-slate-900">
+                    {currentPlan ? formatIDR(currentPlan.amount) : '-'}
+                  </span>
                 </div>
               </div>
 
@@ -722,7 +756,7 @@ export default function Page() {
                     }
                   }}
                   className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-                  disabled={busy}
+                  disabled={busy || !selectedSlug}
                 >
                   {busy ? 'Menyimpan…' : 'Selanjutnya'}
                 </button>
@@ -807,7 +841,7 @@ export default function Page() {
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-sm text-slate-600">Mode Kerja</span>
+                  <span className="mb-1 block text sm text-slate-600">Mode Kerja</span>
                   <select
                     value={job.workMode}
                     onChange={(e) => setJob((j) => ({ ...j, workMode: e.target.value as NewJob['workMode'] }))}
@@ -924,15 +958,9 @@ export default function Page() {
                 <div className="rounded-2xl border border-slate-200 p-4">
                   <div className="mb-3 text-sm font-semibold text-slate-900">Paket</div>
                   <dl className="space-y-2 text-sm">
-                    <Row label="Nama Paket">{currentPkg?.title ?? '-'}</Row>
-                    <Row label="Harga">{currentPkg ? formatIDR(currentPkg.price) : '-'}</Row>
-                    <Row label="Fitur">
-                      <ul className="mt-1 list-disc pl-4">
-                        {(currentPkg?.features ?? []).map((f, i) => (
-                          <li key={i}>{f}</li>
-                        ))}
-                      </ul>
-                    </Row>
+                    <Row label="Nama Paket">{currentPlan?.name ?? '-'}</Row>
+                    <Row label="Harga">{currentPlan ? formatIDR(currentPlan.amount) : '-'}</Row>
+                    <Row label="Interval">{currentPlan?.interval ?? '-'}</Row>
                   </dl>
                 </div>
 
