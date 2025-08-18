@@ -1,4 +1,3 @@
-// frontend/src/app/auth/signup_perusahaan/components/Step3PostJob.tsx
 'use client';
 
 import Card from './Card';
