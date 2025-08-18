@@ -1,9 +1,11 @@
+// backend/src/routes/auth.ts
 import { Router, Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import * as bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import cookie from "cookie";
+// ⬇️ perbaikan: import fungsi dari cookie, bukan default
+import { serialize, parse } from "cookie";
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -11,7 +13,7 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret-change-me";
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .split(",")
-  .map(s => s.trim().toLowerCase())
+  .map((s) => s.trim().toLowerCase())
   .filter(Boolean);
 
 // ---- Helpers ----
@@ -28,7 +30,7 @@ function verifyToken(t: string) {
 function setAuthCookie(res: Response, token: string) {
   res.setHeader(
     "Set-Cookie",
-    cookie.serialize("token", token, {
+    serialize("token", token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
@@ -44,6 +46,7 @@ const signupSchema = z.object({
   password: z.string().min(8),
   name: z.string().min(2).max(50).optional(),
 });
+
 const signinSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -130,7 +133,7 @@ router.post("/signin", async (req: Request, res: Response) => {
 router.post("/signout", (_req: Request, res: Response) => {
   res.setHeader(
     "Set-Cookie",
-    cookie.serialize("token", "", {
+    serialize("token", "", {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
@@ -145,7 +148,7 @@ router.post("/signout", (_req: Request, res: Response) => {
 router.get("/me", async (req: Request, res: Response) => {
   try {
     const raw = req.headers.cookie || "";
-    const cookies = cookie.parse(raw);
+    const cookies = parse(raw); // ⬅️ perbaikan
     const token = cookies["token"];
     if (!token) return res.status(401).json({ message: "Unauthorized" });
 
@@ -156,9 +159,9 @@ router.get("/me", async (req: Request, res: Response) => {
     });
     if (!user) return res.status(401).json({ message: "Unauthorized" });
 
-    // role dari token sudah cukup; atau bisa juga recompute dari email
     return res.json({ ...user, role: payload.role });
-  } catch {
+  } catch (e) {
+    console.error("ME ERROR:", e);
     return res.status(401).json({ message: "Invalid token" });
   }
 });
