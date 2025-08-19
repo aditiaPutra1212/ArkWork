@@ -9,6 +9,11 @@ import Logo from '@/app/Images/Ungu__1_-removebg-preview.png';
 
 /* --------------------------------- Config --------------------------------- */
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:4000';
+const MIDTRANS_CLIENT_KEY = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? '';
+// Kalau priceId bukan URL penuh, gabungkan dengan BASE ini:
+// contoh sandbox: https://app.sandbox.midtrans.com/payment-links/
+// contoh production: https://app.midtrans.com/payment-links/
+const MIDTRANS_PAYMENT_LINK_BASE = process.env.NEXT_PUBLIC_MIDTRANS_PAYMENT_LINK_BASE ?? '';
 
 /* --------------------------------- Types --------------------------------- */
 type Step = 1 | 2 | 3 | 4 | 5;
@@ -23,6 +28,11 @@ type Plan = {
   currency: string;     // 'IDR'
   interval: string;     // 'month' | 'year'
   active: boolean;
+
+  // ====== tambahan agar bisa Payment Link ======
+  // backend boleh mengembalikan salah satu/begitu saja
+  paymentLinkUrl?: string | null; // URL penuh payment link (paling gampang)
+  priceId?: string | null;        // boleh diisi ID payment link ATAU langsung URL
 };
 
 type CompanyProfile = {
@@ -57,6 +67,20 @@ type SignupCompanyPayload = {
   password: string;
   website?: string;
 };
+
+/* ------------------------------- Globals -------------------------------- */
+declare global {
+  interface Window {
+    snap?: {
+      pay: (token: string, callbacks?: {
+        onSuccess?: (result?: any) => void;
+        onPending?: (result?: any) => void;
+        onError?: (result?: any) => void;
+        onClose?: () => void;
+      }) => void;
+    };
+  }
+}
 
 /* ------------------------------- Utilities -------------------------------- */
 function cx(...s: (string | false | null | undefined)[]) {
@@ -98,6 +122,25 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
     throw new Error(msg);
   }
   return res.json();
+}
+
+// ===== Helper buat Payment Link =====
+function getPaymentLink(plan?: Plan | null): string | null {
+  if (!plan) return null;
+
+  // 1) kalau backend kirim URL full, pakai ini
+  if (plan.paymentLinkUrl && /^https?:\/\//i.test(plan.paymentLinkUrl)) {
+    return plan.paymentLinkUrl;
+  }
+  // 2) kalau priceId sudah URL (kamu boleh taruh link langsung di sini)
+  if (plan.priceId && /^https?:\/\//i.test(plan.priceId)) {
+    return plan.priceId;
+  }
+  // 3) kalau priceId cuma ID, gabungkan dengan BASE dari env
+  if (plan.priceId && MIDTRANS_PAYMENT_LINK_BASE) {
+    return MIDTRANS_PAYMENT_LINK_BASE.replace(/\/+$/, '') + '/' + plan.priceId.replace(/^\/+/, '');
+  }
+  return null;
 }
 
 /* --------------------------------- Page ---------------------------------- */
@@ -226,15 +269,76 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
+  // load Midtrans Snap hanya ketika Step 3 aktif (dipakai kalau tidak ada payment link)
+  useEffect(() => {
+    if (step !== 3) return;
+    if (typeof window === 'undefined') return;
+    if (window.snap || !MIDTRANS_CLIENT_KEY) return;
+    const s = document.createElement('script');
+    s.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    s.setAttribute('data-client-key', MIDTRANS_CLIENT_KEY);
+    s.async = true;
+    document.body.appendChild(s);
+    return () => { document.body.removeChild(s); };
+  }, [step]);
+
   const currentPlan = useMemo(() => plans.find(p => p.slug === selectedSlug), [plans, selectedSlug]);
 
+  // Simpan pilihan paket + ke Payment Link (jika ada) atau Snap (fallback)
   async function submitStep3() {
     if (!employerId) throw new Error('EmployerId belum tersedia.');
     if (!selectedSlug) throw new Error('Silakan pilih paket.');
+
+    // 1) Simpan pilihan paket (berdasar slug)
     await apiPost('/api/employers/step3', {
       employerId,
-      planSlug: selectedSlug, // backend akan mencari plan berdasar slug
+      planSlug: selectedSlug,
     });
+
+    // 2) Dapatkan plan dan cek Payment Link
+    const plan = plans.find(p => p.slug === selectedSlug);
+    if (!plan) throw new Error('Paket tidak ditemukan.');
+
+    const link = getPaymentLink(plan);
+    if (link) {
+      // 3A) Kalau ada Payment Link, buka di tab baru dan lanjut step 4
+      window.open(link, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // 3B) Fallback ke Snap Checkout (kalau tidak ada payment link)
+    const res = await fetch(`${API_BASE}/api/payments/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        planId: plan.id,
+        employerId, // mengaitkan payment ke employer
+        customer: {
+          email: profile.email || email,
+          first_name: profile.name || company,
+        },
+      }),
+    });
+    if (!res.ok) {
+      let msg = 'Gagal memulai pembayaran';
+      try { const j = await res.json(); msg = j?.error || j?.message || msg; } catch {}
+      throw new Error(msg);
+    }
+    const { token, redirect_url } = await res.json();
+
+    if (window.snap?.pay) {
+      await new Promise<void>((resolve, reject) => {
+        window.snap!.pay(token, {
+          onSuccess: () => resolve(),
+          onPending: () => resolve(),
+          onError: (e: any) => reject(e),
+          onClose: () => reject(new Error('Pembayaran ditutup sebelum selesai')),
+        });
+      });
+    } else {
+      window.open(redirect_url, '_blank', 'noopener,noreferrer');
+    }
   }
 
   /* ----------------------------- Step 4: Job form ---------------------------- */
@@ -710,9 +814,7 @@ export default function Page() {
                               {line}
                             </li>
                           ))}
-                          {!p.description && (
-                            <li className="text-slate-500/80">—</li>
-                          )}
+                          {!p.description && <li className="text-slate-500/80">—</li>}
                         </ul>
                       </button>
                     );
@@ -747,10 +849,10 @@ export default function Page() {
                     try {
                       setBusy(true);
                       setError(null);
-                      await submitStep3();
-                      setStep(4);
+                      await submitStep3(); // simpan paket + buka Payment Link ATAU Snap
+                      setStep(4);         // lanjutkan alur onboarding
                     } catch (e: any) {
-                      setError(e?.message || 'Gagal memilih paket.');
+                      setError(e?.message || 'Gagal memulai pembayaran.');
                     } finally {
                       setBusy(false);
                     }
@@ -758,7 +860,7 @@ export default function Page() {
                   className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
                   disabled={busy || !selectedSlug}
                 >
-                  {busy ? 'Menyimpan…' : 'Selanjutnya'}
+                  {busy ? 'Memproses…' : 'Selanjutnya'}
                 </button>
               </div>
             </div>

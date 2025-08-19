@@ -1,14 +1,24 @@
+// src/routes/employer.ts
 import { Router } from 'express';
-import { z } from 'zod';
 import { Step1Schema, Step2Schema, Step3Schema, Step4Schema, Step5Schema } from '../validators/employer';
-import { checkAvailability, createAccount, upsertProfile, choosePlan, createDraftJob, submitVerification } from '../services/employer';
+import {
+  checkAvailability,
+  createAccount,
+  upsertProfile,
+  choosePlan,
+  createDraftJob,
+  submitVerification,
+} from '../services/employer';
 
 export const employerRouter = Router();
 
 // GET /api/employers/availability?slug=...&email=...
 employerRouter.get('/availability', async (req, res, next) => {
   try {
-    const data = await checkAvailability({ slug: req.query.slug as string, email: req.query.email as string });
+    const data = await checkAvailability({
+      slug: req.query.slug as string,
+      email: req.query.email as string,
+    });
     res.json(data);
   } catch (e) { next(e); }
 });
@@ -39,7 +49,7 @@ employerRouter.post('/step2', async (req, res, next) => {
   }
 });
 
-// POST /api/employers/step3
+// POST /api/employers/step3 (pilih paket)
 employerRouter.post('/step3', async (req, res, next) => {
   try {
     const parsed = Step3Schema.parse(req.body);
@@ -51,7 +61,7 @@ employerRouter.post('/step3', async (req, res, next) => {
   }
 });
 
-// POST /api/employers/step4
+// POST /api/employers/step4 (buat draft job)
 employerRouter.post('/step4', async (req, res, next) => {
   try {
     const parsed = Step4Schema.parse(req.body);
@@ -64,7 +74,7 @@ employerRouter.post('/step4', async (req, res, next) => {
   }
 });
 
-// POST /api/employers/step5
+// POST /api/employers/step5 (submit verifikasi)
 employerRouter.post('/step5', async (req, res, next) => {
   try {
     const parsed = Step5Schema.parse(req.body);
@@ -75,3 +85,5 @@ employerRouter.post('/step5', async (req, res, next) => {
     next(e);
   }
 });
+
+export default employerRouter;
