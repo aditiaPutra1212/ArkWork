@@ -1,26 +1,65 @@
 "use client";
 
+// --- ADDED ---
+import { useEffect } from "react"; 
+// -------------
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+// --- ADDED ---
+import { useRouter, useSearchParams } from "next/navigation"; 
+// -------------
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Eye, EyeOff } from "lucide-react"; // ganti ikon
+import { Eye, EyeOff } from "lucide-react"; 
 
 import Logo from "@/app/Images/Ungu__1_-removebg-preview.png";
+// --- ADDED ---
+import { API_BASE } from "@/lib/api"; // Impor API_BASE
+// -------------
 
 /**
- * Unified Auth Page (Sign In / Sign Up)
- * - Google button REMOVED
- * - ArkWork description REMOVED
- * - Clean modern single-card design
+ * Helper Ikon Google (Bisa ditaruh di file terpisah jika mau)
  */
+function GoogleIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 48 48"
+      width="20px"
+      height="20px"
+      aria-hidden="true"
+      {...props}
+    >
+      <path
+        fill="#FFC107"
+        d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+      />
+      <path
+        fill="#FF3D00"
+        d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+      />
+      <path
+        fill="#4CAF50"
+        d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+      />
+      <path
+        fill="#1976D2"
+        d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+      />
+    </svg>
+  );
+}
+
 export default function AuthPage() {
   const tIn = useTranslations("signin");
   const tUp = useTranslations("signup");
   const router = useRouter();
-  const { signin, signup } = useAuth();
+  
+  // --- ADDED ---
+  const { signinUser, signup, user, refresh } = useAuth();
+  const searchParams = useSearchParams();
+  // -------------
 
   type Mode = "signin" | "signup";
   const [mode, setMode] = useState<Mode>("signin");
@@ -43,6 +82,42 @@ export default function AuthPage() {
   const [suShowC, setSuShowC] = useState(false);
   const [suAgree, setSuAgree] = useState(false);
   const [suBusy, setSuBusy] = useState(false);
+  
+  // --- ADDED ---
+  // State untuk loading Google
+  const [googleBusy, setGoogleBusy] = useState(false);
+
+  // Efek untuk menangani callback dari Google
+  useEffect(() => {
+    const fromGoogle = searchParams.get("from");
+    const googleError = searchParams.get("error");
+
+    if (googleError) {
+      setError(tIn("error.google") || "Google sign-in failed. Please try again.");
+      setGoogleBusy(false);
+      // Bersihkan URL dari parameter error
+      router.replace("/auth/signin");
+    } else if (fromGoogle === "google" && !user) {
+      // Sukses dari Google, backend sudah set cookie.
+      // Kita perlu me-refresh state auth di frontend
+      setGoogleBusy(true); // Tampilkan loading
+      setError(null);
+      console.log("Google callback success, refreshing session...");
+      refresh(); // Panggil refresh dari useAuth
+    }
+  }, [searchParams, router, tIn, refresh, user]);
+
+  // Efek untuk me-redirect SETELAH user berhasil di-refresh
+  useEffect(() => {
+    const fromGoogle = searchParams.get("from");
+    // Jika user sudah ada (setelah refresh) DAN kita datang dari Google
+    if (user && fromGoogle === "google") {
+      console.log("User populated after Google refresh, redirecting...");
+      redirectByRole(user);
+      // URL akan otomatis bersih karena kita pindah halaman
+    }
+  }, [user, searchParams]); // Perhatikan 'user'
+  // -------------
 
   const suStrong =
     suPw.length >= 8 &&
@@ -76,7 +151,7 @@ export default function AuthPage() {
     setSiBusy(true);
     setError(null);
     try {
-      const u = await signin(siEmailOrUsername.trim(), siPw);
+      const u = await signinUser(siEmailOrUsername.trim(), siPw);
       if (u) redirectByRole(u);
     } catch (err: any) {
       const msg =
@@ -114,6 +189,47 @@ export default function AuthPage() {
       setSuBusy(false);
     }
   }
+
+  // --- ADDED ---
+  // Handler untuk klik tombol Google
+  function onGoogleSignin() {
+    setGoogleBusy(true);
+    setError(null);
+    // Kita redirect browser ke endpoint backend
+    // Backend akan meng-handle redirect ke Google
+    window.location.href = `${API_BASE}/auth/google`;
+  }
+  // -------------
+
+
+  // --- ADDED ---
+  // Helper JSX untuk Tombol Google (agar tidak duplikat)
+  const googleButton = (
+    <>
+      <div className="relative my-4">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <div className="w-full border-t border-slate-200" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-white px-2 text-slate-500">{tIn("or")}</span>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onGoogleSignin}
+        disabled={googleBusy || siBusy || suBusy}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60"
+      >
+        {googleBusy ? (
+          <span className="mr-2 inline-block animate-spin">⏳</span>
+        ) : (
+          <GoogleIcon className="h-5 w-5" />
+        )}
+        {tIn("googleBtn")}
+      </button>
+    </>
+  );
+  // -------------
 
   return (
     <div className="min-h-[100svh] bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.08),transparent_60%),radial-gradient(ellipse_at_bottom,rgba(99,102,241,0.08),transparent_60%)] from-slate-50 via-white to-slate-100 flex items-center justify-center px-4 py-10">
@@ -245,7 +361,7 @@ export default function AuthPage() {
 
                 <button
                   type="submit"
-                  disabled={siBusy}
+                  disabled={siBusy || googleBusy} // --- MODIFIED ---
                   className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
                 >
                   {siBusy ? (
@@ -257,6 +373,10 @@ export default function AuthPage() {
                     tIn("form.signInBtn")
                   )}
                 </button>
+                
+                {/* --- ADDED --- */}
+                {googleButton}
+                {/* ------------- */}
 
                 <p className="mt-6 text-center text-sm text-slate-600">
                   {tIn("noAccount")}{" "}
@@ -418,7 +538,7 @@ export default function AuthPage() {
 
                 <button
                   type="submit"
-                  disabled={suBusy}
+                  disabled={suBusy || googleBusy} // --- MODIFIED ---
                   className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
                 >
                   {suBusy ? (
@@ -430,6 +550,10 @@ export default function AuthPage() {
                     tUp("createBtn")
                   )}
                 </button>
+
+                {/* --- ADDED --- */}
+                {googleButton}
+                {/* ------------- */}
 
                 <p className="mt-6 text-center text-sm text-slate-600">
                   {tUp("haveAccount")}{" "}

@@ -4,7 +4,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { parse } from 'cookie';
-import { ADMIN_COOKIE, EMP_COOKIE, USER_COOKIE } from '../middleware/role';
+import { ADMIN_COOKIE, EMP_COOKIE, USER_COOKIE } from '../middleware/role'; // USER_COOKIE diimpor tapi tidak dipakai di signin saat ini (hardcoded)
 
 const router = Router();
 
@@ -18,11 +18,6 @@ const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET || JWT_SECRET;
 if (IS_PROD && !JWT_SECRET) console.error('[FATAL] JWT_SECRET is required in production');
 if (IS_PROD && !process.env.JWT_ADMIN_SECRET) console.error('[FATAL] JWT_ADMIN_SECRET is recommended (should differ from JWT_SECRET)');
 
-/**
- * Cookie defaults:
- * - In production: prefer SameSite=none + secure=true for cross-site cookies under HTTPS.
- * - In development: sameSite=lax + secure=false to allow http://localhost usage.
- */
 const COOKIE_SAMESITE = (process.env.COOKIE_SAMESITE as 'lax' | 'none' | 'strict') || (IS_PROD ? 'none' : 'lax');
 const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || (IS_PROD && COOKIE_SAMESITE === 'none');
 
@@ -37,7 +32,7 @@ const JWT_ADMIN_ISSUER = process.env.JWT_ADMIN_ISSUER || 'arkwork-admin';
 const JWT_ADMIN_AUDIENCE = process.env.JWT_ADMIN_AUDIENCE || 'arkwork-admins';
 
 /* ===== helpers ===== */
-type JWTPayload = { uid: string; role: 'user' | 'admin' | 'employer'; eid?: string | null };
+type JWTPayload = { uid: string; role: 'user' | 'admin' | 'employer'; iat?: number; exp?: number; aud?: string; iss?: string };
 
 function signUserToken(payload: { uid: string; role?: string }) {
   if (!JWT_SECRET) throw new Error('JWT_SECRET not set');
@@ -57,20 +52,17 @@ function signAdminToken(payload: { uid: string; role?: string }) {
   });
 }
 
-function verifyUserToken(token: string) {
+function verifyUserToken(token: string): JWTPayload {
   if (!JWT_SECRET) throw new Error('JWT_SECRET not set');
-  return jwt.verify(token, JWT_SECRET, { issuer: JWT_USER_ISSUER, audience: JWT_USER_AUDIENCE }) as any;
+  return jwt.verify(token, JWT_SECRET, { issuer: JWT_USER_ISSUER, audience: JWT_USER_AUDIENCE }) as JWTPayload;
 }
 
-function verifyAdminToken(token: string) {
+function verifyAdminToken(token: string): JWTPayload {
   if (!JWT_ADMIN_SECRET) throw new Error('JWT_ADMIN_SECRET not set');
-  return jwt.verify(token, JWT_ADMIN_SECRET, { issuer: JWT_ADMIN_ISSUER, audience: JWT_ADMIN_AUDIENCE }) as any;
+  return jwt.verify(token, JWT_ADMIN_SECRET, { issuer: JWT_ADMIN_ISSUER, audience: JWT_ADMIN_AUDIENCE }) as JWTPayload;
 }
 
-/**
- * Use Express res.cookie so Express will set full Set-Cookie header properly.
- * maxAge in res.cookie is milliseconds.
- */
+// Fungsi setCookie masih ada tapi tidak dipakai di signin saat ini
 function setCookie(res: Response, name: string, token: string, maxAgeSec = 7 * 24 * 60 * 60) {
   const opts: any = {
     httpOnly: true,
@@ -79,17 +71,20 @@ function setCookie(res: Response, name: string, token: string, maxAgeSec = 7 * 2
     path: '/',
     maxAge: maxAgeSec * 1000,
   };
+  console.log(`[AUTH][setCookie] Setting cookie '${name}' with options:`, opts);
   res.cookie(name, token, opts);
 }
 
 function clearCookie(res: Response, name: string) {
-  res.clearCookie(name, {
+  const opts = {
     httpOnly: true,
     sameSite: COOKIE_SAMESITE,
     secure: COOKIE_SECURE,
     path: '/',
     maxAge: 0,
-  });
+  };
+  console.log(`[AUTH][clearCookie] Clearing cookie '${name}' with options:`, opts);
+  res.clearCookie(name, opts);
 }
 
 /* ===== validators ===== */
@@ -111,7 +106,6 @@ const adminSigninSchema = z.object({
 
 /* ===== routes ===== */
 
-// ping
 router.get('/', (_req, res) => res.json({ message: 'Auth route works!' }));
 
 /* ----- USER SIGNUP ----- */
@@ -129,15 +123,17 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
     if (exists) return res.status(409).json({ message: 'Email already used' });
 
     const passwordHash = await bcrypt.hash(password, 10);
+    if (!passwordHash) throw new Error("Failed to hash password");
+
     const user = await prisma.user.create({
       data: { name: name.trim(), email: lowerEmail, passwordHash },
       select: { id: true, name: true, email: true, photoUrl: true, cvUrl: true, createdAt: true },
     });
 
     const token = signUserToken({ uid: user.id, role: 'user' });
-    setCookie(res, USER_COOKIE, token, 30 * 24 * 60 * 60); // 30 hari
+    // Gunakan nama cookie dari env untuk signup (masih pakai setCookie di sini)
+    setCookie(res, USER_COOKIE, token, 30 * 24 * 60 * 60);
 
-    // DEBUG: log Set-Cookie header
     try {
       const sc = res.getHeader('Set-Cookie');
       console.log('[AUTH][SIGNUP] Set-Cookie header ->', sc);
@@ -165,19 +161,26 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction) =
 
     let user;
     let userIdForHashLookup: string | undefined;
+    let userPasswordHash: string | null = null;
 
     if (input.includes('@')) {
       const foundByEmail = await prisma.user.findUnique({
         where: { email: input.toLowerCase() },
-        select: { id: true }
+        select: { id: true, passwordHash: true }
       });
-      if (foundByEmail) userIdForHashLookup = foundByEmail.id;
+      if (foundByEmail) {
+        userIdForHashLookup = foundByEmail.id;
+        userPasswordHash = foundByEmail.passwordHash;
+      }
     } else {
-      const foundByUsername = await prisma.user.findFirst({
+      const foundByName = await prisma.user.findFirst({
         where: { name: input },
-        select: { id: true }
+        select: { id: true, passwordHash: true }
       });
-      if (foundByUsername) userIdForHashLookup = foundByUsername.id;
+      if (foundByName) {
+          userIdForHashLookup = foundByName.id;
+          userPasswordHash = foundByName.passwordHash;
+      }
     }
 
     if (!userIdForHashLookup) {
@@ -185,14 +188,12 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction) =
       return res.status(401).json({ message: 'Email/Username atau password salah' });
     }
 
-    const userWithHash = await prisma.user.findUnique({ where: { id: userIdForHashLookup }, select: { passwordHash: true } });
-
-    if (!userWithHash) {
-      console.error(`[AUTH][SIGNIN][FAIL] Could not retrieve hash for user ID: ${userIdForHashLookup}`);
-      return res.status(401).json({ message: 'Email/Username atau password salah' });
+    if (!userPasswordHash) {
+        console.warn(`[AUTH][SIGNIN][FAIL] User ${input} likely signed up via OAuth and has no password.`);
+        return res.status(401).json({ message: 'Akun ini terdaftar via Google. Silakan login dengan Google.' });
     }
 
-    const ok = await bcrypt.compare(password, userWithHash.passwordHash);
+    const ok = await bcrypt.compare(password, userPasswordHash);
     if (!ok) {
       console.warn(`[AUTH][SIGNIN][FAIL] invalid password for: ${input}`);
       return res.status(401).json({ message: 'Email/Username atau password salah' });
@@ -208,16 +209,45 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction) =
       return res.status(500).json({ message: 'Terjadi kesalahan saat mengambil data user.' });
     }
 
-    const token = signUserToken({ uid: user.id, role: 'user' });
-    setCookie(res, USER_COOKIE, token, 30 * 24 * 60 * 60); // 30 hari
+    // +++ LOG 1 +++
+    console.log('[AUTH][SIGNIN] User verified, creating token for:', user.id);
 
-    // DEBUG: log Set-Cookie header
-    try {
-      const sc = res.getHeader('Set-Cookie');
-      console.log('[AUTH][SIGNIN] Set-Cookie header ->', sc);
-    } catch (err) {
-      console.warn('[AUTH][SIGNIN] Could not read Set-Cookie header:', err);
+    const token = signUserToken({ uid: user.id, role: 'user' });
+
+    // +++ LOG 2 +++
+    console.log('[AUTH][SIGNIN] Token created:', token ? 'OK' : 'FAIL', '- Length:', token?.length);
+
+    // +++ LOG 3 (diganti untuk res.setHeader) +++
+    const cookieName = 'user_token'; // Hardcode untuk tes
+    const maxAgeSeconds = 30 * 24 * 60 * 60;
+    const expires = new Date(Date.now() + maxAgeSeconds * 1000);
+    
+    let cookieString = `${cookieName}=${token}; Max-Age=${maxAgeSeconds}; Expires=${expires.toUTCString()}; Path=/; HttpOnly`;
+    
+    if (COOKIE_SAMESITE) {
+        cookieString += `; SameSite=${COOKIE_SAMESITE}`;
     }
+    if (COOKIE_SECURE) {
+        cookieString += `; Secure`;
+    }
+
+    console.log('[AUTH][SIGNIN] Attempting to set header manually:', cookieString); // LOG BARU sebelum setHeader
+
+    // --- Gunakan res.setHeader ---
+    res.setHeader('Set-Cookie', cookieString);
+    // ----------------------------
+
+    // +++ LOG 4 +++
+    try {
+      const headers = res.getHeaders();
+      const sc = headers['set-cookie'];
+      console.log('[AUTH][SIGNIN] Set-Cookie header(s) IMMEDIATELY AFTER setHeader ->', sc);
+    } catch (err) {
+      console.warn('[AUTH][SIGNIN] Could not read Set-Cookie header IMMEDIATELY after setHeader:', err);
+    }
+
+    // +++ LOG 5 +++
+    console.log('[AUTH][SIGNIN] Preparing to send final JSON response...');
 
     return res.json({ ok: true, user: { ...user, role: 'user' } });
 
@@ -231,51 +261,89 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction) =
 router.post('/signout', (_req: Request, res: Response) => {
   clearCookie(res, USER_COOKIE);
   clearCookie(res, EMP_COOKIE);
+  clearCookie(res, ADMIN_COOKIE);
   return res.status(204).end();
 });
 
 /* ----- ME (restore session) ----- */
 router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const cookies = parse(req.headers.cookie || '');
-    const userToken = cookies[USER_COOKIE];
-    const adminToken = cookies[ADMIN_COOKIE];
-    const employerToken = cookies[EMP_COOKIE];
+  const cookies = parse(req.headers.cookie || '');
+  // Gunakan nama cookie hardcoded juga di sini untuk konsistensi tes
+  const userToken = cookies['user_token'];
+  const adminToken = cookies[ADMIN_COOKIE];
 
-    // Prioritaskan Admin
-    if (adminToken) {
-      if (!JWT_ADMIN_SECRET) return res.status(500).json({ message: 'Server misconfiguration' });
-      try {
-        const payload = verifyAdminToken(adminToken);
-        const a = await prisma.admin.findUnique({ where: { id: payload.uid }, select: { id: true, username: true, createdAt: true } });
-        if (!a) { clearCookie(res, ADMIN_COOKIE); return res.status(401).json({ message: 'Admin not found' }); }
-        return res.json({ ok: true, data: { ...a, role: 'admin' } });
-      } catch (err: any) { console.warn('[AUTH][ME] admin token invalid:', err?.message ?? err); clearCookie(res, ADMIN_COOKIE); }
+  // Prioritaskan Admin
+  if (adminToken) {
+    if (!JWT_ADMIN_SECRET) {
+      console.error('[AUTH][ME] JWT_ADMIN_SECRET is not configured!');
+      return res.status(500).json({ message: 'Server misconfiguration' });
     }
+    try {
+      const payload = verifyAdminToken(adminToken);
+      console.log('[AUTH][ME] Decoded Admin Payload:', payload);
+      if (!payload || !payload.uid) throw new Error("Invalid admin token payload");
 
-    // Employer token placeholder (implement if you have employer JWT)
-    if (employerToken) {
-      // placeholder: continue to next check
+      const a = await prisma.admin.findUnique({
+          where: { id: payload.uid },
+          select: { id: true, username: true, createdAt: true }
+      });
+      if (!a) {
+        console.warn(`[AUTH][ME] Admin not found in DB for uid: ${payload.uid}`);
+        clearCookie(res, ADMIN_COOKIE);
+        return res.status(401).json({ message: 'Admin not found' });
+      }
+      return res.json({ ok: true, data: { ...a, role: 'admin' } });
+    } catch (err: any) {
+      console.warn('[AUTH][ME] admin token verification failed:', err?.message ?? err);
+      clearCookie(res, ADMIN_COOKIE);
+      if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError) {
+          return res.status(401).json({ message: `Unauthorized (Admin): ${err.message}` });
+      }
+      return next(err);
     }
-
-    // User
-    if (userToken) {
-      if (!JWT_SECRET) return res.status(500).json({ message: 'Server misconfiguration' });
-      try {
-        const payload = verifyUserToken(userToken);
-        const u = await prisma.user.findUnique({ where: { id: payload.uid }, select: { id: true, email: true, name: true, photoUrl: true, cvUrl: true, createdAt: true } });
-        if (!u) { clearCookie(res, USER_COOKIE); return res.status(401).json({ message: 'User not found' }); }
-        return res.json({ ok: true, data: { ...u, role: 'user' } });
-      } catch (err: any) { console.warn('[AUTH][ME] user token invalid:', err?.message ?? err); clearCookie(res, USER_COOKIE); }
-    }
-
-    return res.status(401).json({ message: 'Unauthorized: No valid session found' });
-
-  } catch (e: any) {
-    console.error('[AUTH][ME] error:', e);
-    next(e);
   }
+
+  // User Check
+  if (userToken) {
+    if (!JWT_SECRET) {
+        console.error('[AUTH][ME] JWT_SECRET is not configured!');
+        return res.status(500).json({ message: 'Server misconfiguration' });
+    }
+    try {
+      const payload = verifyUserToken(userToken);
+      console.log('[AUTH][ME] Decoded User Payload:', payload);
+
+      if (!payload || !payload.uid) {
+          throw new Error("Invalid user token payload, uid missing");
+      }
+
+      const u = await prisma.user.findUnique({
+        where: { id: payload.uid },
+        select: { id: true, email: true, name: true, photoUrl: true, cvUrl: true, createdAt: true }
+      });
+
+      if (!u) {
+        console.warn(`[AUTH][ME] User not found in DB for uid: ${payload.uid}`);
+        clearCookie(res, 'user_token'); // Gunakan nama hardcoded
+        return res.status(401).json({ message: 'User not found' });
+      }
+
+      return res.json({ ok: true, data: { ...u, role: 'user' } });
+
+    } catch (err: any) {
+      console.warn('[AUTH][ME] user token verification failed:', err?.message ?? err);
+      clearCookie(res, 'user_token'); // Gunakan nama hardcoded
+      if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError) {
+          return res.status(401).json({ message: `Unauthorized (User): ${err.message}` });
+      }
+      return next(err);
+    }
+  }
+
+  // Jika tidak ada token yang valid
+  return res.status(401).json({ message: 'Unauthorized: No valid session found' });
 });
+
 
 /* ----- ADMIN SIGNIN ----- */
 router.post('/admin/signin', async (req: Request, res: Response, next: NextFunction) => {
@@ -289,16 +357,17 @@ router.post('/admin/signin', async (req: Request, res: Response, next: NextFunct
     const admin = await prisma.admin.findUnique({ where: { username } });
     if (!admin) return res.status(401).json({ message: 'Username atau password salah' });
 
-    const adminWithHash = await prisma.admin.findUnique({ where: { username }, select: { passwordHash: true }});
-    if (!adminWithHash) return res.status(401).json({ message: 'Username atau password salah' });
+    if (!admin.passwordHash) {
+         console.error(`[AUTH][ADMIN_SIGNIN][FAIL] Admin ${username} has no password hash.`);
+         return res.status(500).json({ message: 'Konfigurasi akun admin bermasalah.' });
+    }
 
-    const ok = await bcrypt.compare(password, adminWithHash.passwordHash);
+    const ok = await bcrypt.compare(password, admin.passwordHash);
     if (!ok) return res.status(401).json({ message: 'Username atau password salah' });
 
     const token = signAdminToken({ uid: admin.id, role: 'admin' });
-    setCookie(res, ADMIN_COOKIE, token, 7 * 24 * 60 * 60); // 7 hari
+    setCookie(res, ADMIN_COOKIE, token, 7 * 24 * 60 * 60);
 
-    // DEBUG: log Set-Cookie header
     try {
       const sc = res.getHeader('Set-Cookie');
       console.log('[AUTH][ADMIN_SIGNIN] Set-Cookie header ->', sc);
@@ -316,6 +385,8 @@ router.post('/admin/signin', async (req: Request, res: Response, next: NextFunct
 /* ----- ADMIN SIGNOUT ----- */
 router.post('/admin/signout', (_req: Request, res: Response) => {
   clearCookie(res, ADMIN_COOKIE);
+  clearCookie(res, USER_COOKIE);
+  clearCookie(res, EMP_COOKIE);
   return res.status(204).end();
 });
 

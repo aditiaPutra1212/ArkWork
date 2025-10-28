@@ -9,11 +9,36 @@ const apiBase = (process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000').re
 const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
-    // Proxy /api/* ke backend
-    // Proxy /auth/* ke backend (PENTING agar Signin/Me cookie bekerja lewat dev proxy)
+    console.log(`[Next.js Proxy] Rewriting API calls to: ${apiBase}`);
     return [
-      { source: '/api/:path*', destination: `${apiBase}/api/:path*` },
-      { source: '/auth/:path*', destination: `${apiBase}/auth/:path*` },
+      // --- Specific rule for signin FIRST ---
+      {
+        source: '/api/auth/signin', // Path frontend calls
+        destination: `${apiBase}/auth/signin` // Path target on backend
+      },
+      // --- General /api rule AFTER the specific one ---
+      {
+        source: '/api/:path*', // Catches other /api calls
+        destination: `${apiBase}/api/:path*`
+      },
+      // --- Auth rules (non-conflicting with pages) ---
+      {
+        source: '/auth/me',
+        destination: `${apiBase}/auth/me`
+      },
+      {
+        source: '/auth/signup',
+        destination: `${apiBase}/auth/signup`
+      },
+      {
+        source: '/auth/signout',
+        destination: `${apiBase}/auth/signout`
+      },
+      {
+        source: '/auth/google/:path*', // For /auth/google and /auth/google/callback
+        destination: `${apiBase}/auth/google/:path*`
+      },
+      // Add other /auth/* rules here if needed, ensure they don't conflict with frontend pages
     ];
   },
   images: {

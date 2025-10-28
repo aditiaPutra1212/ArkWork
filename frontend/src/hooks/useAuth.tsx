@@ -2,6 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
+// Pastikan path ini benar mengarah ke file api wrapper Anda
 import { api } from '@/lib/api';
 
 type Role = 'user' | 'admin' | 'employer';
@@ -19,22 +20,30 @@ export type UserLite = {
   username?: string | null;
 };
 
+// Tipe konteks otentikasi
 export type AuthCtx = {
-  user: UserLite | null;
-  loading: boolean;
+  user: UserLite | null; // Data pengguna saat ini atau null jika belum login
+  loading: boolean; // Status loading saat memeriksa sesi
+  // Fungsi untuk login pengguna biasa
   signinUser: (usernameOrEmail: string, password: string) => Promise<UserLite>;
+  // Fungsi untuk mendaftar pengguna baru
   signup: (name: string, email: string, password: string) => Promise<UserLite>;
+  // Fungsi untuk login employer (jika ada)
   signinEmployer: (usernameOrEmail: string, password: string) => Promise<UserLite>;
+  // Fungsi untuk login admin (jika ada)
   signinAdmin: (username: string, password: string) => Promise<UserLite>;
+  // Fungsi untuk logout
   signout: () => Promise<void>;
+  // Fungsi untuk memeriksa ulang sesi dengan backend
   refresh: () => Promise<void>;
 };
 
+// Membuat React Context
 const Ctx = createContext<AuthCtx>(null as any);
 
-/* Snapshot cache */
-const LS_KEY = 'ark:auth:user:v1';
-const LS_TTL_MS = 1000 * 60 * 30; // 30 minutes
+/* ================== Manajemen Cache Snapshot di LocalStorage ================== */
+const LS_KEY = 'ark:auth:user:v1'; // Kunci localStorage
+const LS_TTL_MS = 1000 * 60 * 30; // Time-to-live cache: 30 menit
 
 function readSnapshot(): UserLite | null {
   try {
@@ -52,6 +61,7 @@ function readSnapshot(): UserLite | null {
     return null;
   }
 }
+
 function writeSnapshot(user: UserLite | null) {
   try {
     if (typeof window === 'undefined') return;
@@ -60,33 +70,36 @@ function writeSnapshot(user: UserLite | null) {
     } else {
       localStorage.removeItem(LS_KEY);
     }
-  } catch {}
+  } catch (e) {
+      console.warn('[Auth][writeSnapshot] error', e);
+  }
 }
+
 function clearSnapshot() {
   try {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(LS_KEY);
-  } catch {}
+  } catch (e) {
+    console.warn('[Auth][clearSnapshot] error', e);
+  }
 }
 
-/* Display name helpers */
+/* ================== Helper untuk Nama Tampilan ================== */
 const prefixEmail = (e?: string | null) => (e && e.includes('@') ? e.split('@')[0] : e) || '';
 const nameForEmployer = (e: any) => e?.displayName?.trim() || prefixEmail(e?.email) || 'Company';
 const nameForUser = (u: any) => (u?.name && String(u.name).trim()) || prefixEmail(u?.email) || 'User';
 const nameForAdmin = (a: any) => (a?.username?.trim?.() || 'Admin');
 
-/* Flexible extractor helpers */
+/* ================== Helper Ekstraksi Data Respons API ================== */
 function extractData(resp: any) {
-  // backend sometimes returns: { ok: true, data: {...} } OR { ok: true, user: {...} } OR {...}
   if (!resp) return null;
   return resp.data ?? resp.user ?? resp;
 }
 
-/* Mappers */
+/* ================== Mapper Data Pengguna dari API ================== */
 function mapEmployerMe(resp: any): UserLite | null {
   const raw = extractData(resp);
   if (!raw) return null;
-  // backend employer shape may include role or not — be permissive
   const role = (raw.role ?? 'employer').toString().toLowerCase();
   if (role !== 'employer') return null;
   const employerObj = raw.employer ?? (raw.employerId ? { id: raw.employerId, displayName: raw.displayName } : null);
@@ -120,6 +133,7 @@ function mapAdminMe(resp: any): UserLite | null {
   if (!raw) return null;
   const role = (raw.role ?? 'admin').toString().toLowerCase();
   if (role !== 'admin') return null;
+  if (!raw.id) return null;
   return {
     id: raw.id,
     email: raw.username ? `${raw.username}@local` : raw.email ?? null,
@@ -129,7 +143,7 @@ function mapAdminMe(resp: any): UserLite | null {
   };
 }
 
-/* Provider */
+/* ================== Komponen Provider Otentikasi ================== */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserLite | null>(() => readSnapshot());
   const [loading, setLoading] = useState<boolean>(true);
@@ -155,10 +169,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('Auth Refresh: Checking session...');
     setLoading(true);
     try {
-      // Try admin (if on admin area you may call admin me)
+      // Coba cek sesi Admin
       try {
         console.log('Auth Refresh: trying /api/admin/me...');
-        const adm = await api('/api/admin/me');
+        const adm = await api('/api/admin/me'); // Dipanggil via proxy /api/*
         console.log('Auth Refresh: /api/admin/me response:', adm);
         const mapped = mapAdminMe(adm);
         if (mapped) {
@@ -170,10 +184,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth Refresh: admin check failed (ok to continue):', e?.message || e);
       }
 
-      // Try employer
+      // Coba cek sesi Employer
       try {
         console.log('Auth Refresh: trying /api/employers/auth/me...');
-        const emp = await api('/api/employers/auth/me');
+        const emp = await api('/api/employers/auth/me'); // Dipanggil via proxy /api/*
         console.log('Auth Refresh: /api/employers/auth/me response:', emp);
         const mapped = mapEmployerMe(emp);
         if (mapped) {
@@ -185,10 +199,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth Refresh: employer check failed (ok to continue):', e?.message || e);
       }
 
-      // Try normal user
+      // Coba cek sesi User Biasa
       try {
         console.log('Auth Refresh: trying /auth/me...');
-        const u = await api('/auth/me');
+        const u = await api('/auth/me'); // Dipanggil via proxy /auth/*
         console.log('Auth Refresh: /auth/me response:', u);
         const mapped = mapCandidateMe(u);
         if (mapped) {
@@ -200,9 +214,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('Auth Refresh: user check failed (ok to continue):', e?.message || e);
       }
 
-      // No valid session
       console.log('Auth Refresh: no valid session found');
       setUserAndCache(null);
+
     } catch (err) {
       console.error('Auth Refresh: unexpected error', err);
       setUserAndCache(null);
@@ -213,24 +227,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [setUserAndCache]);
 
   useEffect(() => {
-    // initial check
     refresh();
   }, [refresh]);
 
-  /* Actions */
+  /* ================== Aksi Otentikasi ================== */
+
+  // --- Fungsi Login User Biasa ---
   const signinUser = useCallback(async (usernameOrEmail: string, password: string) => {
     console.log('[signinUser] trying', usernameOrEmail);
-    const res = await api('/auth/signin', { json: { usernameOrEmail, password } });
-    console.log('[signinUser] signin response:', res);
-    // After signin cookie set by backend; refresh to pull /auth/me and set state
+    // --- PERUBAHAN DI SINI ---
+    // Panggil API signin via path proxy /api/auth/signin
+    const res = await api('/api/auth/signin', { json: { usernameOrEmail, password } });
+    // --- AKHIR PERUBAHAN ---
+    console.log('[signinUser] signin response:', res); // Seharusnya sekarang JSON
+
+    // Panggil refresh SEGERA setelah signin
     await refresh();
+
     const snap = readSnapshot();
-    if (!snap) throw new Error('Signin succeeded but session not established in client');
+    if (!snap) {
+      console.error('[signinUser] Snapshot still null after refresh');
+      throw new Error('Signin succeeded but session not established in client');
+    }
     return snap;
   }, [refresh]);
 
+  // --- Fungsi Signup User Baru ---
   const signup = useCallback(async (name: string, email: string, password: string) => {
     console.log('[signup] creating', email);
+    // Panggil API signup via proxy /auth/signup (sesuai next.config.mjs)
     const res = await api('/auth/signup', { json: { name, email, password } });
     console.log('[signup] response:', res);
     await refresh();
@@ -239,8 +264,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return snap;
   }, [refresh]);
 
+  // --- Fungsi Login Employer ---
   const signinEmployer = useCallback(async (usernameOrEmail: string, password: string) => {
     console.log('[signinEmployer] trying', usernameOrEmail);
+    // Panggil API signin employer via proxy /api/employers/auth/signin
     const res = await api('/api/employers/auth/signin', { json: { usernameOrEmail, password } });
     console.log('[signinEmployer] response:', res);
     await refresh();
@@ -249,8 +276,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return snap;
   }, [refresh]);
 
+  // --- Fungsi Login Admin ---
   const signinAdmin = useCallback(async (username: string, password: string) => {
     console.log('[signinAdmin] trying', username);
+    // Panggil API signin admin via proxy /api/admin/signin
     const res = await api('/api/admin/signin', { json: { username, password } });
     console.log('[signinAdmin] response:', res);
     await refresh();
@@ -259,11 +288,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return snap;
   }, [refresh]);
 
+  // --- Fungsi Logout ---
   const signout = useCallback(async () => {
     console.log('[signout] calling signout endpoints to clear cookies');
     setLoading(true);
     try {
-      // Try role-based signout first
+      // Panggil endpoint signout yang sesuai (via proxy)
       if (user?.role === 'employer') {
         await api('/api/employers/auth/signout', { method: 'POST', expectJson: false });
       } else if (user?.role === 'admin') {
@@ -273,7 +303,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (e) {
       console.warn('[signout] signout endpoint error (ignored):', e);
-      // attempt to clear all on backend
       try { await api('/api/employers/auth/signout', { method: 'POST', expectJson: false }); } catch {}
       try { await api('/auth/signout', { method: 'POST', expectJson: false }); } catch {}
       try { await api('/api/admin/signout', { method: 'POST', expectJson: false }); } catch {}

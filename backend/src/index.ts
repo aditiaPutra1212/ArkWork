@@ -1,4 +1,3 @@
-// backend/src/index.ts
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
@@ -23,6 +22,8 @@ import adminTendersRouter from './routes/admin-tenders';
 import { jobsRouter } from './routes/jobs';
 import reportsRouter from './routes/reports';
 import ratesRouter from './routes/rates';
+// --- DITAMBAHKAN ---
+import googleRouter from './routes/google'; // ✅ Mengaktifkan rute Google
 
 // NEW
 import applicationsRouter from './routes/applications';
@@ -42,7 +43,7 @@ import { authRequired, employerRequired, adminRequired } from './middleware/role
 // 🔔 Aktifkan CRON billing (warning + recompute)
 import './jobs/billingCron';
 
-// const googleRouter = require('./routes/google'); // ❌ jangan aktifkan dulu
+// const googleRouter = require('./routes/google'); // ❌ Baris ini tidak lagi diperlukan
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -182,7 +183,9 @@ if (NODE_ENV !== 'production' && process.env.DEV_AUTH === '1') {
 /* ================= ROUTES (ORDER MATTERS!) ================= */
 
 /* Public / auth routes */
-app.use('/auth', authRouter); // ✅ pastikan file ini adalah ./routes/auth.ts
+app.use('/auth', authRouter); // ✅ Rute auth email/password
+// --- DITAMBAHKAN ---
+app.use('/auth', googleRouter); // ✅ Rute Google OAuth (/auth/google dan /auth/google/callback)
 
 /* Employer */
 app.use('/api/employers/auth', employerAuthRouter);
@@ -223,7 +226,7 @@ app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   console.error('Unhandled error:', err);
   if (err instanceof Error && err.message.startsWith('Not allowed by CORS')) {
-    return res.status(403).json({ error: 'CORS: Origin not allowed' });
+    return res.status(43).json({ error: 'CORS: Origin not allowed' });
   }
   const status = (typeof err?.status === 'number' && err.status) || 500;
   const msg = NODE_ENV !== 'production' ? err?.message : 'Internal server error';
@@ -237,14 +240,17 @@ function startServer(port: number) {
   server.on('listening', () => {
     console.log('========================================');
     console.log(`🚀 Backend listening on http://localhost:${port}`);
-    console.log(`NODE_ENV           : ${NODE_ENV}`);
+    console.log(`NODE_ENV           : ${NODE_ENV}`);
     console.log(`FRONTEND_ORIGIN(s) : ${allowedOrigins.join(', ')}`);
-    console.log('✅ Billing CRON     : loaded (via import ./jobs/billingCron)');
+    console.log('✅ Billing CRON     : loaded (via import ./jobs/billingCron)');
     if (NODE_ENV !== 'production' && process.env.DEV_AUTH === '1') {
-      console.log('✅ Dev mail route   : GET /dev/mail/try (dev only)');
-      console.log('✅ Dev auth routes  : enabled (dev only)');
+      console.log('✅ Dev mail route   : GET /dev/mail/try (dev only)');
+      console.log('✅ Dev auth routes  : enabled (dev only)');
     }
-    console.log('✅ Passport-ready   : passport initialized and session enabled');
+    console.log('✅ Passport-ready   : passport initialized and session enabled');
+    // --- DITAMBAHKAN ---
+    console.log('✅ Google OAuth     : route /auth/google loaded');
+    // --------------------
     console.log('========================================');
   });
 }

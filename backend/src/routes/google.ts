@@ -74,7 +74,7 @@ passport.use(new GoogleStrategy({
 // serialize/deserialize (not used for JWT flow but harmless)
 passport.serializeUser((user: any, done) => done(null, user.id));
 passport.deserializeUser(async (id: string, done) => {
-  const user = await prisma.user.findUnique({ where: { id }});
+  const user = await prisma.user.findUnique({ where: { id } });
   done(null, user);
 });
 
@@ -84,27 +84,35 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // callback route
 router.get(
   '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/auth?error=google` }),
+  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/auth/signin?error=google` }),
   (req, res) => {
     const user = (req as any).user;
     if (!user) return res.redirect(`${process.env.FRONTEND_URL}/auth?error=google`);
 
     const token = jwt.sign(
-      { sub: user.id, role: user.role ?? 'user' },
-      process.env.JWT_SECRET || 'devsecret',
-      { expiresIn: '7d' }
+      { uid: user.id, role: user.role ?? 'user' }, // Payload
+      process.env.JWT_SECRET || 'devsecret',       // Secret
+      {
+        expiresIn: '7d',
+        audience: 'arkwork-users',
+        issuer: 'arkwork'
+      }
     );
 
     // set httpOnly cookie
-    res.cookie('token', token, {
+    const cookieSecure = (process.env.COOKIE_SECURE || 'false') === 'true';
+    const cookieSameSite = (process.env.COOKIE_SAMESITE || 'lax') as 'lax' | 'strict' | 'none';
+
+    res.cookie(process.env.USER_COOKIE_NAME || 'user_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: cookieSecure,
+      sameSite: cookieSameSite,
       maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
     });
 
     // redirect back to frontend; frontend akan memanggil /me untuk ambil user
-    return res.redirect(`${process.env.FRONTEND_URL}/auth?from=google`);
+    return res.redirect(`${process.env.FRONTEND_URL}/auth/signin?from=google`);
   }
 );
 
