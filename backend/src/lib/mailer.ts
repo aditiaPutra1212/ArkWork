@@ -1,46 +1,119 @@
-// backend/src/lib/mailer.ts
 import nodemailer from 'nodemailer';
 
 const SMTP_HOST = process.env.SMTP_HOST || '';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
-// Disarankan: untuk Gmail, FROM harus sama dengan SMTP_USER (alias yang ter-verifikasi).
-const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || '"ArkWork Billing" <no-reply@arkwork.app>';
+// Use SMTP_USER as fallback FROM, common for Gmail
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || '"ArkWork System" <no-reply@arkwork.app>';
 
-if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-  console.warn('[mailer] SMTP env not fully set. Emails will likely fail.');
+let transporter: nodemailer.Transporter | null = null;
+
+// Only create transporter if config is present
+if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+  transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465, // true for 465, false for other ports
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+  });
+
+  // Verify connection on startup
+  transporter.verify(function(error, success) {
+    if (error) {
+      console.error('[Mailer] SMTP Connection Error:', error);
+      transporter = null; // Disable mailing if connection fails
+    } else {
+      console.log('[Mailer] SMTP Server is ready:', { host: SMTP_HOST, port: SMTP_PORT, from: SMTP_FROM });
+    }
+  });
+
+} else {
+  console.warn('[Mailer] SMTP environment variables not fully set. Email sending disabled.');
 }
 
-export const transporter = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: SMTP_PORT,
-  secure: SMTP_PORT === 465,
-  auth: { user: SMTP_USER, pass: SMTP_PASS },
-});
 
-// tampilkan info agar mudah debug
-transporter
-  .verify()
-  .then(() => {
-    console.log('[mailer] SMTP ready:', { host: SMTP_HOST, port: SMTP_PORT, from: SMTP_FROM });
-  })
-  .catch((err) => console.error('[mailer] SMTP verify failed:', err?.message || err));
-
+/**
+ * Sends an email using the configured transporter.
+ * Throws an error if the mailer is not configured or sending fails.
+ */
 export async function sendEmail(
   to: string | string[],
   subject: string,
   html?: string,
   text?: string
 ) {
+  if (!transporter) {
+    console.error('[Mailer][sendEmail] Attempted to send email but transporter is not configured.');
+    throw new Error('Mailer is not configured properly.'); // Throw error if disabled
+  }
+
   const toHeader = Array.isArray(to) ? to.join(',') : to;
-  const info = await transporter.sendMail({
-    from: SMTP_FROM,
-    to: toHeader,
-    subject,
-    text,
-    html,
-  });
-  console.log('[mailer] sent:', { to: toHeader, subject, messageId: info?.messageId });
-  return info;
+
+  try {
+    const info = await transporter.sendMail({
+      from: SMTP_FROM, // Use configured FROM address
+      to: toHeader,
+      subject,
+      text, // Plain text version
+      html, // HTML version
+    });
+    console.log(`[Mailer][sendEmail] Email sent successfully to ${toHeader} | Subject: "${subject}" | Message ID: ${info.messageId}`);
+    return info;
+  } catch (error) {
+    console.error(`[Mailer][sendEmail] Failed to send email to ${toHeader} | Subject: "${subject}" | Error:`, error);
+    throw error; // Re-throw the error to be handled by the caller
+  }
 }
+
+/**
+ * Sends a verification email to a new user.
+ * @param toEmail Recipient's email address.
+ * @param name Recipient's name (or 'User' if not provided).
+ * @param verificationUrl The unique URL for the user to click.
+ */
+export async function sendVerificationEmail(toEmail: string, name: string | null | undefined, verificationUrl: string) {
+  // Ensure mailer is ready before proceeding
+  if (!transporter) {
+    console.error('[Mailer][sendVerificationEmail] Mailer not configured, skipping verification email.');
+    throw new Error('Mailer is not configured properly, cannot send verification email.');
+  }
+
+  const subject = 'Verify Your ArkWork Account Email';
+  // Use 'User' as a fallback if name is null or empty
+  const recipientName = name?.trim() || 'User';
+
+  // Plain text content
+  const text = `Hello ${recipientName},\n\nPlease verify your email address by clicking the following link:\n${verificationUrl}\n\nThis link will expire in 1 hour.\n\nIf you did not create this account, please ignore this email.\n\nThanks,\nThe ArkWork Team`;
+
+  // HTML content with a clickable link
+  const html = `
+    <p>Hello ${recipientName},</p>
+    <p>Thank you for registering with ArkWork! Please verify your email address by clicking the link below:</p>
+    <p style="margin: 20px 0;">
+      <a href="${verificationUrl}" target="_blank" rel="noopener noreferrer" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
+    </p>
+    <p>This verification link will expire in <strong>1 hour</strong>.</p>
+    <p>If you did not create this account, please disregard this email.</p>
+    <p>Thanks,<br/>The ArkWork Team</p>
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 20px;" />
+    <p style="font-size: 0.8em; color: #6b7280;">If you're having trouble clicking the button, copy and paste this URL into your web browser: ${verificationUrl}</p>
+  `;
+
+  try {
+    // Use the existing sendEmail function
+    await sendEmail(toEmail, subject, html, text);
+    // Success log is already inside sendEmail
+  } catch (error) {
+    // Error log is already inside sendEmail, but re-throw it
+    // so the signup handler knows the email failed.
+    console.error(`[Mailer][sendVerificationEmail] Specific error during verification email send to ${toEmail}:`, error);
+    throw error;
+  }
+}
+
+// Export the transporter and FROM address if needed elsewhere
+export { SMTP_FROM, transporter };

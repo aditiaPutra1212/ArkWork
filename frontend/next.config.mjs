@@ -11,23 +11,29 @@ const nextConfig = {
   async rewrites() {
     console.log(`[Next.js Proxy] Rewriting API calls to: ${apiBase}`);
     return [
-      // --- Specific rule for signin FIRST ---
+      // --- Aturan Spesifik DULU ---
+      // Aturan KHUSUS untuk endpoint signin agar tidak bentrok dengan halaman /auth/signin
       {
-        source: '/api/auth/signin', // Path frontend calls
-        destination: `${apiBase}/auth/signin` // Path target on backend
+        source: '/api/auth/signin', // Path yang dipanggil frontend
+        destination: `${apiBase}/auth/signin` // Path tujuan di backend
       },
-      // --- General /api rule AFTER the specific one ---
+      // ++ ATURAN BARU UNTUK VERIFIKASI ++
       {
-        source: '/api/:path*', // Catches other /api calls
+        source: '/api/auth/verify', // Path yang dipanggil frontend verify page
+        destination: `${apiBase}/auth/verify` // Path tujuan di backend
+      },
+      // --- Aturan Umum /api SETELAHNYA ---
+      {
+        source: '/api/:path*', // Menangkap semua /api/* lainnya
         destination: `${apiBase}/api/:path*`
       },
-      // --- Auth rules (non-conflicting with pages) ---
+      // --- Aturan /auth/* lainnya (yang tidak bentrok dengan halaman frontend) ---
       {
         source: '/auth/me',
         destination: `${apiBase}/auth/me`
       },
       {
-        source: '/auth/signup',
+        source: '/auth/signup', // Endpoint signup API (dipanggil oleh frontend signup form)
         destination: `${apiBase}/auth/signup`
       },
       {
@@ -35,10 +41,10 @@ const nextConfig = {
         destination: `${apiBase}/auth/signout`
       },
       {
-        source: '/auth/google/:path*', // For /auth/google and /auth/google/callback
+        source: '/auth/google/:path*', // Untuk /auth/google (redirect) dan /auth/google/callback
         destination: `${apiBase}/auth/google/:path*`
       },
-      // Add other /auth/* rules here if needed, ensure they don't conflict with frontend pages
+      // Tambahkan aturan /auth/* lain di sini jika ada dan TIDAK bentrok dengan halaman frontend
     ];
   },
   images: {

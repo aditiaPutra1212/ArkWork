@@ -24,10 +24,15 @@ model User {
   oauthProvider String?  // Menyimpan "google", "facebook", dll.
   oauthId       String?  // Menyimpan ID unik dari Google.
 
+  isVerified                Boolean  @default(false)
+  verificationToken         String?  @unique // Token unik untuk verifikasi
+  verificationTokenExpiresAt DateTime? // Waktu kedaluwarsa token
+
   applications JobApplication[]
   savedJobs    SavedJob[]
 
   @@unique([oauthProvider, oauthId])
+  @@index([verificationToken])
 }
 
 model Admin {

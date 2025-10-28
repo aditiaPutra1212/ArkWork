@@ -1,118 +1,167 @@
-// backend/src/routes/google.ts
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express'; // Added Request, Response, NextFunction types
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import jwt from 'jsonwebtoken';
-import { prisma } from '../lib/prisma'; // sesuaikan path; pastikan prisma client export exists
+import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20'; // Added Profile type
+// Removed jwt import here as we'll use helpers from auth.ts
+import { prisma } from '../lib/prisma';
+// --- Import helper functions and constants from auth.ts and middleware ---
+// Adjust the path '../routes/auth' if your auth.ts is elsewhere
+import { signUserToken, setCookie } from './auth';
+// Adjust the path '../middleware/role' if your role.ts is elsewhere
+import { USER_COOKIE } from '../middleware/role';
+// --- End Imports ---
 
 const router = express.Router();
 
+// --- Ensure FRONTEND_URL is defined ---
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+// ---
+
 /**
- * Passport Google strategy
- * - CALLBACK URL: `${BACKEND_URL}/auth/google/callback`
- * - Env: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BACKEND_URL, FRONTEND_URL, JWT_SECRET
+ * Passport Google Strategy
+ * - Requires env vars: GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, BACKEND_URL, FRONTEND_URL, JWT_SECRET, USER_COOKIE_NAME
  */
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID || '',
   clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  // Use BACKEND_URL from env for consistency
   callbackURL: `${process.env.BACKEND_URL || 'http://localhost:4000'}/auth/google/callback`
-}, async (accessToken, refreshToken, profile, done) => {
+},
+async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {
   try {
     const email = profile.emails?.[0]?.value;
-    if (!email) return done(new Error('No email from Google'));
+    if (!email) {
+      console.error('[GoogleStrategy] No email found in Google profile for:', profile.id);
+      return done(new Error('No email address provided by Google.'));
+    }
 
+    const lowerEmail = email.toLowerCase();
     const photo = profile.photos?.[0]?.value ?? null;
     const provider = 'google';
     const providerId = profile.id;
+    const displayName = profile.displayName;
 
-    // find existing by oauthProvider+oauthId first (preferred)
-    let user = null;
-    if (provider && providerId) {
-      user = await prisma.user.findFirst({
-        where: {
-          oauthProvider: provider,
-          oauthId: providerId
-        }
-      });
+    console.log(`[GoogleStrategy] Processing login for email: ${lowerEmail}, Google ID: ${providerId}`);
+
+    // Find existing user by Google ID first
+    let user = await prisma.user.findFirst({
+      where: {
+        oauthProvider: provider,
+        oauthId: providerId
+      }
+    });
+
+    // If not found by Google ID, try finding by email
+    if (!user) {
+      console.log(`[GoogleStrategy] User not found by Google ID ${providerId}, trying email ${lowerEmail}`);
+      user = await prisma.user.findUnique({ where: { email: lowerEmail } });
     }
 
-    // fallback: find by email (existing local account)
     if (!user) {
-      user = await prisma.user.findUnique({ where: { email } });
-    }
-
-    if (!user) {
-      // create user without passwordHash (nullable in schema)
+      // --- Create New User ---
+      console.log(`[GoogleStrategy] No existing user found. Creating new user for ${lowerEmail}`);
       user = await prisma.user.create({
         data: {
-          name: profile.displayName ?? undefined,
-          email,
-          photoUrl: photo ?? undefined,
+          name: displayName, // Use displayName from Google
+          email: lowerEmail,
+          photoUrl: photo,
           oauthProvider: provider,
           oauthId: providerId,
+          isVerified: true, // <<<--- MARK AS VERIFIED
+          // passwordHash remains null
         }
+        // Consider selecting only necessary fields if needed later
       });
+      console.log(`[GoogleStrategy] New user created with ID: ${user.id}`);
     } else {
-      // update oauth fields & profile if needed
+      // --- Update Existing User ---
+      console.log(`[GoogleStrategy] Found existing user ID: ${user.id}. Updating profile and ensuring verification.`);
       user = await prisma.user.update({
         where: { id: user.id },
         data: {
-          name: profile.displayName ?? user.name,
-          photoUrl: photo ?? user.photoUrl,
+          // Update name/photo only if Google provides it and it's different? Or always update?
+          name: displayName ?? user.name, // Keep existing name if Google doesn't provide one
+          photoUrl: photo ?? user.photoUrl, // Keep existing photo if Google doesn't provide one
+          // Link Google account if not already linked
           oauthProvider: user.oauthProvider ?? provider,
           oauthId: user.oauthId ?? providerId,
+          isVerified: true, // <<<--- ENSURE IS VERIFIED
         },
       });
+      console.log(`[GoogleStrategy] User ID ${user.id} updated.`);
     }
 
+    // Pass the user object (with potentially updated fields) to the callback handler
     return done(null, user);
-  } catch (err) {
-    return done(err as Error);
+
+  } catch (err: any) {
+    console.error('[GoogleStrategy] Error during authentication:', err);
+    return done(err); // Pass error to Passport
   }
 }));
 
-// serialize/deserialize (not used for JWT flow but harmless)
-passport.serializeUser((user: any, done) => done(null, user.id));
-passport.deserializeUser(async (id: string, done) => {
-  const user = await prisma.user.findUnique({ where: { id } });
-  done(null, user);
+// --- (serialize/deserialize are not strictly needed for JWT but often included with Passport) ---
+passport.serializeUser((user: any, done) => {
+  done(null, user.id);
 });
 
-// start OAuth flow
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+passport.deserializeUser(async (id: string, done) => {
+  try {
+    const user = await prisma.user.findUnique({ where: { id } });
+    done(null, user); // Pass user if found, or null if not
+  } catch (err) {
+    done(err, null);
+  }
+});
+// --- End serialize/deserialize ---
 
-// callback route
+
+// Route to initiate Google OAuth flow
+router.get(
+    '/google',
+    passport.authenticate('google', {
+        scope: ['profile', 'email'], // Request profile and email scopes
+        session: false // We are using JWT, not session cookies from Passport
+    })
+);
+
+// Google Callback route
 router.get(
   '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: `${process.env.FRONTEND_URL}/auth/signin?error=google` }),
-  (req, res) => {
+  // Authenticate with Google, handle failures by redirecting
+  passport.authenticate('google', {
+      session: false, // No Passport sessions
+      failureRedirect: `${FRONTEND_URL}/auth/signin?error=google_failed` // Redirect on auth failure
+  }),
+  // If authenticate succeeds, this handler runs
+  (req: Request, res: Response) => {
+    // 'user' object is attached to req by the Passport strategy's 'done(null, user)' call
     const user = (req as any).user;
-    if (!user) return res.redirect(`${process.env.FRONTEND_URL}/auth?error=google`);
 
-    const token = jwt.sign(
-      { uid: user.id, role: user.role ?? 'user' }, // Payload
-      process.env.JWT_SECRET || 'devsecret',       // Secret
-      {
-        expiresIn: '7d',
-        audience: 'arkwork-users',
-        issuer: 'arkwork'
-      }
-    );
+    if (!user || !user.id) {
+      console.error('[GoogleCallback] Authentication succeeded but user object is missing or invalid.');
+      return res.redirect(`${FRONTEND_URL}/auth/signin?error=internal_error`);
+    }
 
-    // set httpOnly cookie
-    const cookieSecure = (process.env.COOKIE_SECURE || 'false') === 'true';
-    const cookieSameSite = (process.env.COOKIE_SAMESITE || 'lax') as 'lax' | 'strict' | 'none';
+    console.log(`[GoogleCallback] User ${user.email} (ID: ${user.id}) authenticated. Generating token.`);
 
-    res.cookie(process.env.USER_COOKIE_NAME || 'user_token', token, {
-      httpOnly: true,
-      secure: cookieSecure,
-      sameSite: cookieSameSite,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
+    try {
+      // --- Generate JWT using helper ---
+      // Ensure user object has necessary fields (id, role - though role might be null/default)
+      const token = signUserToken({ uid: user.id, role: user.role ?? 'user' });
 
-    // redirect back to frontend; frontend akan memanggil /me untuk ambil user
-    return res.redirect(`${process.env.FRONTEND_URL}/auth/signin?from=google`);
+      // --- Set Cookie using helper ---
+      // Use USER_COOKIE constant from middleware/role via import
+      setCookie(res, USER_COOKIE, token, 30 * 24 * 60 * 60); // Set cookie for 30 days
+
+      console.log(`[GoogleCallback] Token generated and cookie set for user ${user.id}. Redirecting to frontend.`);
+
+      // Redirect back to frontend signin page with a flag
+      return res.redirect(`${FRONTEND_URL}/auth/signin?from=google`);
+
+    } catch (error: any) {
+        console.error(`[GoogleCallback] Error generating token or setting cookie for user ${user.id}:`, error);
+        return res.redirect(`${FRONTEND_URL}/auth/signin?error=token_error`);
+    }
   }
 );
 
