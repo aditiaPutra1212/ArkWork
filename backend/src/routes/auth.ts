@@ -333,5 +333,4 @@ router.post('/admin/signout', (_req: Request, res: Response) => {
   /* ... Admin signout logic ... */
   clearCookie(res, ADMIN_COOKIE); clearCookie(res, USER_COOKIE); clearCookie(res, EMP_COOKIE); return res.status(204).end();
 });
-
 export default router;
