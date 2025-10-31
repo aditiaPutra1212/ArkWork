@@ -93,21 +93,44 @@
       "desc": "Telusuri lowongan, temukan perusahaan, dan ikuti kabar industri. Masuk hanya saat siap melamar."
     },
     "card": {
-      "jobs": { "title": "Telusuri Lowongan", "desc": "Cari ribuan peluang sektor energi dengan filter lanjutan." },
-      "companies": { "title": "Temukan Perusahaan", "desc": "Kenali perusahaan energi dan budaya kerja serta peluangnya." },
-      "news": { "title": "Berita Industri", "desc": "Tetap up to date dengan berita dan tender sektor energi." }
+      "jobs": {
+        "title": "Telusuri Lowongan",
+        "desc": "Cari ribuan peluang sektor energi dengan filter lanjutan."
+      },
+      "news": {
+        "title": "Berita Industri",
+        "desc": "Tetap up to date dengan berita dan tender sektor energi."
+      }
     },
     "features": {
       "title": "Semua yang Kamu Butuhkan untuk Karier Energi",
       "desc": "Dari pencarian kerja hingga insight industri, ArkWork menyediakan alat lengkap untuk berkembang di sektor energi."
     },
     "feature": {
-      "1": { "title": "Pencarian Kerja Cerdas", "desc": "Temukan lowongan energi dengan pencocokan AI & filter lanjutan." },
-      "2": { "title": "Profil Perusahaan", "desc": "Kenali perusahaan dan budaya kerja serta peluangnya." },
-      "3": { "title": "Pencocokan Talenta", "desc": "Cocokkan ke peran sesuai skill dan pengalamanmu." },
-      "4": { "title": "Berita Industri", "desc": "Ikuti berita & tender terbaru sektor energi." },
-      "5": { "title": "Jejaring Profesional", "desc": "Terhubung dengan profesional dan pemimpin industri." },
-      "6": { "title": "Fokus Energi", "desc": "Liputan mendalam oil & gas, LNG, dan utilitas." }
+      "1": {
+        "title": "Pencarian Kerja Cerdas",
+        "desc": "Temukan lowongan energi dengan pencocokan AI & filter lanjutan."
+      },
+      "2": {
+        "title": "Profil Perusahaan",
+        "desc": "Kenali perusahaan dan budaya kerja serta peluangnya."
+      },
+      "3": {
+        "title": "Pencocokan Talenta",
+        "desc": "Cocokkan ke peran sesuai skill dan pengalamanmu."
+      },
+      "4": {
+        "title": "Berita Industri",
+        "desc": "Ikuti berita & tender terbaru sektor energi."
+      },
+      "5": {
+        "title": "Jejaring Profesional",
+        "desc": "Terhubung dengan profesional dan pemimpin industri."
+      },
+      "6": {
+        "title": "Fokus Energi",
+        "desc": "Liputan mendalam oil & gas, LNG, dan utilitas."
+      }
     },
     "final": {
       "title": "Siap Menguatkan Kariermu?",
@@ -118,12 +141,20 @@
   },
 
   "lang": { "switch": "Ganti bahasa" },
-  "menu": { "open": "Buka menu", "close": "Tutup menu", "user": "Buka menu pengguna" },
+  "menu": {
+    "open": "Buka menu",
+    "close": "Tutup menu",
+    "user": "Buka menu pengguna"
+  },
 
   "footer": {
     "logoAlt": "Logo ArkWork",
     "description": "Bangun karier Anda di sektor energi: lowongan kerja, tender, dan wawasan untuk profesional oil & gas, LNG, dan utilitas.",
-    "headings": { "product": "Produk", "company": "Perusahaan", "legal": "Legal" },
+    "headings": {
+      "product": "Produk",
+      "company": "Perusahaan",
+      "legal": "Legal"
+    },
     "links": {
       "jobs": "Lowongan",
       "tenders": "Tender",
@@ -160,10 +191,22 @@
     "values": {
       "title": "Nilai-Nilai Kami",
       "items": {
-        "integrity": { "title": "Integritas", "desc": "Menjunjung kejujuran dan transparansi dalam setiap aspek kerja." },
-        "innovation": { "title": "Inovasi", "desc": "Terus beradaptasi dan menciptakan solusi kreatif untuk kebutuhan pasar." },
-        "collaboration": { "title": "Kolaborasi", "desc": "Percaya pada kekuatan sinergi antar individu dan organisasi." },
-        "quality": { "title": "Kualitas", "desc": "Berkomitmen memberikan layanan terbaik bagi pengguna." }
+        "integrity": {
+          "title": "Integritas",
+          "desc": "Menjunjung kejujuran dan transparansi dalam setiap aspek kerja."
+        },
+        "innovation": {
+          "title": "Inovasi",
+          "desc": "Terus beradaptasi dan menciptakan solusi kreatif untuk kebutuhan pasar."
+        },
+        "collaboration": {
+          "title": "Kolaborasi",
+          "desc": "Percaya pada kekuatan sinergi antar individu dan organisasi."
+        },
+        "quality": {
+          "title": "Kualitas",
+          "desc": "Berkomitmen memberikan layanan terbaik bagi pengguna."
+        }
       }
     },
     "closing": {
@@ -298,7 +341,10 @@
       "view": "Lihat detail",
       "posted": "Diposting {date}"
     },
-    "empty": { "title": "Tidak ada lowongan", "desc": "Coba ubah filter atau kata kunci." },
+    "empty": {
+      "title": "Tidak ada lowongan",
+      "desc": "Coba ubah filter atau kata kunci."
+    },
     "detail": {
       "empty": "Pilih lowongan untuk melihat detail",
       "industry": "Industri",
@@ -335,7 +381,10 @@
     "limit": { "n": "Batas: {n}" },
     "keywords": { "placeholder": "Kata kunci kustom (opsional)" },
     "btn": { "fetch": "Ambil Berita", "loading": "Memuat…" },
-    "quick": { "placeholder": "Saring cepat judul/sumber…", "clear": "Hapus Saringan" },
+    "quick": {
+      "placeholder": "Saring cepat judul/sumber…",
+      "clear": "Hapus Saringan"
+    },
     "source": { "unknown": "Sumber" }
   },
 
@@ -447,8 +496,13 @@
       "left": "Sisa {n} hari"
     },
     "detail": { "empty": "Pilih tender untuk melihat detail" },
-    "empty": { "title": "Tidak ada tender", "desc": "Coba ubah filter atau kata kunci." },
+    "empty": {
+      "title": "Tidak ada tender",
+      "desc": "Coba ubah filter atau kata kunci."
+    },
     "results": "{count} hasil",
-    "participate": { "alert": "Berminat ikut serta: {title}\nSilakan unggah dokumen pada langkah berikutnya." }
+    "participate": {
+      "alert": "Berminat ikut serta: {title}\nSilakan unggah dokumen pada langkah berikutnya."
+    }
   }
 }

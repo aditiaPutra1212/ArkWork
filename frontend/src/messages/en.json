@@ -93,21 +93,44 @@
       "desc": "Browse jobs, discover companies, and follow industry news. Sign in only when you’re ready to apply."
     },
     "card": {
-      "jobs": { "title": "Browse Jobs", "desc": "Find thousands of energy sector opportunities with advanced filters." },
-      "companies": { "title": "Discover Companies", "desc": "Get to know energy companies, their culture, and career opportunities." },
-      "news": { "title": "Industry News", "desc": "Stay updated with news and tenders in the energy sector." }
+      "jobs": {
+        "title": "Browse Jobs",
+        "desc": "Find thousands of energy sector opportunities with advanced filters."
+      },
+      "news": {
+        "title": "Industry News",
+        "desc": "Stay updated with news and tenders in the energy sector."
+      }
     },
     "features": {
       "title": "Everything You Need for an Energy Career",
       "desc": "From job search to industry insights, ArkWork provides the complete toolkit to grow in the energy sector."
     },
     "feature": {
-      "1": { "title": "Smart Job Search", "desc": "Find energy jobs with AI matching & advanced filters." },
-      "2": { "title": "Company Profiles", "desc": "Understand companies, culture, and opportunities." },
-      "3": { "title": "Talent Matching", "desc": "Get matched to roles based on your skills and experience." },
-      "4": { "title": "Industry News", "desc": "Follow the latest news & tenders in the energy sector." },
-      "5": { "title": "Professional Networking", "desc": "Connect with professionals and industry leaders." },
-      "6": { "title": "Energy Focus", "desc": "Deep coverage of oil & gas, LNG, and utilities." }
+      "1": {
+        "title": "Smart Job Search",
+        "desc": "Find energy jobs with AI matching & advanced filters."
+      },
+      "2": {
+        "title": "Company Profiles",
+        "desc": "Understand companies, culture, and opportunities."
+      },
+      "3": {
+        "title": "Talent Matching",
+        "desc": "Get matched to roles based on your skills and experience."
+      },
+      "4": {
+        "title": "Industry News",
+        "desc": "Follow the latest news & tenders in the energy sector."
+      },
+      "5": {
+        "title": "Professional Networking",
+        "desc": "Connect with professionals and industry leaders."
+      },
+      "6": {
+        "title": "Energy Focus",
+        "desc": "Deep coverage of oil & gas, LNG, and utilities."
+      }
     },
     "final": {
       "title": "Ready to Boost Your Career?",
@@ -118,12 +141,20 @@
   },
 
   "lang": { "switch": "Switch language" },
-  "menu": { "open": "Open menu", "close": "Close menu", "user": "Open user menu" },
+  "menu": {
+    "open": "Open menu",
+    "close": "Close menu",
+    "user": "Open user menu"
+  },
 
   "footer": {
     "logoAlt": "ArkWork Logo",
     "description": "Build your career in the energy sector: jobs, tenders, and insights for oil & gas, LNG, and utilities professionals.",
-    "headings": { "product": "Product", "company": "Company", "legal": "Legal" },
+    "headings": {
+      "product": "Product",
+      "company": "Company",
+      "legal": "Legal"
+    },
     "links": {
       "jobs": "Jobs",
       "tenders": "Tenders",
@@ -160,10 +191,22 @@
     "values": {
       "title": "Our Values",
       "items": {
-        "integrity": { "title": "Integrity", "desc": "Upholding honesty and transparency in every aspect of work." },
-        "innovation": { "title": "Innovation", "desc": "Constantly adapting and creating creative solutions for market needs." },
-        "collaboration": { "title": "Collaboration", "desc": "Believing in the power of synergy between individuals and organizations." },
-        "quality": { "title": "Quality", "desc": "Committed to delivering the best service to users." }
+        "integrity": {
+          "title": "Integrity",
+          "desc": "Upholding honesty and transparency in every aspect of work."
+        },
+        "innovation": {
+          "title": "Innovation",
+          "desc": "Constantly adapting and creating creative solutions for market needs."
+        },
+        "collaboration": {
+          "title": "Collaboration",
+          "desc": "Believing in the power of synergy between individuals and organizations."
+        },
+        "quality": {
+          "title": "Quality",
+          "desc": "Committed to delivering the best service to users."
+        }
       }
     },
     "closing": {
@@ -298,7 +341,10 @@
       "view": "View details",
       "posted": "Posted {date}"
     },
-    "empty": { "title": "No jobs found", "desc": "Try changing filters or keywords." },
+    "empty": {
+      "title": "No jobs found",
+      "desc": "Try changing filters or keywords."
+    },
     "detail": {
       "empty": "Select a job to view details",
       "industry": "Industry",
@@ -335,7 +381,10 @@
     "limit": { "n": "Limit: {n}" },
     "keywords": { "placeholder": "Custom keywords (optional)" },
     "btn": { "fetch": "Fetch News", "loading": "Loading…" },
-    "quick": { "placeholder": "Quick filter title/source…", "clear": "Clear Filter" },
+    "quick": {
+      "placeholder": "Quick filter title/source…",
+      "clear": "Clear Filter"
+    },
     "source": { "unknown": "Source" }
   },
 
@@ -447,8 +496,13 @@
       "left": "{n} days left"
     },
     "detail": { "empty": "Select a tender to view details" },
-    "empty": { "title": "No tenders found", "desc": "Try changing filters or keywords." },
+    "empty": {
+      "title": "No tenders found",
+      "desc": "Try changing filters or keywords."
+    },
     "results": "{count} results",
-    "participate": { "alert": "Interested in participating: {title}\nPlease upload documents in the next step." }
+    "participate": {
+      "alert": "Interested in participating: {title}\nPlease upload documents in the next step."
+    }
   }
 }
