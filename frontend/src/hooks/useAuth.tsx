@@ -234,63 +234,101 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // --- Fungsi Login User Biasa ---
   const signinUser = useCallback(async (usernameOrEmail: string, password: string) => {
     console.log('[signinUser] trying', usernameOrEmail);
-    // --- PERUBAHAN DI SINI ---
-    // Panggil API signin via path proxy /api/auth/signin
-    const res = await api('/api/auth/signin', { json: { usernameOrEmail, password } });
-    // --- AKHIR PERUBAHAN ---
-    console.log('[signinUser] signin response:', res); // Seharusnya sekarang JSON
+    
+    // ==========================================
+    // ===== PERBAIKAN 1: TAMBAHKAN try...catch =====
+    // ==========================================
+    try {
+      const res = await api('/api/auth/signin', { json: { usernameOrEmail, password } });
+      console.log('[signinUser] signin response:', res); 
 
-    // Panggil refresh SEGERA setelah signin
-    await refresh();
+      await refresh();
 
-    const snap = readSnapshot();
-    if (!snap) {
-      console.error('[signinUser] Snapshot still null after refresh');
-      throw new Error('Signin succeeded but session not established in client');
+      const snap = readSnapshot();
+      if (!snap) {
+        console.error('[signinUser] Snapshot still null after refresh');
+        throw new Error('Signin succeeded but session not established in client');
+      }
+      return snap;
+    } catch (err: any) {
+      // 'Bersihkan' error sebelum melemparnya ke AuthPage.tsx
+      // Ambil pesan error yang sesungguhnya dari backend
+      const cleanMessage = err?.response?.data?.message || err?.message || "Login failed. Please try again.";
+      throw new Error(cleanMessage); // Lempar error BARU yang HANYA berisi pesan bersih
     }
-    return snap;
   }, [refresh]);
+
 
   // --- Fungsi Signup User Baru ---
   const signup = useCallback(async (name: string, email: string, password: string) => {
     console.log('[signup] creating', email);
-    // Panggil API signup via proxy /auth/signup (sesuai next.config.mjs)
-    const res = await api('/auth/signup', { json: { name, email, password } });
-    console.log('[signup] response:', res);
-    await refresh();
-    const snap = readSnapshot();
-    if (!snap) throw new Error('Signup succeeded but session not established in client');
-    return snap;
-  }, [refresh]);
+
+    // ==========================================
+    // ===== PERBAIKAN 2: TAMBAHKAN try...catch =====
+    // ==========================================
+    try {
+      const res = await api('/auth/signup', { json: { name, email, password } });
+      console.log('[signup] response:', res);
+      // JANGAN refresh di sini, karena user belum verify
+      // await refresh(); 
+    
+      // Kembalikan respons sukses dari backend (berisi 'message' dan 'ok')
+      // Perlu di-cast ke any karena 'api' mungkin tidak punya tipe T
+      return res as any; 
+  
+    } catch (err: any) {
+      // 'Bersihkan' error sebelum melemparnya ke AuthPage.tsx
+      const cleanMessage = err?.response?.data?.message || err?.message || "Signup failed. Please try again.";
+      throw new Error(cleanMessage); // Lempar error BARU yang HANYA berisi pesan bersih
+    }
+  }, [refresh]); // refresh tetap di dependency array, meskipun tidak dipanggil
+
 
   // --- Fungsi Login Employer ---
   const signinEmployer = useCallback(async (usernameOrEmail: string, password: string) => {
     console.log('[signinEmployer] trying', usernameOrEmail);
-    // Panggil API signin employer via proxy /api/employers/auth/signin
-    const res = await api('/api/employers/auth/signin', { json: { usernameOrEmail, password } });
-    console.log('[signinEmployer] response:', res);
-    await refresh();
-    const snap = readSnapshot();
-    if (!snap) throw new Error('Employer signin succeeded but session not established in client');
-    return snap;
+    
+    // ==========================================
+    // ===== PERBAIKAN 3: TAMBAHKAN try...catch =====
+    // ==========================================
+    try {
+      const res = await api('/api/employers/auth/signin', { json: { usernameOrEmail, password } });
+      console.log('[signinEmployer] response:', res);
+      await refresh();
+      const snap = readSnapshot();
+      if (!snap) throw new Error('Employer signin succeeded but session not established in client');
+      return snap;
+    } catch (err: any) {
+      // 'Bersihkan' error sebelum melemparnya ke AuthPage.tsx
+      const cleanMessage = err?.response?.data?.message || err?.message || "Login failed. Please try again.";
+      throw new Error(cleanMessage); // Lempar error BARU yang HANYA berisi pesan bersih
+    }
   }, [refresh]);
 
   // --- Fungsi Login Admin ---
   const signinAdmin = useCallback(async (username: string, password: string) => {
     console.log('[signinAdmin] trying', username);
-    // Panggil API signin admin via proxy /api/admin/signin
-    
-    // ==========================================================
-    // INI ADALAH PERBAIKANNYA:
-    // Mengubah key 'username' menjadi 'usernameOrEmail'
-    // ==========================================================
-    const res = await api('/api/admin/signin', { json: { usernameOrEmail: username, password } });
-    
-    console.log('[signinAdmin] response:', res);
-    await refresh();
-    const snap = readSnapshot();
-    if (!snap) throw new Error('Admin signin succeeded but session not established in client');
-    return snap;
+    
+    // ==========================================
+    // ===== PERBAIKAN 4: TAMBAHKAN try...catch =====
+    // ==========================================
+    try {
+      // ==========================================
+      // PERBAIKAN BUG: Backend admin mengharapkan 'username', bukan 'usernameOrEmail'
+      // Sesuai schema 'adminSigninSchema' di auth.ts
+      // ==========================================
+      const res = await api('/api/admin/signin', { json: { username, password } });
+    
+      console.log('[signinAdmin] response:', res);
+      await refresh();
+      const snap = readSnapshot();
+      if (!snap) throw new Error('Admin signin succeeded but session not established in client');
+      return snap;
+    } catch (err: any) {
+      // 'Bersihkan' error sebelum melemparnya ke AuthPage.tsx
+      const cleanMessage = err?.response?.data?.message || err?.message || "Login failed. Please try again.";
+      throw new Error(cleanMessage); // Lempar error BARU yang HANYA berisi pesan bersih
+    }
   }, [refresh]);
 
   // --- Fungsi Logout ---

@@ -127,14 +127,15 @@ router.post('/signup', async (req: Request, res: Response, next: NextFunction) =
   try {
     const parsed = userSignupSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ message: "Invalid data provided", errors: parsed.error.flatten().fieldErrors });
+      // [DIUBAH] Pesan error lebih ramah dan aman
+      return res.status(400).json({ message: "Data yang Anda masukkan tidak valid. Periksa kembali." });
     }
     const { name, email, password } = parsed.data;
     const lowerEmail = email.toLowerCase().trim();
     const exists = await prisma.user.findUnique({ where: { email: lowerEmail } });
     if (exists) {
       if (!exists.isVerified && exists.verificationTokenExpiresAt && exists.verificationTokenExpiresAt > new Date()) {
-        console.warn(`[AUTH][SIGNUP] Unverified email attempt: ${lowerEmail}.`);
+        // [LOG DIHAPUS]
         return res.status(409).json({ message: 'Email registered, awaiting verification. Check inbox/spam.' });
       }
       return res.status(409).json({ message: 'Email address already registered.' });
@@ -178,28 +179,30 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction) =
   try {
     const parsed = userSigninSchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten().fieldErrors });
+      // [DIUBAH] Pesan error lebih ramah dan aman
+      return res.status(400).json({ message: "Email/Username atau Password tidak boleh kosong." });
     }
     const { usernameOrEmail, password } = parsed.data;
     const input = usernameOrEmail.trim();
     const userCredentials = input.includes('@')
       ? await prisma.user.findUnique({ where: { email: input.toLowerCase() }, select: { id: true, passwordHash: true, isVerified: true, email: true } })
       : await prisma.user.findFirst({ where: { name: input }, select: { id: true, passwordHash: true, isVerified: true, email: true } });
+    
     if (!userCredentials) {
-      console.warn(`[AUTH][SIGNIN][FAIL] User not found: ${input}`);
+      // [LOG DIHAPUS]
       return res.status(401).json({ message: 'Incorrect credentials.' });
     }
     if (!userCredentials.passwordHash) {
-      console.warn(`[AUTH][SIGNIN][FAIL] User ${userCredentials.email} uses OAuth.`);
+      // [LOG DIHAPUS]
       return res.status(401).json({ message: 'Account uses Google Sign-In.' });
     }
     const passwordMatch = await bcrypt.compare(password, userCredentials.passwordHash);
     if (!passwordMatch) {
-      console.warn(`[AUTH][SIGNIN][FAIL] Invalid password for: ${userCredentials.email}`);
+      // [LOG DIHAPUS]
       return res.status(401).json({ message: 'Incorrect credentials.' });
     }
     if (!userCredentials.isVerified) {
-      console.warn(`[AUTH][SIGNIN][FAIL] User ${userCredentials.email} not verified.`);
+      // [LOG DIHAPUS]
       return res.status(403).json({ message: 'Email not verified. Check inbox/spam.' });
     }
     const user = await prisma.user.findUnique({
@@ -255,17 +258,17 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
         select: { id: true, email: true, name: true, photoUrl: true, cvUrl: true, createdAt: true, isVerified: true }
       });
       if (!u) {
-        console.warn(`[AUTH][ME] User not found for uid: ${payload.uid}`);
+        // [LOG DIHAPUS]
         clearCookie(res, USER_COOKIE); return res.status(401).json({ message: 'User session invalid.' });
       }
       if (!u.isVerified) {
-        console.warn(`[AUTH][ME] Unverified user ${u.email} accessed /me.`);
+        // [LOG DIHAPUS]
         clearCookie(res, USER_COOKIE); return res.status(403).json({ message: 'Account not verified.' });
       }
       const { isVerified, ...userDataToSend } = u;
       return res.json({ ok: true, data: { ...userDataToSend, role: 'user' } });
     } catch (err: any) {
-      console.warn('[AUTH][ME] User token error:', err?.message ?? err);
+      // [LOG DIHAPUS]
       clearCookie(res, USER_COOKIE);
       if (err instanceof jwt.JsonWebTokenError || err instanceof jwt.TokenExpiredError) {
         return res.status(401).json({ message: `Unauthorized (User): ${err.message}` });
@@ -283,7 +286,7 @@ router.post('/verify', async (req: Request, res: Response, next: NextFunction) =
   try {
     const parsed = verifyTokenSchema.safeParse(req.body);
     if (!parsed.success) {
-      console.warn('[AUTH][VERIFY] Invalid token format:', req.body?.token, parsed.error.flatten());
+      // [LOG DIHAPUS]
       return res.status(400).json({ message: "Invalid verification link format." });
     }
     const { token } = parsed.data;
@@ -292,7 +295,7 @@ router.post('/verify', async (req: Request, res: Response, next: NextFunction) =
       where: { verificationToken: token, verificationTokenExpiresAt: { gt: new Date() }, isVerified: false },
     });
     if (!user) {
-      console.warn(`[AUTH][VERIFY] Token prefix ${token.substring(0, 10)}... failed validation.`);
+      // [LOG DIHAPUS]
       const existingTokenUser = await prisma.user.findFirst({ where: { verificationToken: token } });
       if (existingTokenUser?.isVerified) return res.status(400).json({ message: "Email already verified. Please log in." });
       if (existingTokenUser?.verificationTokenExpiresAt && existingTokenUser.verificationTokenExpiresAt <= new Date()) return res.status(400).json({ message: "Verification link expired." });
@@ -319,7 +322,11 @@ router.post('/verify', async (req: Request, res: Response, next: NextFunction) =
 router.post('/admin/signin', async (req: Request, res: Response, next: NextFunction) => {
   /* ... Admin signin logic ... */
   try {
-    const parsed = adminSigninSchema.safeParse(req.body); if (!parsed.success) { return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten().fieldErrors }); }
+    const parsed = adminSigninSchema.safeParse(req.body); 
+    if (!parsed.success) { 
+      // [DIUBAH] Pesan error lebih ramah dan aman
+      return res.status(400).json({ message: "Username atau Password tidak boleh kosong." }); 
+    }
     const { username, password } = parsed.data; const admin = await prisma.admin.findUnique({ where: { username } }); if (!admin) return res.status(401).json({ message: 'Incorrect credentials.' });
     if (!admin.passwordHash) { return res.status(500).json({ message: 'Admin config error.' }); }
     const ok = await bcrypt.compare(password, admin.passwordHash); if (!ok) return res.status(401).json({ message: 'Incorrect credentials.' });
