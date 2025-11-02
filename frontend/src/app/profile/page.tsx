@@ -176,83 +176,93 @@ async function fileToThumbDataURL(file: File | Blob, maxSize = 160): Promise<str
 /** ================== Wilayah Select ================== */
 type Opt = { id: string; name: string };
 function WilayahSelect({
-  value,
-  onChange,
-  labelProv = 'Provinsi',
-  labelKab = 'Kabupaten/Kota',
-  labelKec = 'Kecamatan',
+  value,
+  onChange,
+  labelProv = 'Provinsi',
+  labelKab = 'Kabupaten/Kota',
+  labelKec = 'Kecamatan',
 }: {
-  value: string;
-  onChange: (v: string) => void;
-  labelProv?: string;
-  labelKab?: string;
-  labelKec?: string;
+  value: string;
+  onChange: (v: string) => void;
+  labelProv?: string;
+  labelKab?: string;
+  labelKec?: string;
 }) {
-  const [provinces, setProvinces] = useState<Opt[]>([]);
-  const [regencies, setRegencies] = useState<Opt[]>([]);
-  const [districts, setDistricts] = useState<Opt[]>([]);
+  const [provinces, setProvinces] = useState<Opt[]>([]);
+  const [regencies, setRegencies] = useState<Opt[]>([]);
+  const [districts, setDistricts] = useState<Opt[]>([]);
 
-  const [prov, setProv] = useState<Opt | null>(null);
-  const [kab, setKab] = useState<Opt | null>(null);
-  const [kec, setKec] = useState<Opt | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await fetch('/api/wilayah/provinces');
-        const data = await r.json();
-        setProvinces(data.items || []);
-      } catch {
-        setProvinces([]);
-      }
-    })();
-  }, []);
+  const [prov, setProv] = useState<Opt | null>(null);
+  const [kab, setKab] = useState<Opt | null>(null);
+  const [kec, setKec] = useState<Opt | null>(null);
 
   useEffect(() => {
-    if (!prov) { setRegencies([]); setKab(null); setDistricts([]); setKec(null); return; }
-    (async () => {
-      try {
-        const r = await fetch(`/api/wilayah/regencies/${prov.id}`);
-        const data = await r.json();
-        setRegencies(data.items || []);
-        setKab(null);
-        setDistricts([]);
-        setKec(null);
-      } catch {
-        setRegencies([]); setKab(null);
-      }
-    })();
-  }, [prov?.id]);
+    (async () => {
+      try {
+        const r = await fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json');
+        const data = await r.json();
+        const items = (data || []).map((d: any) => ({ id: String(d.id), name: d.name }));
+        setProvinces(items);
+      } catch {
+        setProvinces([]);
+      }
+    })();
+  }, []);
 
-  useEffect(() => {
-    if (!kab) { setDistricts([]); setKec(null); return; }
-    (async () => {
-      try {
-        const r = await fetch(`/api/wilayah/districts/${kab.id}`);
-        const data = await r.json();
-        setDistricts(data.items || []);
-        setKec(null);
-      } catch {
-        setDistricts([]); setKec(null);
-      }
-    })();
-  }, [kab?.id]);
+  // 2. Fetch Kabupaten (Ini yang diperbaiki)
+  useEffect(() => {
+    if (!prov) { setRegencies([]); setKab(null); setDistricts([]); setKec(null); return; }
+    (async () => {
+      try {
+        const r = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${prov.id}.json`);
+        const data = await r.json();
+        // --- PERBAIKAN DI SINI ---
+        const items = (data || []).map((d: any) => ({ id: String(d.id), name: d.name }));
+        setRegencies(items);
+        // --- END PERBAIKAN ---
+        setKab(null);
+        setDistricts([]);
+        setKec(null);
+      } catch {
+        setRegencies([]); setKab(null);
+      }
+    })();
+  }, [prov?.id]);
 
-  useEffect(() => {
-    const parts = [kec?.name, kab?.name, prov?.name].filter(Boolean);
-    onChange(parts.join(', '));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prov, kab, kec]);
+  // 3. Fetch Kecamatan (Ini yang diperbaiki)
+  useEffect(() => {
+    if (!kab) { setDistricts([]); setKec(null); return; }
+    (async () => {
+      try {
+        const r = await fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${kab.id}.json`);
+        const data = await r.json();
+        // --- PERBAIKAN DI SINI ---
+        const items = (data || []).map((d: any) => ({ id: String(d.id), name: d.name }));
+        setDistricts(items);
+        // --- END PERBAIKAN ---
+        setKec(null);
+      } catch {
+        setDistricts([]); setKec(null);
+      }
+    })();
+  }, [kab?.id]);
 
-  const Select = ({
-    value, setValue, options, placeholder, disabled
-  }: {
-    value: Opt | null;
-    setValue: (o: Opt | null) => void;
-    options: Opt[];
-    placeholder: string;
-    disabled?: boolean;
-  }) => (
+  // Sisa kode di bawah ini sudah benar, tidak perlu diubah
+  useEffect(() => {
+    const parts = [kec?.name, kab?.name, prov?.name].filter(Boolean);
+    onChange(parts.join(', '));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prov, kab, kec]);
+
+  const Select = ({
+    value, setValue, options, placeholder, disabled
+  }: {
+    value: Opt | null;
+    setValue: (o: Opt | null) => void;
+    options: Opt[];
+    placeholder: string;
+    disabled?: boolean;
+  }) => (
     <div className="relative">
       <select
         value={value?.id || ''}
