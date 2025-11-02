@@ -1,18 +1,21 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { api } from '@/lib/api';
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/lib/api";
 
 type AdminSidebarProps = {
   userEmail?: string | null;
   onLogout?: () => Promise<void> | void;
 };
 
-export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps) {
-  const currentPath = usePathname() ?? '';
+export default function AdminSidebar({
+  userEmail,
+  onLogout,
+}: AdminSidebarProps) {
+  const currentPath = usePathname() ?? "";
   const router = useRouter();
   const { signout } = useAuth();
 
@@ -24,18 +27,18 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
 
   useEffect(() => {
     const prev = document.body.style.overflow;
-    document.body.style.overflow = open ? 'hidden' : prev || '';
+    document.body.style.overflow = open ? "hidden" : prev || "";
     return () => {
-      document.body.style.overflow = prev || '';
+      document.body.style.overflow = prev || "";
     };
   }, [open]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === "Escape") setOpen(false);
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const handleOpenMenu = useCallback(() => setOpen(true), []);
@@ -46,27 +49,36 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
 
     try {
       // Prioritaskan fungsi signout dari hook useAuth jika tersedia
-      if (typeof signout === 'function') {
-        console.log('[AdminSidebar] Attempting logout via useAuth().signout()...');
+      if (typeof signout === "function") {
+        console.log(
+          "[AdminSidebar] Attempting logout via useAuth().signout()...",
+        );
         // PASTIKAN FUNGSI signout() DI DALAM useAuth MEMANGGIL /api/admin/signout
         await signout();
-        console.log('[AdminSidebar] Logout via useAuth() presumably successful.');
+        console.log(
+          "[AdminSidebar] Logout via useAuth() presumably successful.",
+        );
         logoutSuccessful = true; // Anggap berhasil jika tidak ada error
       } else {
         // Fallback jika useAuth().signout() tidak ada
-        console.warn('[AdminSidebar] useAuth().signout() not available, attempting direct API call...');
+        console.warn(
+          "[AdminSidebar] useAuth().signout() not available, attempting direct API call...",
+        );
         try {
-          const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+          const apiBase =
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
           // **URL DIPERBAIKI:** Tambahkan '/api'
           const logoutUrl = `${apiBase}/api/admin/signout`;
-          console.log(`[AdminSidebar] Calling fallback logout: POST ${logoutUrl}`);
+          console.log(
+            `[AdminSidebar] Calling fallback logout: POST ${logoutUrl}`,
+          );
 
           const response = await fetch(logoutUrl, {
-            method: 'POST',
-            credentials: 'include', // Penting agar cookie admin_token terkirim
+            method: "POST",
+            credentials: "include", // Penting agar cookie admin_token terkirim
             headers: {
               // Tambahkan header jika backend memerlukannya (misal CSRF)
-            }
+            },
           });
 
           // Backend /api/admin/signout merespons 204 No Content jika sukses
@@ -75,24 +87,37 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
             try {
               const errData = await response.json();
               errorMsg = errData.message || errorMsg;
-            } catch { /* ignore if no json body */ }
-            console.error(`[AdminSidebar] Fallback logout API call failed: ${errorMsg}`);
+            } catch {
+              /* ignore if no json body */
+            }
+            console.error(
+              `[AdminSidebar] Fallback logout API call failed: ${errorMsg}`,
+            );
             throw new Error(errorMsg); // Lempar error agar ditangani di catch luar
           }
-          console.log('[AdminSidebar] Direct API call to /api/admin/signout successful.');
+          console.log(
+            "[AdminSidebar] Direct API call to /api/admin/signout successful.",
+          );
           logoutSuccessful = true; // Tandai berhasil
         } catch (fetchError) {
-          console.error('[AdminSidebar] Fallback admin logout request failed:', fetchError);
+          console.error(
+            "[AdminSidebar] Fallback admin logout request failed:",
+            fetchError,
+          );
           // Tampilkan error ke user jika perlu
-          alert(`Logout via API failed: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
+          alert(
+            `Logout via API failed: ${fetchError instanceof Error ? fetchError.message : "Unknown error"}`,
+          );
           // Jangan lanjutkan jika API call gagal
           return;
         }
       }
     } catch (err) {
       // Tangani error dari signout() hook atau error tak terduga lainnya
-      console.error('[AdminSidebar] Logout process error:', err);
-      alert(`An error occurred during logout: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      console.error("[AdminSidebar] Logout process error:", err);
+      alert(
+        `An error occurred during logout: ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
       // Jangan lanjutkan jika logout gagal
       return;
     }
@@ -100,17 +125,24 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
     // Hanya redirect JIKA logout berhasil
     if (logoutSuccessful) {
       try {
-        console.log('[AdminSidebar] Logout successful, redirecting to /auth/signin...');
+        console.log(
+          "[AdminSidebar] Logout successful, redirecting to /auth/signin...",
+        );
         // Arahkan ke halaman login USER BIASA sesuai permintaan Anda
-        router.replace('/auth/signin');
+        router.replace("/auth/signin");
         // router.refresh(); // Mungkin tidak perlu setelah replace
-      } catch(redirectError) {
-        console.error("[AdminSidebar] Redirection failed after logout:", redirectError);
+      } catch (redirectError) {
+        console.error(
+          "[AdminSidebar] Redirection failed after logout:",
+          redirectError,
+        );
         // Fallback redirect jika router gagal
-        window.location.href = '/auth/signin';
+        window.location.href = "/auth/signin";
       }
     } else {
-        console.warn("[AdminSidebar] Logout was not marked as successful, redirection skipped.");
+      console.warn(
+        "[AdminSidebar] Logout was not marked as successful, redirection skipped.",
+      );
     }
   }, [signout, router]);
 
@@ -123,7 +155,7 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
         await defaultLogout();
       }
     } catch (e) {
-      console.error('Logout failed:', e);
+      console.error("Logout failed:", e);
     } finally {
       setBusy(false);
     }
@@ -131,19 +163,23 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
 
   const menu = useMemo(
     () => [
-      { name: 'Dashboard', path: '/admin', icon: HomeIcon },
-      { name: 'Reports', path: '/admin/reports', icon: FlagIcon },
-      { name: 'Employer Jobs', path: '/admin/employers/jobs', icon: BriefcaseIcon },
-      { name: 'Tenders Management', path: '/admin/tenders', icon: LayersIcon },
-      { name: 'User Management', path: '/admin/users', icon: UsersIcon },
-      { name: 'Monetisasi (Plans)', path: '/admin/monet', icon: MoneyIcon },
-      { name: 'Payments (Midtrans)', path: '/admin/payments', icon: CreditCardIcon },
+      { name: "Dashboard", path: "/admin", icon: HomeIcon },
+      { name: "Reports", path: "/admin/reports", icon: FlagIcon },
+      { name: "Tenders Management", path: "/admin/tenders", icon: LayersIcon },
+      { name: "Monetisasi (Plans)", path: "/admin/monet", icon: MoneyIcon },
+      {
+        name: "Payments (Midtrans)",
+        path: "/admin/payments",
+        icon: CreditCardIcon,
+      },
     ],
-    []
+    [],
   );
 
   const isActive = (path: string) =>
-    path === '/admin' ? currentPath === path : currentPath === path || currentPath.startsWith(path + '/');
+    path === "/admin"
+      ? currentPath === path
+      : currentPath === path || currentPath.startsWith(path + "/");
 
   function Item({
     name,
@@ -159,18 +195,22 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
       <li>
         <Link
           href={path}
-          aria-current={active ? 'page' : undefined}
+          aria-current={active ? "page" : undefined}
           className={[
-            'group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition',
-            'ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60',
-            active ? 'bg-white/10 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]' : 'text-white/85 hover:bg-white/8 hover:text-white',
-          ].join(' ')}
+            "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+            "ring-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60",
+            active
+              ? "bg-white/10 text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]"
+              : "text-white/85 hover:bg-white/8 hover:text-white",
+          ].join(" ")}
         >
           <span
             className={[
-              'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full',
-              active ? 'bg-amber-400' : 'bg-transparent group-hover:bg-white/20',
-            ].join(' ')}
+              "absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full",
+              active
+                ? "bg-amber-400"
+                : "bg-transparent group-hover:bg-white/20",
+            ].join(" ")}
           />
           <Icon className="h-5 w-5 opacity-95" />
           <span className="truncate">{name}</span>
@@ -183,17 +223,17 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
     <aside
       aria-label="Admin navigation"
       className={[
-        'hidden md:flex fixed left-0 top-0 z-40 h-screen flex-col border-r border-white/10',
-        'bg-[radial-gradient(1200px_600px_at_-200px_-200px,#1e3a8a_0%,#0b1736_40%,#0a1228_100%)] text-white',
-        'transition-[width] duration-300 ease-in-out',
-        collapsed ? 'w-20' : 'w-72',
-      ].join(' ')}
+        "hidden md:flex fixed left-0 top-0 z-40 h-screen flex-col border-r border-white/10",
+        "bg-[radial-gradient(1200px_600px_at_-200px_-200px,#1e3a8a_0%,#0b1736_40%,#0a1228_100%)] text-white",
+        "transition-[width] duration-300 ease-in-out",
+        collapsed ? "w-20" : "w-72",
+      ].join(" ")}
     >
       <div className="flex h-16 items-center px-3 border-b border-white/10/50">
         <button
           type="button"
           onClick={() => setCollapsed((v) => !v)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 hover:bg-white/5 active:scale-95 transition"
         >
           <SparkIcon className="h-5 w-5 text-white" />
@@ -209,9 +249,9 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
       <nav className="mt-2 flex-1 overflow-y-auto px-2">
         <p
           className={[
-            'px-3 text-[10px] uppercase tracking-wider text-white/50 mb-2',
-            collapsed ? 'opacity-0 pointer-events-none' : 'opacity-100',
-          ].join(' ')}
+            "px-3 text-[10px] uppercase tracking-wider text-white/50 mb-2",
+            collapsed ? "opacity-0 pointer-events-none" : "opacity-100",
+          ].join(" ")}
         >
           Main
         </p>
@@ -227,13 +267,17 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
               onClick={handleLogout}
               disabled={busy}
               className={[
-                'group relative w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition text-left',
-                'text-red-100 hover:bg-red-500/10 hover:text-white ring-0 focus-visible:ring-2 focus-visible:ring-red-400/60 disabled:opacity-60',
-              ].join(' ')}
+                "group relative w-full flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition text-left",
+                "text-red-100 hover:bg-red-500/10 hover:text-white ring-0 focus-visible:ring-2 focus-visible:ring-red-400/60 disabled:opacity-60",
+              ].join(" ")}
             >
               <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-transparent group-hover:bg-red-400" />
               <LogoutIcon className="h-5 w-5" />
-              {!collapsed && <span className="truncate">{busy ? 'Logging out…' : 'Logout'}</span>}
+              {!collapsed && (
+                <span className="truncate">
+                  {busy ? "Logging out…" : "Logout"}
+                </span>
+              )}
             </button>
           </li>
         </ul>
@@ -247,7 +291,9 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
           {!collapsed && (
             <div className="min-w-0 leading-tight">
               <div className="text-xs font-semibold">Administrator</div>
-              <div className="text-[11px] text-white/60 truncate">{userEmail ?? 'admin@arkwork.local'}</div>
+              <div className="text-[11px] text-white/60 truncate">
+                {userEmail ?? "admin@arkwork.local"}
+              </div>
             </div>
           )}
           {!collapsed && (
@@ -259,11 +305,16 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
               aria-label="Logout"
             >
               <LogoutIcon className="h-3.5 w-3.5" />
-              <span>{busy ? 'Logging…' : 'Logout'}</span>
+              <span>{busy ? "Logging…" : "Logout"}</span>
             </button>
           )}
         </div>
-        <div className={['mt-3 text-[11px] text-white/60', collapsed ? 'text-center' : ''].join(' ')}>
+        <div
+          className={[
+            "mt-3 text-[11px] text-white/60",
+            collapsed ? "text-center" : "",
+          ].join(" ")}
+        >
           © {new Date().getFullYear()} ArkWork Admin
         </div>
       </div>
@@ -295,7 +346,13 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
       </div>
 
       {/* Overlay */}
-      {open && <div onClick={handleCloseMenu} className="fixed inset-0 z-50 md:hidden bg-black/40" aria-hidden="true" />}
+      {open && (
+        <div
+          onClick={handleCloseMenu}
+          className="fixed inset-0 z-50 md:hidden bg-black/40"
+          aria-hidden="true"
+        />
+      )}
 
       {/* Mobile Drawer */}
       <aside
@@ -303,11 +360,11 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
         aria-modal="true"
         aria-label="Admin menu drawer"
         className={[
-          'fixed inset-y-0 left-0 z-50 w-[85%] max-w-[18rem] md:hidden',
-          'transform transition-transform duration-300 ease-out',
-          open ? 'translate-x-0' : '-translate-x-full',
-        ].join(' ')}
-        style={{ visibility: open ? 'visible' : 'hidden' }}
+          "fixed inset-y-0 left-0 z-50 w-[85%] max-w-[18rem] md:hidden",
+          "transform transition-transform duration-300 ease-out",
+          open ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
+        style={{ visibility: open ? "visible" : "hidden" }}
       >
         <div className="flex h-full flex-col bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 text-white shadow-2xl">
           <div className="flex h-14 items-center justify-between px-3 border-b border-white/10">
@@ -333,18 +390,20 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
                 <li key={path}>
                   <Link
                     href={path}
-                    aria-current={isActive(path) ? 'page' : undefined}
+                    aria-current={isActive(path) ? "page" : undefined}
                     className={[
-                      'group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition',
-                      isActive(path) ? 'bg-white/10 text-white' : 'text-white/85 hover:bg-white/8 hover:text-white',
-                    ].join(' ')}
+                      "group relative flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition",
+                      isActive(path)
+                        ? "bg-white/10 text-white"
+                        : "text-white/85 hover:bg-white/8 hover:text-white",
+                    ].join(" ")}
                     onClick={() => setOpen(false)}
                   >
                     <span
                       className={[
-                        'absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full',
-                        isActive(path) ? 'bg-amber-400' : 'bg-transparent',
-                      ].join(' ')}
+                        "absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full",
+                        isActive(path) ? "bg-amber-400" : "bg-transparent",
+                      ].join(" ")}
                     />
                     <Icon className="h-5 w-5 opacity-95" />
                     <span className="truncate">{name}</span>
@@ -365,7 +424,9 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
                 >
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-transparent group-hover:bg-red-400" />
                   <LogoutIcon className="h-5 w-5" />
-                  <span className="truncate">{busy ? 'Logging out…' : 'Logout'}</span>
+                  <span className="truncate">
+                    {busy ? "Logging out…" : "Logout"}
+                  </span>
                 </button>
               </li>
             </ul>
@@ -386,28 +447,48 @@ export default function AdminSidebar({ userEmail, onLogout }: AdminSidebarProps)
 function BurgerIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M4 7h16M4 12h16M4 17h16"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M6 6l12 12M6 18L18 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M6 6l12 12M6 18L18 6"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function SparkIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M12 2l2.2 5.4L20 9l-5 3.8L16 20l-4-3-4 3 1-7.2L4 9l5.8-1.6L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path
+        d="M12 2l2.2 5.4L20 9l-5 3.8L16 20l-4-3-4 3 1-7.2L4 9l5.8-1.6L12 2Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function HomeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path
+        d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -425,22 +506,46 @@ function UsersIcon(props: React.SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 24 24" fill="none" {...props}>
       <circle cx="8" cy="8" r="3" stroke="currentColor" strokeWidth="2" />
       <circle cx="16" cy="11" r="3" stroke="currentColor" strokeWidth="2" />
-      <path d="M3 20a5 5 0 0 1 7-4.6M14 20a5 5 0 0 1 5-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path
+        d="M3 20a5 5 0 0 1 7-4.6M14 20a5 5 0 0 1 5-4"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
 function LogoutIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M10 12h10M17 9l3 3-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M10 12h10M17 9l3 3-3 3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
 function MoneyIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
       <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
@@ -448,9 +553,25 @@ function MoneyIcon(props: React.SVGProps<SVGSVGElement>) {
 function CreditCardIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" />
+      <rect
+        x="2"
+        y="5"
+        width="20"
+        height="14"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
       <path d="M2 10h20" stroke="currentColor" strokeWidth="2" />
-      <rect x="6" y="14" width="6" height="2" rx="1" stroke="currentColor" strokeWidth="2" />
+      <rect
+        x="6"
+        y="14"
+        width="6"
+        height="2"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
     </svg>
   );
 }
@@ -470,8 +591,20 @@ function FlagIcon(props: React.SVGProps<SVGSVGElement>) {
 function BriefcaseIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
-      <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" />
+      <rect
+        x="3"
+        y="7"
+        width="18"
+        height="13"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <path
+        d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
       <path d="M3 12h18" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
