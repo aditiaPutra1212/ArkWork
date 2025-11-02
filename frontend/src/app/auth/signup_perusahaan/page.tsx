@@ -1,4 +1,4 @@
-// File: app/auth/company/page.tsx (atau sesuai path kamu)
+// File: app/auth/company/page.tsx
 "use client";
 
 import {
@@ -398,7 +398,6 @@ export default function Page() {
     [plans, selectedSlug],
   );
 
-  // ⬇️ REPLACE seluruh fungsi ini
   async function submitStep3() {
     if (!employerId) throw new Error("EmployerId belum tersedia.");
     if (!selectedSlug) throw new Error("Silakan pilih paket.");
@@ -412,7 +411,7 @@ export default function Page() {
     const plan = plans.find((p) => p.slug === selectedSlug);
     if (!plan) throw new Error("Paket tidak ditemukan.");
 
-    // ✅ Jika paket FREE (Rp 0) —> anggap sudah paid, tanpa checkout
+    // Paket FREE → dianggap sudah paid
     if ((plan.amount ?? 0) <= 0) {
       setPaid(true);
       savePaymentRecord({
@@ -427,14 +426,14 @@ export default function Page() {
         amount: plan.amount,
         currency: plan.currency,
         interval: plan.interval,
-        status: "success", // langsung sukses
-        channel: "free_plan", // penanda lokal
+        status: "success",
+        channel: "free_plan",
         raw: { note: "Free plan does not require checkout" },
       });
-      return; // <-- selesai; handler tombol akan lanjut ke Step 4
+      return;
     }
 
-    // ====== Paket berbayar (lanjut Midtrans) ======
+    // Paket berbayar
     const link = !FORCE_SNAP ? getPaymentLink(plan) : null;
     if (link) {
       savePaymentRecord({
@@ -1438,7 +1437,9 @@ function VerifySummary({
       <h2 className="text-xl font-semibold text-slate-900">
         Verifikasi & Ringkasan
       </h2>
+
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Profil Perusahaan */}
         <div className="rounded-2xl border border-slate-200 p-4">
           <div className="mb-3 text-sm font-semibold text-slate-900">
             Profil Perusahaan
@@ -1455,6 +1456,7 @@ function VerifySummary({
           </dl>
         </div>
 
+        {/* Paket */}
         <div className="rounded-2xl border border-slate-200 p-4">
           <div className="mb-3 text-sm font-semibold text-slate-900">Paket</div>
           <dl className="space-y-2 text-sm">
@@ -1464,29 +1466,6 @@ function VerifySummary({
             </Row>
             <Row label="Interval">{currentPlan?.interval ?? "-"}</Row>
           </dl>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 p-4">
-          <div className="mb-3 text-sm font-semibold text-slate-900">
-            Status Pembayaran
-          </div>
-          <dl className="space-y-2 text-sm">
-            <Row label="Status">
-              {paid ? "Lunas / Pending (diterima)" : "Belum dibayar"}
-            </Row>
-          </dl>
-          {/* tombol simulasi paid jika perlu */}
-          {/* <button className="mt-3 text-xs underline" onClick={() => setPaid(true)}>Set Paid (simulate)</button> */}
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 p-4 md:col-span-2">
-          <div className="mb-3 text-sm font-semibold text-slate-900">
-            Catatan
-          </div>
-          <p className="text-sm text-slate-700">
-            Setelah verifikasi selesai akun perusahaan akan aktif dan dapat
-            mengelola lowongan.
-          </p>
         </div>
       </div>
 
@@ -1508,6 +1487,15 @@ function VerifySummary({
           {busy ? "Mengirim…" : "Kirim"}
         </button>
       </div>
+
+      {/* OPTIONAL: tombol simulasi bayar, hanya untuk dev QA */}
+      {/* <button
+        type="button"
+        className="text-xs text-slate-500 underline w-fit"
+        onClick={() => setPaid(true)}
+      >
+        (Dev only) Set Paid
+      </button> */}
     </div>
   );
 }
