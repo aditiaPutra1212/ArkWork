@@ -9,6 +9,7 @@ import { randomBytes } from 'crypto';
 import { sendVerificationEmail } from '../lib/mailer';
 // Pastikan path import middleware role ini benar
 import { ADMIN_COOKIE, EMP_COOKIE, USER_COOKIE } from '../middleware/role';
+import * as authController from '../controllers/auth.controller';
 
 const router = Router();
 
@@ -122,6 +123,11 @@ const verifyTokenSchema = z.object({
 
 router.get('/', (_req, res) => res.json({ message: 'Auth route works!' }));
 
+router.post('/forgot', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
+
+router.get('/verify-token/:token', authController.verifyToken);
+
 /* ----- USER SIGNUP (Sends Verification Email) ----- */
 router.post('/signup', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -199,7 +205,7 @@ router.post('/signin', async (req: Request, res: Response, next: NextFunction) =
     const passwordMatch = await bcrypt.compare(password, userCredentials.passwordHash);
     if (!passwordMatch) {
       // [LOG DIHAPUS]
-      return res.status(401).json({ message: 'Incorrect credentials.' });
+      return res.status(401).json({ message: 'Incorrect password.' });
     }
     if (!userCredentials.isVerified) {
       // [LOG DIHAPUS]

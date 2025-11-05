@@ -50,9 +50,7 @@
       "contact": "Nama PIC terlalu pendek."
     }
   },
-
   "halaman-home": {},
-
   "nav": {
     "home": "Beranda",
     "jobs": "Lowongan",
@@ -81,12 +79,17 @@
   "cta": {
     "energy": "Jelajahi Update Energi"
   },
-
   "home": {
     "hero": {
-      "title": { "1": "Majukan Kariermu di", "2": "Sektor Energi" },
+      "title": {
+        "1": "Majukan Kariermu di",
+        "2": "Sektor Energi"
+      },
       "desc": "ArkWork menghubungkan profesional energi dengan peluang di oil & gas, LNG, utilitas, dan teknologi energi terbaru. Telusuri lowongan, dapatkan insight industri, dan temukan perusahaan—semua di satu tempat.",
-      "cta": { "jobs": "Jelajahi Lowongan", "companies": "Lihat Perusahaan" }
+      "cta": {
+        "jobs": "Jelajahi Lowongan",
+        "companies": "Lihat Perusahaan"
+      }
     },
     "explore": {
       "title": "Jelajahi Tanpa Masuk",
@@ -139,14 +142,14 @@
       "note": "Tanpa kartu kredit • Daftar kurang dari 1 menit"
     }
   },
-
-  "lang": { "switch": "Ganti bahasa" },
+  "lang": {
+    "switch": "Ganti bahasa"
+  },
   "menu": {
     "open": "Buka menu",
     "close": "Tutup menu",
     "user": "Buka menu pengguna"
   },
-
   "footer": {
     "logoAlt": "Logo ArkWork",
     "description": "Bangun karier Anda di sektor energi: lowongan kerja, tender, dan wawasan untuk profesional oil & gas, LNG, dan utilitas.",
@@ -165,13 +168,15 @@
       "privacy": "Privasi",
       "cookies": "Cookie"
     },
-    "social": { "x": "X / Twitter", "linkedin": "LinkedIn", "email": "Email" },
+    "social": {
+      "x": "X / Twitter",
+      "linkedin": "LinkedIn",
+      "email": "Email"
+    },
     "copyright": "© {year} ArkWork. Hak cipta dilindungi.",
     "madeFor": "Dibuat untuk komunitas energi & oil & gas."
   },
-
   "Halaman-about": {},
-
   "about": {
     "title": "Tentang",
     "intro": "ArkWork adalah platform inovatif yang menghubungkan lowongan kerja, tender, dan kabar industri dengan profesional serta bisnis di sektor energi.",
@@ -215,9 +220,7 @@
       "cta": "Jelajahi Peluang"
     }
   },
-
   "Halaman-signin": {},
-
   "signin": {
     "title": "Masuk ke ArkWork",
     "subtitle": "Selamat datang kembali! Silakan masukkan detail Anda.",
@@ -240,9 +243,7 @@
       "google": "Gagal masuk dengan Google."
     }
   },
-
   "Halaman-signup": {},
-
   "signup": {
     "title": "Buat akun ArkWork",
     "subtitle": "Cepat dan gratis. Mulai perjalanan karier energimu.",
@@ -284,6 +285,45 @@
     }
   },
 
+  "Halaman-forgot": {},
+  "forgotPassword": {
+    "title": "Lupa Kata Sandi",
+    "subtitle": "Masukkan alamat email terdaftar Anda untuk menerima link reset.",
+    "form": {
+      "sendLink": "Kirim Link Reset",
+      "sending": "Mengirim link..."
+    },
+    "success": {
+      "message": "Jika email Anda terdaftar, Anda akan segera menerima link reset."
+    },
+    "error": {
+      "default": "Gagal mengirim link reset. Silakan coba lagi nanti."
+    },
+    "backTo": "Kembali ke"
+  },
+  "Halaman-reset": {},
+  "resetPassword": {
+    "title": "Reset Kata Sandi Anda",
+    "subtitle": "Buat kata sandi baru yang kuat untuk akun Anda.",
+    "form": {
+      "newPassword": "Kata Sandi Baru",
+      "confirmPassword": "Konfirmasi Kata Sandi Baru",
+      "savePassword": "Simpan Kata Sandi Baru",
+      "saving": "Menyimpan..."
+    },
+    "success": {
+      "message": "Kata sandi berhasil direset. Anda sekarang dapat masuk dengan kata sandi baru Anda."
+    },
+    "error": {
+      "default": "Gagal mereset kata sandi. Silakan coba lagi.",
+      "noToken": "Token reset tidak ditemukan. Harap gunakan link dari email Anda.",
+      "invalidToken": "Link reset ini tidak valid atau telah kedaluwarsa. Silakan minta link baru.",
+      "mismatch": "Kata sandi tidak cocok."
+    },
+    "validating": "Memvalidasi link reset...",
+    "backToForgot": "Minta link reset baru"
+  },
+
   "dashboard": {
     "greeting": "Hai, {name}!",
     "greetingSmall": "Selamat datang kembali",
@@ -293,7 +333,10 @@
     "cta": {
       "findJobs": "Cari Lowongan"
     },
-    "fallback": { "there": "kamu", "job": "Lowongan" },
+    "fallback": {
+      "there": "kamu",
+      "job": "Lowongan"
+    },
     "profile": {
       "title": "Profil Saya",
       "desc": "Lengkapi profil untuk rekomendasi lowongan yang lebih akurat",
@@ -311,17 +354,23 @@
       "empty": "Belum ada aktivitas",
       "item": "Melamar ke {title} — {date}",
       "viewAll": "Lihat Semua",
-      "cta": { "findJobs": "Cari Lowongan" }
+      "cta": {
+        "findJobs": "Cari Lowongan"
+      }
     }
   },
-
   "Halaman-jobs": {},
-
   "jobs": {
     "heading": "Cari Lowongan",
     "subheading": "Energi, Terbarukan, Pertambangan — pilihan peran untuk profesional.",
-    "search": { "placeholder": "Cari posisi / perusahaan…" },
-    "sort": { "label": "Urut", "newest": "Terbaru", "oldest": "Terlama" },
+    "search": {
+      "placeholder": "Cari posisi / perusahaan…"
+    },
+    "sort": {
+      "label": "Urut",
+      "newest": "Terbaru",
+      "oldest": "Terlama"
+    },
     "filters": {
       "title": "Filter",
       "location": "Lokasi",
@@ -362,34 +411,47 @@
       "ok": "Lamaran terkirim!"
     }
   },
-
   "Halaman-news": {},
-
   "news": {
     "title": "Berita Energi & Migas",
     "latest": "Berita Industri Terbaru",
     "readMore": "Baca Selengkapnya",
     "empty": "Tidak ada artikel.",
-    "error": { "load": "Gagal memuat berita" },
+    "error": {
+      "load": "Gagal memuat berita"
+    },
     "scope": {
       "id": "Cakupan: Indonesia",
       "global": "Cakupan: Global",
       "both": "Cakupan: Keduanya"
     },
-    "lang": { "id": "Bahasa: ID", "en": "Bahasa: EN" },
-    "country": { "id": "Negara: ID", "us": "Negara: US" },
-    "limit": { "n": "Batas: {n}" },
-    "keywords": { "placeholder": "Kata kunci kustom (opsional)" },
-    "btn": { "fetch": "Ambil Berita", "loading": "Memuat…" },
+    "lang": {
+      "id": "Bahasa: ID",
+      "en": "Bahasa: EN"
+    },
+    "country": {
+      "id": "Negara: ID",
+      "us": "Negara: US"
+    },
+    "limit": {
+      "n": "Batas: {n}"
+    },
+    "keywords": {
+      "placeholder": "Kata kunci kustom (opsional)"
+    },
+    "btn": {
+      "fetch": "Ambil Berita",
+      "loading": "Memuat…"
+    },
     "quick": {
       "placeholder": "Saring cepat judul/sumber…",
       "clear": "Hapus Saringan"
     },
-    "source": { "unknown": "Sumber" }
+    "source": {
+      "unknown": "Sumber"
+    }
   },
-
   "Halaman-profile": {},
-
   "profile": {
     "title": "Profil Saya",
     "fields": {
@@ -429,13 +491,13 @@
       "cvTooLarge": "Ukuran maksimum {size}MB"
     }
   },
-
   "Halaman-tender": {},
-
   "tenders": {
     "title": "Cari Tender",
     "subtitle": "Peluang proyek & pengadaan untuk kolaborasi multi-tim.",
-    "ph": { "search": "Cari judul / pembeli…" },
+    "ph": {
+      "search": "Cari judul / pembeli…"
+    },
     "sort": {
       "label": "Urutkan",
       "nearest": "Deadline terdekat",
@@ -449,7 +511,9 @@
       "contract": "Kontrak",
       "all": "Semua {what}",
       "clear": "Hapus semua",
-      "ph": { "location": "Saring lokasi…" }
+      "ph": {
+        "location": "Saring lokasi…"
+      }
     },
     "enums": {
       "sector": {
@@ -495,7 +559,9 @@
       "today": "Jatuh tempo hari ini",
       "left": "Sisa {n} hari"
     },
-    "detail": { "empty": "Pilih tender untuk melihat detail" },
+    "detail": {
+      "empty": "Pilih tender untuk melihat detail"
+    },
     "empty": {
       "title": "Tidak ada tender",
       "desc": "Coba ubah filter atau kata kunci."

@@ -115,5 +115,48 @@ export async function sendVerificationEmail(toEmail: string, name: string | null
   }
 }
 
+// --- TAMBAHAN UNTUK FORGOT PASSWORD ---
+
+/**
+ * Sends a password reset email.
+ * @param toEmail Recipient's email address.
+ * @param name Recipient's name (or 'User' if not provided).
+ * @param resetUrl The unique URL for the user to click to reset password.
+ */
+export async function sendPasswordResetEmail(toEmail: string, name: string | null | undefined, resetUrl: string) {
+  if (!transporter) {
+    console.error('[Mailer][sendPasswordResetEmail] Mailer not configured, skipping reset email.');
+    throw new Error('Mailer is not configured properly, cannot send reset email.');
+  }
+
+  const subject = 'Your ArkWork Password Reset Request';
+  const recipientName = name?.trim() || 'User';
+
+  // Plain text content
+  const text = `Hello ${recipientName},\n\nWe received a request to reset your password. Click the link below to set a new one:\n${resetUrl}\n\nThis link will expire in 15 minutes.\n\nIf you did not request this, please ignore this email.\n\nThanks,\nThe ArkWork Team`;
+
+  // HTML content
+  const html = `
+    <p>Hello ${recipientName},</p>
+    <p>We received a request to reset the password for your ArkWork account. Please click the button below to set a new password:</p>
+    <p style="margin: 20px 0;">
+      <a href="${resetUrl}" target="_blank" rel="noopener noreferrer" style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Your Password</a>
+    </p>
+    <p>This password reset link will expire in <strong>15 minutes</strong>.</p>
+    <p>If you did not request a password reset, please ignore this email.</p>
+    <p>Thanks,<br/>The ArkWork Team</p>
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin-top: 20px;" />
+    <p style="font-size: 0.8em; color: #6b7280;">If you're having trouble clicking the button, copy and paste this URL into your web browser: ${resetUrl}</p>
+  `;
+
+  try {
+    await sendEmail(toEmail, subject, html, text);
+  } catch (error) {
+    console.error(`[Mailer][sendPasswordResetEmail] Specific error during password reset email send to ${toEmail}:`, error);
+    throw error;
+  }
+}
+// ------------------------------------
+
 // Export the transporter and FROM address if needed elsewhere
 export { SMTP_FROM, transporter };

@@ -196,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (e: any) {
         console.log('Auth Refresh: employer check failed (ok to continue):', e?.message || e);
-      }
+     }
 
       // Coba cek sesi User Biasa
       try {
@@ -280,7 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // 'Bersihkan' error sebelum melemparnya ke AuthPage.tsx
       const cleanMessage = err?.response?.data?.message || err?.message || "Signup failed. Please try again.";
       throw new Error(cleanMessage); // Lempar error BARU yang HANYA berisi pesan bersih
-    }
+   }
   }, [refresh]); // refresh tetap di dependency array, meskipun tidak dipanggil
 
 
@@ -313,11 +313,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // ===== PERBAIKAN 4: TAMBAHKAN try...catch =====
     // ==========================================
     try {
-      // ==========================================
-      // PERBAIKAN BUG: Backend admin mengharapkan 'username', bukan 'usernameOrEmail'
-      // Sesuai schema 'adminSigninSchema' di auth.ts
-      // ==========================================
-      const res = await api('/api/admin/signin', { json: { username, password } });
+      
+      // ==========================================================
+      // ===== INI ADALAH PERBAIKAN YANG SEBENARNYA =====
+      // Backend Anda 'admin.ts' mengharapkan 'usernameOrEmail'.
+      // Kita kirim 'usernameOrEmail' dengan nilai dari variabel 'username'.
+      // ==========================================================
+      const res = await api('/api/admin/signin', { json: { usernameOrEmail: username, password } });
     
       console.log('[signinAdmin] response:', res);
       await refresh();

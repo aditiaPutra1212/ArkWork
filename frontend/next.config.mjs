@@ -22,6 +22,20 @@ const nextConfig = {
         source: '/api/auth/verify', // Path yang dipanggil frontend verify page
         destination: `${apiBase}/auth/verify` // Path tujuan di backend
       },
+      // --- Aturan lupa password ---
+      {
+        source: '/api/auth/forgot',
+        destination: `${apiBase}/auth/forgot` // Mengarah ke backend /auth/forgot
+      },
+      {
+        source: '/api/auth/reset-password',
+        destination: `${apiBase}/auth/reset-password` // Mengarah ke backend /auth/reset-password
+      },
+      {
+        source: '/api/auth/verify-token/:token',
+        destination: `${apiBase}/auth/verify-token/:token` 
+      },
+      
       // --- Aturan Umum /api SETELAHNYA ---
       {
         source: '/api/:path*', // Menangkap semua /api/* lainnya

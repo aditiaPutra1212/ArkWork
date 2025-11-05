@@ -50,9 +50,7 @@
       "contact": "PIC name is too short."
     }
   },
-
   "halaman-home": {},
-
   "nav": {
     "home": "Home",
     "jobs": "Jobs",
@@ -81,12 +79,17 @@
   "cta": {
     "energy": "Explore Energy Updates"
   },
-
   "home": {
     "hero": {
-      "title": { "1": "Advance Your Career in", "2": "the Energy Sector" },
+      "title": {
+        "1": "Advance Your Career in",
+        "2": "the Energy Sector"
+      },
       "desc": "ArkWork connects energy professionals with opportunities in oil & gas, LNG, utilities, and the latest energy technologies. Browse jobs, get industry insights, and discover companies—all in one place.",
-      "cta": { "jobs": "Browse Jobs", "companies": "View Companies" }
+      "cta": {
+        "jobs": "Browse Jobs",
+        "companies": "View Companies"
+      }
     },
     "explore": {
       "title": "Explore Without Signing In",
@@ -139,14 +142,14 @@
       "note": "No credit card • Sign up in less than 1 minute"
     }
   },
-
-  "lang": { "switch": "Switch language" },
+  "lang": {
+    "switch": "Switch language"
+  },
   "menu": {
     "open": "Open menu",
     "close": "Close menu",
     "user": "Open user menu"
   },
-
   "footer": {
     "logoAlt": "ArkWork Logo",
     "description": "Build your career in the energy sector: jobs, tenders, and insights for oil & gas, LNG, and utilities professionals.",
@@ -165,13 +168,15 @@
       "privacy": "Privacy",
       "cookies": "Cookies"
     },
-    "social": { "x": "X / Twitter", "linkedin": "LinkedIn", "email": "Email" },
+    "social": {
+      "x": "X / Twitter",
+      "linkedin": "LinkedIn",
+      "email": "Email"
+    },
     "copyright": "© {year} ArkWork. All rights reserved.",
     "madeFor": "Made for the energy & oil & gas community."
   },
-
   "Halaman-about": {},
-
   "about": {
     "title": "About",
     "intro": "ArkWork is an innovative platform that connects jobs, tenders, and industry news with professionals and businesses in the energy sector.",
@@ -215,9 +220,7 @@
       "cta": "Explore Opportunities"
     }
   },
-
   "Halaman-signin": {},
-
   "signin": {
     "title": "Sign In to ArkWork",
     "subtitle": "Welcome back! Please enter your details.",
@@ -240,9 +243,7 @@
       "google": "Failed to sign in with Google."
     }
   },
-
   "Halaman-signup": {},
-
   "signup": {
     "title": "Create an ArkWork Account",
     "subtitle": "Fast and free. Start your energy career journey.",
@@ -284,6 +285,45 @@
     }
   },
 
+  "Halaman-forgot": {},
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "subtitle": "Enter your registered email address to receive a reset link.",
+    "form": {
+      "sendLink": "Send Reset Link",
+      "sending": "Sending link..."
+    },
+    "success": {
+      "message": "If your email is registered, you will receive a reset link shortly."
+    },
+    "error": {
+      "default": "Failed to send reset link. Please try again later."
+    },
+    "backTo": "Back to"
+  },
+  "Halaman-reset": {},
+  "resetPassword": {
+    "title": "Reset Your Password",
+    "subtitle": "Create a new, strong password for your account.",
+    "form": {
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "savePassword": "Save New Password",
+      "saving": "Saving..."
+    },
+    "success": {
+      "message": "Password reset successfully. You can now sign in with your new password."
+    },
+    "error": {
+      "default": "Failed to reset password. Please try again.",
+      "noToken": "No reset token was found. Please use the link from your email.",
+      "invalidToken": "This reset link is invalid or has expired. Please request a new one.",
+      "mismatch": "The passwords do not match."
+    },
+    "validating": "Validating reset link...",
+    "backToForgot": "Request a new reset link"
+  },
+
   "dashboard": {
     "greeting": "Hi, {name}!",
     "greetingSmall": "Welcome back",
@@ -293,7 +333,10 @@
     "cta": {
       "findJobs": "Find Jobs"
     },
-    "fallback": { "there": "you", "job": "Job" },
+    "fallback": {
+      "there": "you",
+      "job": "Job"
+    },
     "profile": {
       "title": "My Profile",
       "desc": "Complete your profile for more accurate job recommendations",
@@ -311,17 +354,23 @@
       "empty": "No recent activity",
       "item": "Applied to {title} — {date}",
       "viewAll": "View All",
-      "cta": { "findJobs": "Find Jobs" }
+      "cta": {
+        "findJobs": "Find Jobs"
+      }
     }
   },
-
   "Halaman-jobs": {},
-
   "jobs": {
     "heading": "Search Jobs",
     "subheading": "Energy, Renewables, Mining — role options for professionals.",
-    "search": { "placeholder": "Search position / company…" },
-    "sort": { "label": "Sort", "newest": "Newest", "oldest": "Oldest" },
+    "search": {
+      "placeholder": "Search position / company…"
+    },
+    "sort": {
+      "label": "Sort",
+      "newest": "Newest",
+      "oldest": "Oldest"
+    },
     "filters": {
       "title": "Filters",
       "location": "Location",
@@ -362,34 +411,47 @@
       "ok": "Application submitted!"
     }
   },
-
   "Halaman-news": {},
-
   "news": {
     "title": "Energy & Oil & Gas News",
     "latest": "Latest Industry News",
     "readMore": "Read More",
     "empty": "No articles available.",
-    "error": { "load": "Failed to load news" },
+    "error": {
+      "load": "Failed to load news"
+    },
     "scope": {
       "id": "Coverage: Indonesia",
       "global": "Coverage: Global",
       "both": "Coverage: Both"
     },
-    "lang": { "id": "Language: ID", "en": "Language: EN" },
-    "country": { "id": "Country: ID", "us": "Country: US" },
-    "limit": { "n": "Limit: {n}" },
-    "keywords": { "placeholder": "Custom keywords (optional)" },
-    "btn": { "fetch": "Fetch News", "loading": "Loading…" },
+    "lang": {
+      "id": "Language: ID",
+      "en": "Language: EN"
+    },
+    "country": {
+      "id": "Country: ID",
+      "us": "Country: US"
+    },
+    "limit": {
+      "n": "Limit: {n}"
+    },
+    "keywords": {
+      "placeholder": "Custom keywords (optional)"
+    },
+    "btn": {
+      "fetch": "Fetch News",
+      "loading": "Loading…"
+    },
     "quick": {
       "placeholder": "Quick filter title/source…",
       "clear": "Clear Filter"
     },
-    "source": { "unknown": "Source" }
+    "source": {
+      "unknown": "Source"
+    }
   },
-
   "Halaman-profile": {},
-
   "profile": {
     "title": "My Profile",
     "fields": {
@@ -429,13 +491,13 @@
       "cvTooLarge": "Maximum size {size}MB"
     }
   },
-
   "Halaman-tender": {},
-
   "tenders": {
     "title": "Search Tenders",
     "subtitle": "Project & procurement opportunities for multi-team collaboration.",
-    "ph": { "search": "Search title / buyer…" },
+    "ph": {
+      "search": "Search title / buyer…"
+    },
     "sort": {
       "label": "Sort by",
       "nearest": "Nearest deadline",
@@ -449,7 +511,9 @@
       "contract": "Contract",
       "all": "All {what}",
       "clear": "Clear all",
-      "ph": { "location": "Filter location…" }
+      "ph": {
+        "location": "Filter location…"
+      }
     },
     "enums": {
       "sector": {
@@ -495,7 +559,9 @@
       "today": "Due today",
       "left": "{n} days left"
     },
-    "detail": { "empty": "Select a tender to view details" },
+    "detail": {
+      "empty": "Select a tender to view details"
+    },
     "empty": {
       "title": "No tenders found",
       "desc": "Try changing filters or keywords."
