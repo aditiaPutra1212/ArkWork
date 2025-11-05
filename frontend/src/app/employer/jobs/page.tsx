@@ -5,6 +5,18 @@ import { useEffect, useMemo, useState } from "react";
 import Nav from "@/components/nav";
 import Footer from "@/components/Footer";
 
+/* ---------------- Config ---------------- */
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE?.replace(/\/+$/, "") ||
+  "http://localhost:4000";
+const API = {
+  LIST: () => `${API_BASE}/api/employer-jobs`,
+  TOGGLE: (id: string | number) => `${API_BASE}/api/employer-jobs/${id}`,
+  DELETE: (id: string | number) => `${API_BASE}/api/employer-jobs/${id}`, // soft delete
+  // Optional helper (backend sudah best-effort hapus reports saat delete):
+  // DELETE_REPORTS_BY_JOB: (id: string | number) => `${API_BASE}/api/admin/reports/by-job/${id}`,
+};
+
 /* ---------------- Types ---------------- */
 type LocalJob = {
   id: number | string;
@@ -25,7 +37,18 @@ type LocalJob = {
   logo?: string | null; // dataURL/logo url (opsional)
 };
 
-const LS_KEY = "ark_jobs";
+type JobDTO = {
+  id: string;
+  title: string;
+  location: string | null;
+  employment: string | null; // ex: "full_time" | "part_time" | "contract" | "internship"
+  description: string | null;
+  postedAt: string; // ISO
+  company: string; // employer.displayName
+  logoUrl: string | null;
+  isActive: boolean | null;
+  isDraft?: boolean | null;
+};
 
 /* ---------------- UI: Modern Alerts ---------------- */
 function AlertModal({
@@ -167,64 +190,135 @@ function ConfirmModal({
 
 /* ---------------- Helpers ---------------- */
 function initials(name: string) {
-  const parts = name.trim().split(/\s+/);
+  const parts = name?.trim().split(/\s+/) ?? [];
+  if (parts.length === 0) return "AW";
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function mapDTOToLocal(x: JobDTO): LocalJob {
+  // employment -> union LocalJob.type (fallback full_time)
+  const emp = (x.employment || "full_time").toLowerCase();
+  const employment =
+    emp === "full_time" ||
+    emp === "part_time" ||
+    emp === "contract" ||
+    emp === "internship"
+      ? (emp as LocalJob["type"])
+      : "full_time";
+
+  return {
+    id: x.id,
+    title: x.title,
+    company: x.company || "Company",
+    location: x.location || "",
+    type: employment,
+    description: x.description || "",
+    postedAt: x.postedAt,
+    status: x.isActive === false ? "closed" : "active",
+    logo: x.logoUrl || null,
+  };
 }
 
 /* ---------------- Page ---------------- */
 export default function EmployerJobsPage() {
   const [jobs, setJobs] = useState<LocalJob[]>([]);
+  const [loading, setLoading] = useState(true);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<LocalJob | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
 
+  async function fetchJSON<T>(
+    input: RequestInfo,
+    init?: RequestInit,
+  ): Promise<T> {
+    const res = await fetch(input, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers || {}),
+      },
+      cache: "no-store",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(text || `HTTP ${res.status}`);
+    }
+    return res.json();
+  }
+
   // load awal
   useEffect(() => {
-    try {
-      const arr: LocalJob[] = JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
-      setJobs(arr);
-    } catch {
-      setJobs([]);
-    }
+    (async () => {
+      setLoading(true);
+      setErrorMsg(null);
+      try {
+        const data = await fetchJSON<{ ok: boolean; data: JobDTO[] }>(
+          API.LIST(),
+        );
+        const arr = (data?.data || []).map(mapDTOToLocal);
+        setJobs(arr);
+      } catch (e: any) {
+        setErrorMsg(e?.message || "Gagal memuat data");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  function save(next: LocalJob[], successMessage?: string) {
-    localStorage.setItem(LS_KEY, JSON.stringify(next));
-    setJobs(next);
-    // beri tahu halaman /jobs agar refresh
-    window.dispatchEvent(new Event("ark:jobs-updated"));
-    if (successMessage) setAlertMsg(successMessage);
-  }
-
-  function remove(id: LocalJob["id"]) {
-    setConfirmDelete(null);
-    const filtered = jobs.filter((j) => String(j.id) !== String(id));
-    save(filtered, "Job berhasil dihapus.");
-  }
-
-  function toggleStatus(id: LocalJob["id"]) {
-    const next = jobs.map((j) => {
-      if (String(j.id) !== String(id)) return j;
-      const current: "active" | "closed" = j.status ?? "active";
-      const updated: "active" | "closed" =
-        current === "active" ? "closed" : "active";
-      return { ...j, status: updated };
-    });
-    save(next, "Status berhasil diperbarui.");
-  }
-
-  // Hapus semua data
-  function resetAll() {
+  async function reload(message?: string) {
     try {
-      localStorage.removeItem(LS_KEY);
-    } catch {
-      /* ignore */
+      const data = await fetchJSON<{ ok: boolean; data: JobDTO[] }>(API.LIST());
+      setJobs((data?.data || []).map(mapDTOToLocal));
+      if (message) setAlertMsg(message);
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Gagal memuat ulang data");
     }
-    setJobs([]);
-    window.dispatchEvent(new Event("ark:jobs-updated"));
-    setAlertMsg("Semua lowongan berhasil dihapus.");
+  }
+
+  async function remove(id: LocalJob["id"]) {
+    setConfirmDelete(null);
+    try {
+      await fetchJSON<{ ok: boolean }>(API.DELETE(id), { method: "DELETE" });
+      // Optional: backend sudah best-effort hapus reports saat delete
+      // await fetchJSON<{ ok: boolean }>(API.DELETE_REPORTS_BY_JOB(id), { method: "DELETE" });
+
+      await reload("Job berhasil dihapus.");
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Gagal menghapus job");
+    }
+  }
+
+  async function toggleStatus(id: LocalJob["id"]) {
+    // cari current status
+    const current = jobs.find((j) => String(j.id) === String(id));
+    const nextStatus =
+      (current?.status ?? "active") === "active" ? "INACTIVE" : "ACTIVE";
+    try {
+      await fetchJSON<{ ok: boolean }>(API.TOGGLE(id), {
+        method: "PATCH",
+        body: JSON.stringify({ status: nextStatus }),
+      });
+      await reload("Status berhasil diperbarui.");
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Gagal mengubah status");
+    }
+  }
+
+  // Hapus semua data (best-effort, paralel)
+  async function resetAll() {
     setConfirmReset(false);
+    try {
+      const ids = jobs.map((j) => j.id);
+      await Promise.allSettled(
+        ids.map((id) => fetchJSON(API.DELETE(id), { method: "DELETE" })),
+      );
+      await reload("Semua lowongan berhasil dihapus.");
+    } catch (e: any) {
+      setErrorMsg(e?.message || "Gagal menghapus semua lowongan");
+    }
   }
 
   const sorted = useMemo(
@@ -259,7 +353,8 @@ export default function EmployerJobsPage() {
               <button
                 onClick={() => setConfirmReset(true)}
                 className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100"
-                title="Hapus semua data lokal (ark_jobs)"
+                title="Hapus semua data di server (soft delete masing-masing)"
+                disabled={loading || jobs.length === 0}
               >
                 Hapus Semua
               </button>
@@ -280,7 +375,18 @@ export default function EmployerJobsPage() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.length === 0 && (
+                {loading && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 py-8 text-center text-slate-600"
+                    >
+                      Memuat data…
+                    </td>
+                  </tr>
+                )}
+
+                {!loading && sorted.length === 0 && (
                   <tr>
                     <td
                       colSpan={7}
@@ -295,112 +401,127 @@ export default function EmployerJobsPage() {
                   </tr>
                 )}
 
-                {sorted.map((j) => {
-                  const friendlyType =
-                    j.type === "full_time"
-                      ? "Full-time"
-                      : j.type === "part_time"
-                        ? "Part-time"
-                        : j.type === "contract"
-                          ? "Contract"
-                          : "Internship";
+                {!loading &&
+                  sorted.map((j) => {
+                    const friendlyType =
+                      j.type === "full_time"
+                        ? "Full-time"
+                        : j.type === "part_time"
+                          ? "Part-time"
+                          : j.type === "contract"
+                            ? "Contract"
+                            : "Internship";
 
-                  return (
-                    <tr key={j.id} className="border-b last:border-0">
-                      {/* Title + avatar/logo */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 text-sm font-bold text-white">
-                            {j.logo ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={j.logo}
-                                alt="logo"
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              initials(j.company || "AW")
-                            )}
-                          </div>
-                          <div>
-                            <div className="font-medium text-slate-900">
-                              {j.title}
+                    return (
+                      <tr key={j.id} className="border-b last:border-0">
+                        {/* Title + avatar/logo */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 text-sm font-bold text-white">
+                              {j.logo ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={j.logo}
+                                  alt="logo"
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                initials(j.company || "AW")
+                              )}
                             </div>
-                            <div className="text-xs text-slate-500">
-                              {j.tags?.slice(0, 3).join(" • ")}
+                            <div>
+                              <div className="font-medium text-slate-900">
+                                {j.title}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {j.tags?.slice(0, 3).join(" • ")}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Company */}
-                      <td className="px-4 py-3 text-slate-700">{j.company}</td>
+                        {/* Company */}
+                        <td className="px-4 py-3 text-slate-700">
+                          {j.company}
+                        </td>
 
-                      {/* Location */}
-                      <td className="px-4 py-3 text-slate-700">
-                        {j.location} {j.remote ? "• Remote" : ""}
-                      </td>
+                        {/* Location */}
+                        <td className="px-4 py-3 text-slate-700">
+                          {j.location} {j.remote ? "• Remote" : ""}
+                        </td>
 
-                      {/* Type */}
-                      <td className="px-4 py-3 text-slate-700">
-                        {friendlyType}
-                      </td>
+                        {/* Type */}
+                        <td className="px-4 py-3 text-slate-700">
+                          {friendlyType}
+                        </td>
 
-                      {/* Status badge */}
-                      <td className="px-4 py-3">
-                        <span
-                          className={[
-                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
-                            (j.status ?? "active") === "active"
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200"
-                              : "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
-                          ].join(" ")}
-                        >
-                          {(j.status ?? "active") === "active"
-                            ? "Active"
-                            : "Closed"}
-                        </span>
-                      </td>
-
-                      {/* Posted date */}
-                      <td className="px-4 py-3 text-slate-700">
-                        {j.postedAt
-                          ? new Date(j.postedAt).toLocaleDateString()
-                          : "-"}
-                      </td>
-
-                      {/* Actions */}
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap gap-2">
-                          <Link
-                            href={`/employer/jobs/new?id=${j.id}`}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
-                          >
-                            Edit
-                          </Link>
-                          <button
-                            onClick={() => toggleStatus(j.id)}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+                        {/* Status badge */}
+                        <td className="px-4 py-3">
+                          <span
+                            className={[
+                              "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
+                              (j.status ?? "active") === "active"
+                                ? "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200"
+                                : "bg-slate-100 text-slate-700 ring-1 ring-inset ring-slate-200",
+                            ].join(" ")}
                           >
                             {(j.status ?? "active") === "active"
-                              ? "Tutup"
-                              : "Buka"}
-                          </button>
-                          <button
-                            onClick={() => setConfirmDelete(j)}
-                            className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700 hover:bg-rose-100"
-                          >
-                            Hapus
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                              ? "Active"
+                              : "Closed"}
+                          </span>
+                        </td>
+
+                        {/* Posted date */}
+                        <td className="px-4 py-3 text-slate-700">
+                          {j.postedAt
+                            ? new Date(j.postedAt).toLocaleDateString()
+                            : "-"}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-4 py-3">
+                          <div className="flex flex-wrap gap-2">
+                            <Link
+                              href={`/employer/jobs/new?id=${j.id}`}
+                              className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+                            >
+                              Edit
+                            </Link>
+                            <button
+                              onClick={() => toggleStatus(j.id)}
+                              className="rounded-lg border border-slate-200 px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+                              disabled={loading}
+                            >
+                              {(j.status ?? "active") === "active"
+                                ? "Tutup"
+                                : "Buka"}
+                            </button>
+                            <button
+                              onClick={() => setConfirmDelete(j)}
+                              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700 hover:bg-rose-100"
+                              disabled={loading}
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
               </tbody>
             </table>
           </div>
         </div>
+
+        {/* Errors */}
+        {errorMsg && (
+          <AlertModal
+            title="Gagal"
+            message={errorMsg}
+            variant="error"
+            onClose={() => setErrorMsg(null)}
+          />
+        )}
 
         {/* Alert success */}
         {alertMsg && (
@@ -428,7 +549,7 @@ export default function EmployerJobsPage() {
         {confirmReset && (
           <ConfirmModal
             title="Hapus Semua Lowongan?"
-            message="Ini akan menghapus seluruh data lokal (localStorage: ark_jobs). Lanjutkan?"
+            message="Ini akan menghapus semua lowongan di server (soft delete). Lanjutkan?"
             confirmText="Ya, hapus semua"
             cancelText="Batal"
             onCancel={() => setConfirmReset(false)}
