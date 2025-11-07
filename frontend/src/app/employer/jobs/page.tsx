@@ -97,8 +97,6 @@ export default function EmployerJobsPage() {
   const [loading, setLoading] = useState(true);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<LocalJob | null>(null);
-  const [confirmReset, setConfirmReset] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -132,8 +130,15 @@ export default function EmployerJobsPage() {
     }
   }
 
-  async function remove(id: string | number) {
-    setConfirmDelete(null);
+  async function remove(id: string | number, title?: string, company?: string) {
+    const ok =
+      typeof window !== "undefined"
+        ? window.confirm(
+            `Hapus lowongan?\n"${title || "Tanpa judul"}" – ${company || "-"}`,
+          )
+        : true;
+    if (!ok) return;
+
     try {
       await fetchJSON(API.DELETE(id), { method: "DELETE" });
       await load();
@@ -144,7 +149,14 @@ export default function EmployerJobsPage() {
   }
 
   async function removeAll() {
-    setConfirmReset(false);
+    const ok =
+      typeof window !== "undefined"
+        ? window.confirm(
+            "Ini akan menghapus semua lowongan (soft delete). Lanjutkan?",
+          )
+        : true;
+    if (!ok) return;
+
     try {
       const ids = jobs.map((j) => j.id);
       await Promise.allSettled(
@@ -182,9 +194,8 @@ export default function EmployerJobsPage() {
                 Post a Job
               </Link>
               <button
-                onClick={() => setConfirmReset(true)}
-                className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2
-                text-sm font-semibold text-rose-700 hover:bg-rose-100"
+                onClick={removeAll}
+                className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
                 disabled={loading || jobs.length === 0}
               >
                 Hapus Semua
@@ -192,16 +203,44 @@ export default function EmployerJobsPage() {
             </div>
           </div>
 
+          {/* Banners sederhana pengganti AlertModal */}
+          {alertMsg && (
+            <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
+              <div className="flex items-start justify-between gap-4">
+                <span>{alertMsg}</span>
+                <button
+                  onClick={() => setAlertMsg(null)}
+                  className="text-sm underline underline-offset-2"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          )}
+          {errorMsg && (
+            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-800">
+              <div className="flex items-start justify-between gap-4">
+                <span>{errorMsg}</span>
+                <button
+                  onClick={() => setErrorMsg(null)}
+                  className="text-sm underline underline-offset-2"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table className="w-full text-sm">
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
-                  <th className="px-4 py-3">Posisi</th>
-                  <th className="px-4 py-3">Perusahaan</th>
-                  <th className="px-4 py-3">Lokasi</th>
-                  <th className="px-4 py-3">Tipe</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Diposting</th>
+                  <th className="px-4 py-3 text-left">Posisi</th>
+                  <th className="px-4 py-3 text-left">Perusahaan</th>
+                  <th className="px-4 py-3 text-left">Lokasi</th>
+                  <th className="px-4 py-3 text-left">Tipe</th>
+                  <th className="px-4 py-3 text-left">Status</th>
+                  <th className="px-4 py-3 text-left">Diposting</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -236,8 +275,10 @@ export default function EmployerJobsPage() {
                         <div className="flex items-center gap-3">
                           <div className="grid h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 text-white font-bold place-items-center overflow-hidden">
                             {j.logo ? (
+                              // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={j.logo}
+                                alt={j.company}
                                 className="h-full w-full object-cover"
                               />
                             ) : (
@@ -287,15 +328,15 @@ export default function EmployerJobsPage() {
 
                           <button
                             onClick={() => toggleStatus(j.id)}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50"
+                            className="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50"
                             disabled={loading}
                           >
                             {j.status === "active" ? "Tutup" : "Buka"}
                           </button>
 
                           <button
-                            onClick={() => setConfirmDelete(j)}
-                            className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700 hover:bg-rose-100"
+                            onClick={() => remove(j.id, j.title, j.company)}
+                            className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700 hover:bg-rose-100 disabled:opacity-50"
                             disabled={loading}
                           >
                             Hapus
@@ -308,44 +349,6 @@ export default function EmployerJobsPage() {
             </table>
           </div>
         </div>
-
-        {alertMsg && (
-          <AlertModal
-            title="Berhasil"
-            message={alertMsg}
-            onClose={() => setAlertMsg(null)}
-          />
-        )}
-        {errorMsg && (
-          <AlertModal
-            title="Gagal"
-            message={errorMsg}
-            variant="error"
-            onClose={() => setErrorMsg(null)}
-          />
-        )}
-
-        {confirmDelete && (
-          <ConfirmModal
-            title="Hapus Lowongan?"
-            message={`Anda yakin ingin menghapus "${confirmDelete.title}" di ${confirmDelete.company}?`}
-            confirmText="Ya, hapus"
-            cancelText="Batal"
-            onCancel={() => setConfirmDelete(null)}
-            onConfirm={() => remove(confirmDelete.id)}
-          />
-        )}
-
-        {confirmReset && (
-          <ConfirmModal
-            title="Hapus Semua?"
-            message="Ini akan menghapus semua lowongan (soft delete). Lanjutkan?"
-            confirmText="Ya, hapus semua"
-            cancelText="Batal"
-            onCancel={() => setConfirmReset(false)}
-            onConfirm={removeAll}
-          />
-        )}
       </main>
       <Footer />
     </>
