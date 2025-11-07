@@ -1,19 +1,19 @@
 "use client";
 
 // --- ADDED ---
-import { useEffect } from "react"; 
+import { useEffect } from "react";
 // -------------
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 // --- ADDED ---
-import { useRouter, useSearchParams } from "next/navigation"; 
+import { useRouter, useSearchParams } from "next/navigation";
 // -------------
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Eye, EyeOff } from "lucide-react"; 
+import { Eye, EyeOff } from "lucide-react";
 
-import Logo from "@/app/Images/Ungu__1_-removebg-preview.png";
+import Logo from "@/app/Images/logo.png";
 // --- ADDED ---
 import { api, API_BASE } from "@/lib/api"; // Impor API_BASE
 // -------------
@@ -55,7 +55,7 @@ export default function AuthPage() {
   const tIn = useTranslations("signin");
   const tUp = useTranslations("signup");
   const router = useRouter();
-  
+
   // --- ADDED ---
   const { signinUser, signup, user, refresh } = useAuth();
   const searchParams = useSearchParams();
@@ -82,8 +82,10 @@ export default function AuthPage() {
   const [suShowC, setSuShowC] = useState(false);
   const [suAgree, setSuAgree] = useState(false);
   const [suBusy, setSuBusy] = useState(false);
-  const [signupSuccessMessage, setSignupSuccessMessage] = useState<string | null>(null);
-  
+  const [signupSuccessMessage, setSignupSuccessMessage] = useState<
+    string | null
+  >(null);
+
   // --- ADDED ---
   // State untuk loading Google
   const [googleBusy, setGoogleBusy] = useState(false);
@@ -94,7 +96,9 @@ export default function AuthPage() {
     const googleError = searchParams.get("error");
 
     if (googleError) {
-      setError(tIn("error.google") || "Google sign-in failed. Please try again.");
+      setError(
+        tIn("error.google") || "Google sign-in failed. Please try again.",
+      );
       setGoogleBusy(false);
       // Bersihkan URL dari parameter error
       router.replace("/auth/signin");
@@ -166,67 +170,66 @@ export default function AuthPage() {
   }
 
   async function onSignup(e: React.FormEvent<HTMLFormElement>) {
-      e.preventDefault();
-      // Reset pesan error dan sukses
-      setError(null);
-      setSignupSuccessMessage(null);
+    e.preventDefault();
+    // Reset pesan error dan sukses
+    setError(null);
+    setSignupSuccessMessage(null);
 
-      // Validasi frontend (agree, password match)
-      if (!suAgree) {
-        setError(tUp("error.agree"));
-        return;
-      }
-      if (suPw !== suConfirm) {
-        setError(tUp("error.mismatch"));
-        return;
-      }
-
-      setSuBusy(true); // Mulai loading
-
-      try {
-        // Panggil endpoint backend /auth/signup via proxy
-        // (Pastikan next.config.mjs punya aturan untuk /auth/signup)
-        const response = await api('/auth/signup', {
-            method: 'POST', // Eksplisit POST
-            json: {
-                name: suName.trim(),
-                email: suEmail.trim(),
-                password: suPw // Password dikirim plain, backend akan hash
-            }
-        });
-
-        // Cek respons dari backend
-        if (response?.ok && response?.message) {
-            // Sukses! Tampilkan pesan dari backend
-            setSignupSuccessMessage(response.message);
-            // Kosongkan form
-            setSuName('');
-            setSuEmail('');
-            setSuPw('');
-            setSuConfirm('');
-            setSuAgree(false);
-            // Opsional: Pindah ke tab signin agar pesan lebih terlihat
-            // switchMode('signin');
-        } else {
-             // Jika backend tidak mengembalikan format {ok: true, message: '...'}
-             // atau terjadi error lain di API call
-             throw new Error(response?.message || tUp("error.default"));
-        }
-
-      } catch (err: any) {
-        // Tangani error dari API call (misal 409 Email exists, 500 server error)
-        const msg =
-          // Coba ambil pesan error dari body respons JSON (jika ada)
-          err?.response?.data?.message ||
-          // Coba ambil pesan error dari objek Error JS
-          (err as { message?: string })?.message ||
-          // Fallback
-          tUp("error.default");
-        setError(msg);
-      } finally {
-        setSuBusy(false); // Selesai loading
-      }
+    // Validasi frontend (agree, password match)
+    if (!suAgree) {
+      setError(tUp("error.agree"));
+      return;
     }
+    if (suPw !== suConfirm) {
+      setError(tUp("error.mismatch"));
+      return;
+    }
+
+    setSuBusy(true); // Mulai loading
+
+    try {
+      // Panggil endpoint backend /auth/signup via proxy
+      // (Pastikan next.config.mjs punya aturan untuk /auth/signup)
+      const response = await api("/auth/signup", {
+        method: "POST", // Eksplisit POST
+        json: {
+          name: suName.trim(),
+          email: suEmail.trim(),
+          password: suPw, // Password dikirim plain, backend akan hash
+        },
+      });
+
+      // Cek respons dari backend
+      if (response?.ok && response?.message) {
+        // Sukses! Tampilkan pesan dari backend
+        setSignupSuccessMessage(response.message);
+        // Kosongkan form
+        setSuName("");
+        setSuEmail("");
+        setSuPw("");
+        setSuConfirm("");
+        setSuAgree(false);
+        // Opsional: Pindah ke tab signin agar pesan lebih terlihat
+        // switchMode('signin');
+      } else {
+        // Jika backend tidak mengembalikan format {ok: true, message: '...'}
+        // atau terjadi error lain di API call
+        throw new Error(response?.message || tUp("error.default"));
+      }
+    } catch (err: any) {
+      // Tangani error dari API call (misal 409 Email exists, 500 server error)
+      const msg =
+        // Coba ambil pesan error dari body respons JSON (jika ada)
+        err?.response?.data?.message ||
+        // Coba ambil pesan error dari objek Error JS
+        (err as { message?: string })?.message ||
+        // Fallback
+        tUp("error.default");
+      setError(msg);
+    } finally {
+      setSuBusy(false); // Selesai loading
+    }
+  }
 
   // --- ADDED ---
   // Handler untuk klik tombol Google
@@ -238,7 +241,6 @@ export default function AuthPage() {
     window.location.href = `${API_BASE}/auth/google`;
   }
   // -------------
-
 
   // --- ADDED ---
   // Helper JSX untuk Tombol Google (agar tidak duplikat)
@@ -279,13 +281,13 @@ export default function AuthPage() {
           <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl" />
 
           {/* Header */}
-            <div className="px-8 pt-8 text-center">
+          <div className="px-8 pt-8 text-center">
             <Image
               src={Logo}
               alt="ArkWork Logo"
               width={96}
               height={96}
-              className="mx-auto mb-5 h-20 w-20 object-contain drop-shadow-sm"
+              className="mx-auto mb-4 h-20 w-20 sm:h-20 sm:w-20 object-contain"
               priority
             />
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -323,16 +325,16 @@ export default function AuthPage() {
           </div>
 
           {/* +++ TAMBAHKAN BLOK INI +++ */}
-                {/* Tampilkan Pesan Sukses Signup (hanya jika tidak ada error) */}
-                {signupSuccessMessage && !error && (
-                    <div
-                      className="mx-8 mt-5 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
-                      role="alert"
-                    >
-                      {signupSuccessMessage}
-                    </div>
-                )}
-                {/* +++ ------------------ +++ */}
+          {/* Tampilkan Pesan Sukses Signup (hanya jika tidak ada error) */}
+          {signupSuccessMessage && !error && (
+            <div
+              className="mx-8 mt-5 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"
+              role="alert"
+            >
+              {signupSuccessMessage}
+            </div>
+          )}
+          {/* +++ ------------------ +++ */}
 
           {/* Error */}
           {error && (
@@ -423,7 +425,7 @@ export default function AuthPage() {
                     tIn("form.signInBtn")
                   )}
                 </button>
-                
+
                 {/* --- ADDED --- */}
                 {googleButton}
                 {/* ------------- */}
