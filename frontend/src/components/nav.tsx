@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { api, API_BASE } from "@/lib/api";
-import ArkLogo from "@/app/Images/Ungu__1_-removebg-preview.png";
+import ArkLogo from "@/app/Images/logo-removebg-preview.png";
 
 const NAV_AVATAR_KEY_PREFIX = "ark_nav_avatar:";
 
@@ -241,7 +241,7 @@ export default function Nav() {
             width={300}
             height={300}
             priority
-            className="h-24 w-auto object-contain"
+            className="h-20 w-auto object-contain"
           />
         </Link>
 
