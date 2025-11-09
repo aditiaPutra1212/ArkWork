@@ -21,18 +21,24 @@ model User {
   updatedAt    DateTime  @default(now()) @updatedAt
   sessions     Session[]
 
-  oauthProvider String?  // Menyimpan "google", "facebook", dll.
-  oauthId       String?  // Menyimpan ID unik dari Google.
+  oauthProvider String? // Menyimpan "google", "facebook", dll.
+  oauthId       String? // Menyimpan ID unik dari Google.
 
-  isVerified                Boolean  @default(false)
-  verificationToken         String?  @unique // Token unik untuk verifikasi
+  isVerified                 Boolean   @default(false)
+  verificationToken          String?   @unique // Token unik untuk verifikasi
   verificationTokenExpiresAt DateTime? // Waktu kedaluwarsa token
+
+  // --- TAMBAHAN UNTUK FORGOT PASSWORD ---
+  resetToken          String?   @unique // Token unik untuk reset
+  resetTokenExpiresAt DateTime? // Waktu kedaluwarsa token
+  // -------------------------------------
 
   applications JobApplication[]
   savedJobs    SavedJob[]
 
   @@unique([oauthProvider, oauthId])
   @@index([verificationToken])
+  @@index([resetToken]) // Tambahkan index ini
 }
 
 model Admin {
@@ -95,17 +101,17 @@ model Employer {
   /**
    * ===== Relations =====
    */
-  currentPlan   Plan?                 @relation("EmployerCurrentPlan", fields: [currentPlanId], references: [id])
-  admins        EmployerAdminUser[]
-  contacts      EmployerContact[]
-  metas         EmployerMeta[]
-  offices       EmployerOffice[]
-  profile       EmployerProfile?
-  jobs          Job[]
-  payments      Payment[]
-  sessions      Session[]
-  subscriptions Subscription[]
-  verifications VerificationRequest[]
+  currentPlan     Plan?                 @relation("EmployerCurrentPlan", fields: [currentPlanId], references: [id])
+  admins          EmployerAdminUser[]
+  contacts        EmployerContact[]
+  metas           EmployerMeta[]
+  offices         EmployerOffice[]
+  profile         EmployerProfile?
+  jobs            Job[]
+  payments        Payment[]
+  sessions        Session[]
+  subscriptions   Subscription[]
+  verifications   VerificationRequest[]
 
   @@index([billingStatus, trialEndsAt])
   @@index([currentPlanId])
@@ -228,12 +234,12 @@ model Subscription {
   employerId         String    @map("employer_id") @db.Uuid
   planId             String    @map("plan_id") @db.Uuid
   providerId         String?   @map("provider_id") // id langganan di Midtrans (subscription id)
-  status             String    @default("active")  // active | past_due | canceled | expired
+  status             String    @default("active") // active | past_due | canceled | expired
   currentPeriodStart DateTime? @map("current_period_start")
   currentPeriodEnd   DateTime? @map("current_period_end")
   startAt            DateTime? @map("start_at") // jadwal mulai (bisa masa depan, pasca-trial)
   trialEndsAt        DateTime? @map("trial_ends_at")
-  cancelAt           DateTime? @map("cancel_at")   // jadwal cancel di akhir periode
+  cancelAt           DateTime? @map("cancel_at") // jadwal cancel di akhir periode
   canceledAt         DateTime? @map("canceled_at") // waktu cancel aktual
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
@@ -292,34 +298,31 @@ model Payment {
  * ===================== Jobs =====================
  */
 model Job {
-  id         String   @id @default(uuid()) @db.Uuid
-  employerId String   @db.Uuid
-  employer   Employer @relation(fields: [employerId], references: [id])
-
-  title        String
-  description  String?
-  isActive     Boolean @default(true)
-  isDraft      Boolean @default(false)
-  isHidden     Boolean @default(false)
+  id          String   @id @default(uuid()) @db.Uuid
+  employerId  String   @db.Uuid
+  employer    Employer @relation(fields: [employerId], references: [id])
+  title       String
+  description String?
+  isActive    Boolean  @default(true)
+  isDraft     Boolean  @default(false)
+  isHidden    Boolean  @default(false)
   hiddenReason String?
-
-  createdAt DateTime  @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
-  deletedAt DateTime?
+  createdAt   DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  deletedAt   DateTime?
 
   // untuk FE
-  location   String?
-  employment String?
-
-  salaryMin          Int?        @map("salary_min")
-  salaryMax          Int?        @map("salary_max")
-  currency           String?     @default("IDR")
-  remoteMode         RemoteMode? @default(ON_SITE) @map("remote_mode")
+  location    String?
+  employment  String?
+  salaryMin        Int?        @map("salary_min")
+  salaryMax        Int?        @map("salary_max")
+  currency         String?     @default("IDR")
+  remoteMode       RemoteMode? @default(ON_SITE) @map("remote_mode")
   experienceMinYears Int?        @map("exp_min_years")
-  education          Education?
-  deadline           DateTime?
-  tags               String[]    @default([])
-  requirements       String?
+  education        Education?
+  deadline         DateTime?
+  tags             String[]    @default([])
+  requirements     String?
 
   applications JobApplication[]
   savedBy      SavedJob[]
@@ -404,13 +407,12 @@ enum ApplicationStatus {
 }
 
 model JobApplication {
-  id          String            @id @default(cuid())
-  jobId       String            @db.Uuid
+  id        String            @id @default(cuid())
+  jobId     String            @db.Uuid
   applicantId String
-  status      ApplicationStatus @default(submitted)
-  createdAt   DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
-
+  status    ApplicationStatus @default(submitted)
+  createdAt DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime          @default(now()) @updatedAt @db.Timestamptz(6)
   cvUrl      String? @map("cv_url")
   cvFileName String? @map("cv_file_name")
   cvFileType String? @map("cv_file_type")
@@ -491,7 +493,7 @@ enum Contract {
   TURNKEY
   LOGISTICS
   DRILLING
-  O_M         @map("O&M")
+  O_M       @map("O&M")
 }
 
 enum EmployerStatus {
@@ -504,11 +506,11 @@ enum EmployerStatus {
 }
 
 enum BillingStatus {
-  none      // belum pilih paket / belum bayar
-  trial     // sedang trial (pakai Plan.trialDays)
-  active    // berlangganan aktif (premium)
-  past_due  // gagal charge / menunggak
-  canceled  // berhenti langganan
+  none // belum pilih paket / belum bayar
+  trial // sedang trial (pakai Plan.trialDays)
+  active // berlangganan aktif (premium)
+  past_due // gagal charge / menunggak
+  canceled // berhenti langganan
 }
 
 enum CompanySize {
