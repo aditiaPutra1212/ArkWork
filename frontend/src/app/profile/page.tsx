@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
+import type React from "react"; // for React types used below
 import { useAuth } from "@/hooks/useAuth";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -12,9 +13,9 @@ type StoredUser = {
   email: string;
   name?: string;
   profile?: {
-    location?: string; // string gabungan dari WilayahSelect
+    location?: string;
     phone?: string;
-    skills?: string; // CSV dari multi-select (tidak ditampilkan di UI)
+    skills?: string;
     photo?: AvatarMeta;
 
     // konten CV (tetap ada di tipe agar kompatibel data lama, tapi tidak dipakai)
@@ -112,7 +113,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...rest}
-      className={`w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-900 ${className || ""}`}
+      className={`w-full rounded-xl border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 outline-none transition focus:border-neutral-900 ${className ?? ""}`}
     />
   );
 }
@@ -597,7 +598,7 @@ export default function ProfilePage() {
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-sm text-neutral-500">
-                    {(name?.[0] || email[0] || "U").toUpperCase()}
+                    {(name?.[0] || email?.[0] || "U").toUpperCase()}
                   </div>
                 )}
               </div>
@@ -612,7 +613,7 @@ export default function ProfilePage() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={async (e) => {
+                  onChange={async (e: ChangeEvent<HTMLInputElement>) => {
                     const f = e.target.files?.[0];
                     if (!f) return;
                     await onPickAvatar(f);
