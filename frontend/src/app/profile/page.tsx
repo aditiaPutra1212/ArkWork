@@ -740,7 +740,7 @@ function SkillMultiSelect({
 
       <div className="max-h-52 overflow-auto p-2">
         {filtered.length === 0 ? (
-          <p className="px-2 py-2 text-xs text-neutral-500">Tidak ada - hasil.</p>
+          <p className="px-2 py-2 text-xs text-neutral-500">Tiak ada hasil.</p>
         ) : (
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {filtered.map((opt) => (
