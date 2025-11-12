@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
+import { attachEmployerId } from './employer'; // 👈 PERBAIKAN 1: Impor middleware
 
 export const jobsRouter = Router();
 
@@ -102,6 +103,7 @@ async function deleteReportsByJobId(tx: any, jobId: string): Promise<number> {
    - GET /api/employer-jobs
 ========================================================= */
 
+// TIDAK DIUBAH (Endpoint publik)
 jobsRouter.get('/jobs', async (req, res) => {
   try {
     const onlyActive = String(req.query.active ?? '') === '1';
@@ -129,6 +131,7 @@ jobsRouter.get('/jobs', async (req, res) => {
   }
 });
 
+// TIDAK DIUBAH (Endpoint untuk admin/internal yang memakai query param)
 jobsRouter.get('/employer/jobs', async (req, res) => {
   try {
     const employerId = (req.query.employerId as string) || process.env.DEV_EMPLOYER_ID;
@@ -159,10 +162,22 @@ jobsRouter.get('/employer/jobs', async (req, res) => {
   }
 });
 
-// alias list sederhana untuk admin/FE
-jobsRouter.get('/employer-jobs', async (_req, res) => {
+// ------------------------------------------------------------------
+// 👇 PERBAIKAN 1 & 3: Endpoint aman, terfilter, & sembunyikan soft-delete
+// ------------------------------------------------------------------
+jobsRouter.get('/employer-jobs', attachEmployerId, async (req, res) => {
   try {
+    const employerId = req.employerId;
+
+    if (!employerId) {
+      return res.status(401).json({ ok: false, error: 'Tidak terotentikasi' });
+    }
+
     const rows = await prisma.job.findMany({
+      where: {
+        employerId: employerId,
+        deletedAt: null, // 👈 PERBAIKAN 3: Sembunyikan yang sudah di-soft-delete
+      },
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -173,7 +188,7 @@ jobsRouter.get('/employer-jobs', async (_req, res) => {
         isDraft: true,
         location: true,
         employment: true,
-        employer: { select: { id: true, displayName: true } },
+        employer: { select: { displayName: true, profile: { select: { logoUrl: true } } } },
       },
     });
 
@@ -183,12 +198,16 @@ jobsRouter.get('/employer-jobs', async (_req, res) => {
     return res.status(500).json({ ok: false, error: e?.message || 'Internal error' });
   }
 });
+// ------------------------------------------------------------------
+// 👆 Akhir dari Perbaikan 1 & 3
+// ------------------------------------------------------------------
 
 /* =========================================================
    CREATE
    - POST /api/employer/jobs
 ========================================================= */
 
+// TIDAK DIUBAH
 jobsRouter.post('/employer/jobs', async (req, res) => {
   try {
     const {
@@ -277,6 +296,7 @@ jobsRouter.post('/employer/jobs', async (req, res) => {
    - PATCH /api/jobs/:id   (alias)
 ========================================================= */
 
+// TIDAK DIUBAH
 jobsRouter.patch('/employer-jobs/:id', async (req, res) => {
   try {
     const id = String(req.params.id);
@@ -299,6 +319,7 @@ jobsRouter.patch('/employer-jobs/:id', async (req, res) => {
   }
 });
 
+// TIDAK DIUBAH
 // alias: PATCH /api/jobs/:id
 jobsRouter.patch('/jobs/:id', async (req, res) => {
   try {
@@ -322,6 +343,7 @@ jobsRouter.patch('/jobs/:id', async (req, res) => {
   }
 });
 
+// TIDAK DIUBAH
 jobsRouter.post('/employer-jobs/:id/deactivate', async (req, res) => {
   try {
     const id = String(req.params.id);
@@ -339,18 +361,24 @@ jobsRouter.post('/employer-jobs/:id/deactivate', async (req, res) => {
 
 /* =========================================================
    DELETE
-   - DELETE /api/employer-jobs/:id            (soft)
+   - DELETE /api/employer-jobs/:id         (soft)
    - DELETE /api/employer-jobs/:id?mode=hard  (hard)
    - POST   /api/employer-jobs/:id/hard-delete
-   - DELETE /api/jobs/:id                     (alias; soft if ?soft=1)
+   - DELETE /api/jobs/:id                  (alias; soft if ?soft=1)
    - DELETE /api/admin/reports/by-job/:id     (ADDED)
 ========================================================= */
 
+// ---------------------------------------------------------
+// 👇 PERBAIKAN 2: Endpoint ini sekarang aman dari error transaksi
+// ---------------------------------------------------------
 jobsRouter.delete('/employer-jobs/:id', async (req, res) => {
   const id = String(req.params.id);
   const isHard = String(req.query.mode || '').toLowerCase() === 'hard';
 
   try {
+    // =======================================================
+    // BAGIAN HARD DELETE (TIDAK BERUBAH & SUDAH BENAR)
+    // =======================================================
     if (isHard) {
       await prisma.$transaction(async (tx: any) => {
         try {
@@ -363,31 +391,51 @@ jobsRouter.delete('/employer-jobs/:id', async (req, res) => {
       return res.json({ ok: true, hard: true });
     }
 
-    const result = await prisma.$transaction(async (tx: any) => {
-      try {
-        await deleteReportsByJobId(tx, id);
-      } catch (err) {
-        console.warn('[jobs] deleteReportsByJobId error (soft):', err);
-      }
+    // =======================================================
+    // 👇 PERBAIKAN: BAGIAN SOFT DELETE
+    // =======================================================
 
+    // 1. Hapus reports (best-effort) di luar transaksi
+    //    Kita gunakan 'prisma' (global), bukan 'tx'
+    try {
+      await deleteReportsByJobId(prisma, id);
+    } catch (err) {
+      console.warn('[jobs] deleteReportsByJobId error (soft):', err);
+    }
+
+    // 2. Update job dengan logika fallback
+    //    (Wrapper 'prisma.$transaction' dihapus dari sini)
+    let updated;
+    try {
+      // Coba update 'deletedAt' dulu
+      updated = await prisma.job.update({
+        where: { id },
+        data: { deletedAt: new Date(), isActive: false } as any,
+        select: { id: true },
+      });
+    } catch (e1: any) {
+      // Jika GAGAL (misal: kolom 'deletedAt' tidak ada), coba fallback
+      console.warn(`[jobs] Soft delete (deletedAt) failed, trying fallback: ${e1?.message}`);
       try {
-        const updated = await tx.job.update({
-          where: { id },
-          data: { deletedAt: new Date(), isActive: false } as any,
-          select: { id: true },
-        });
-        return { soft: true, updatedId: updated.id };
-      } catch {
-        const updated = await tx.job.update({
+        updated = await prisma.job.update({
           where: { id },
           data: { isDraft: true, isActive: false } as any,
           select: { id: true },
         });
-        return { soft: true, updatedId: updated.id };
+      } catch (e2: any) {
+        // Jika fallback juga gagal, baru lempar error
+        console.error('[jobs] Soft delete fallback failed:', e2?.message);
+        throw e2; // Lempar error kedua agar ditangkap 'catch' utama
       }
-    });
+    }
 
-    return res.json({ ok: true, soft: true, data: result });
+    // Kirim respons sukses
+    return res.json({ ok: true, soft: true, data: { updatedId: updated.id } });
+
+    // =======================================================
+    // 👆 AKHIR DARI PERBAIKAN
+    // =======================================================
+
   } catch (e: any) {
     console.error('DELETE /api/employer-jobs/:id error:', e);
     if (/No.*Record/i.test(String(e.message)) || /Record to delete does not exist/i.test(String(e.message))) {
@@ -396,7 +444,11 @@ jobsRouter.delete('/employer-jobs/:id', async (req, res) => {
     return res.status(500).json({ ok: false, error: e?.message || 'Internal error' });
   }
 });
+// ---------------------------------------------------------
+// 👆 Akhir dari Perbaikan 2
+// ---------------------------------------------------------
 
+// TIDAK DIUBAH
 jobsRouter.post('/employer-jobs/:id/hard-delete', async (req, res) => {
   try {
     const id = String(req.params.id);
@@ -413,6 +465,7 @@ jobsRouter.post('/employer-jobs/:id/hard-delete', async (req, res) => {
   }
 });
 
+// TIDAK DIUBAH
 // alias: DELETE /api/jobs/:id   (soft if ?soft=1)
 jobsRouter.delete('/jobs/:id', async (req, res) => {
   try {
@@ -459,6 +512,7 @@ jobsRouter.delete('/jobs/:id', async (req, res) => {
   }
 });
 
+// TIDAK DIUBAH (Endpoint Admin)
 /**
  * ADDED: minimal admin helper so FE call to /api/admin/reports/by-job/:jobId won't 404.
  * Best-effort deletes reports related to jobId.
