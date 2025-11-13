@@ -166,7 +166,7 @@ export default function HomePage() {
 
               <div className="mt-6">
                 <a
-                  href="/dashboard"
+                  href="/auth/signin"
                   className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-white font-semibold shadow hover:bg-blue-500 active:translate-y-[1px] transition"
                 >
                   {t("home.final.cta")}

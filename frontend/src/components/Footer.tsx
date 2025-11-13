@@ -5,16 +5,15 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import Logo from "@/app/Images/logo.png"; // pastikan path & kapitalisasi benar
+import Logo from "@/app/Images/logo.png";
 
 export default function Footer() {
   const t = useTranslations();
   const pathname = usePathname();
 
-  // Sembunyikan footer di semua halaman yang memiliki segmen "admin"
+  // sembunyikan footer jika ada segmen "admin"
   const hideOnThisPage = useMemo(() => {
     if (!pathname) return false;
-    // hapus query/hash, pecah jadi segmen & cek apakah ada segmen "admin"
     const segs = pathname
       .split("?")[0]
       .split("#")[0]
@@ -32,8 +31,10 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-neutral-200 bg-white/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+        
         {/* Top */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+          
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2">
@@ -49,18 +50,19 @@ export default function Footer() {
               {t("footer.description")}
             </p>
 
+            {/* Social */}
             <div className="mt-4 flex items-center gap-3">
-              <Social href="https://x.com" label={t("footer.social.x")}>
-                <path d="M18 2H6a4 4 0 00-4 4v12a4 4 0 004 4h12a4 4 0 004-4V6a4 4 0 00-4-4Zm-2.56 15-3.07-4.12L8.4 17H6.5l4.11-5.02L6.5 7h2.06l2.82 3.79L14.85 7h1.9l-3.9 4.77 4.12 5.23h-1.53Z" />
-              </Social>
+              {/* LinkedIn → diarahkan ke HempartIndonesia.com */}
               <Social
-                href="https://linkedin.com"
+                href="https://www.hempartindonesia.com/"
                 label={t("footer.social.linkedin")}
               >
                 <path d="M4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3 8h2v13H3V8Zm5 0h2v2h.03c.28-.53 1.02-1.09 2.1-1.09C14.76 8.91 16 10 16 12.33V21h-2v-7.3c0-1.37-.49-2.3-1.71-2.3-.93 0-1.49.63-1.73 1.24-.09.2-.11.48-.11.76V21H8V8Z" />
               </Social>
+
+              {/* Email */}
               <Social
-                href="mailto:hello@company.com"
+                href="mailto:info@hempartindonesia.com"
                 label={t("footer.social.email")}
               >
                 <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2Zm8 7L4.5 6.5h15L12 11Z" />
