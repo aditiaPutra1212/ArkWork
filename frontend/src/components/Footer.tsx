@@ -54,7 +54,7 @@ export default function Footer() {
             <div className="mt-4 flex items-center gap-3">
               {/* LinkedIn → diarahkan ke HempartIndonesia.com */}
               <Social
-                href="https://www.hempartindonesia.com/"
+                href="https://www.linkedin.com/company/hempart-indonesia-official1/posts/?feedView=all"
                 label={t("footer.social.linkedin")}
               >
                 <path d="M4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3 8h2v13H3V8Zm5 0h2v2h.03c.28-.53 1.02-1.09 2.1-1.09C14.76 8.91 16 10 16 12.33V21h-2v-7.3c0-1.37-.49-2.3-1.71-2.3-.93 0-1.49.63-1.73 1.24-.09.2-.11.48-.11.76V21H8V8Z" />
