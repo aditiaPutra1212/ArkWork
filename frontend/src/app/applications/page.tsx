@@ -166,7 +166,7 @@ export default function Applications() {
     return base;
   }, [rows, q, sort]);
 
-  if (!user) return null;
+  
 
   // PENTING: jangan pernah render object mentah sebagai child
   const safeErr = typeof err === 'string' ? err : err ? JSON.stringify(err) : null;
@@ -287,10 +287,10 @@ export default function Applications() {
                 </thead>
                 <tbody className="divide-y divide-neutral-200">
                   {filtered.map((r, i) => (
-                    <tr key={i} className="hover:bg-neutral-50/60">
+                    <tr key={r.jobId} className="hover:bg-neutral-50/60">
                       <Td>
                         <div className="max-w-[540px] truncate font-medium text-neutral-900">{r.title}</div>
-                        <div className="mt-0.5 text-xs text-neutral-500">ID: {String(r.jobId)}</div>
+                        
                       </Td>
                       <Td className="text-neutral-700">{r.location}</Td>
                       <Td className="text-neutral-700">{formatDate(r.appliedAt)}</Td>
@@ -305,11 +305,11 @@ export default function Applications() {
               {/* Mobile cards */}
               <div className="grid gap-3 p-3 sm:hidden">
                 {filtered.map((r, i) => (
-                  <div key={`m-${i}`} className="rounded-2xl border border-neutral-200 p-4">
+                  <div key={`m-${r.jobId}`} className="rounded-2xl border border-neutral-200 p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="max-w-[240px] truncate font-medium text-neutral-900">{r.title}</div>
-                        <div className="mt-1 text-xs text-neutral-500">ID: {String(r.jobId)}</div>
+                        {/* Baris ID: {String(r.jobId)} telah dihapus dari sini */}
                       </div>
                       <StatusBadge status={r.status} />
                     </div>
@@ -320,6 +320,10 @@ export default function Applications() {
                       </div>
                       <div>
                         <div className="text-neutral-400">Applied On</div>
+                        {/* Baris ini tidak berubah, tetapi akan menampilkan '-' 
+                          jika Anda sudah memperbaiki fungsi 'formatDate' dan 'toIsoString' 
+                          seperti yang saya jelaskan sebelumnya.
+                        */}
                         <div className="mt-0.5">{formatDate(r.appliedAt)}</div>
                       </div>
                     </div>
