@@ -1,43 +1,58 @@
 /*
  * LOKASI FILE: backend/src/routes/reports.ts
  *
- * GANTI SELURUH ISI FILE DENGAN KODE LENGKAP INI
+ * KODE INI SUDAH DIPERBAIKI
  */
 
 import { Router, Request, Response, NextFunction } from 'express';
-import { prisma } from '../lib/prisma';
+import { prisma } from '../lib/prisma'; // <-- Tambahkan .js
 import { Prisma, ReportReason, ReportStatus } from '@prisma/client';
-import { requireAuth } from '../middleware/requireAuth'; 
-import { z } from 'zod'; 
+import { requireAuth } from '../middleware/requireAuth'; // <-- Tambahkan .js
+import { z } from 'zod';
 
 const router = Router();
 
 /* -------------------------- Validator (Zod Schema) -------------------------- */
 const reportSchema = z.object({
   jobId: z.string().uuid({ message: "Job ID tidak valid." }),
-  reason: z.nativeEnum(ReportReason), 
+  reason: z.nativeEnum(ReportReason),
   details: z.string().max(1000, "Detail terlalu panjang.").optional().nullable(),
   evidenceUrl: z.string().url("URL bukti tidak valid.").optional().nullable(),
 });
 
 /* -------------------------- Helpers -------------------------- */
-interface RequestWithUser extends Request {
-  user?: { id?: string; email?: string; };
-}
+// HAPUS 'RequestWithUser', TIPE GLOBAL DARI 'express.d.ts' AKAN DIGUNAKAN
+// interface RequestWithUser extends Request {
+//   user?: { id?: string; email?: string; };
+// }
+
 // Fungsi mapReasonInput (tidak berubah, asumsikan ada implementasinya)
 function mapReasonInput(r?: string): ReportReason { return ReportReason.OTHER; }
 
 
 /* -------------------------- CREATE (User Only) -------------------------- */
-router.post('/', requireAuth, async (req: RequestWithUser, res: Response, next: NextFunction) => {
+// Gunakan 'Request' standar, bukan 'RequestWithUser'
+router.post('/', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.id;
-    // ... (Logika POST tidak berubah) ...
+    const userId = req.user?.id; // Tipe global akan tahu 'req.user' punya 'id'
+
     const parsed = reportSchema.safeParse(req.body);
-    if (!parsed.success) { /* ... return error 400 ... */ }
+
+    // ▼▼▼ TAMBAHKAN VALIDASI ZOD YANG BENAR DI SINI ▼▼▼
+    if (!parsed.success) {
+      console.warn(`[Reports][CREATE] Validasi gagal:`, parsed.error.format());
+      return res.status(400).json({ ok: false, message: "Input tidak valid.", errors: parsed.error.format() });
+    }
+    // ▲▲▲ SELESAI VALIDASI ▲▲▲
+
+    // Sekarang aman untuk mengakses parsed.data
     const { jobId, reason, details, evidenceUrl } = parsed.data;
+
     const job = await prisma.job.findUnique({ where: { id: jobId }, select: { id: true } });
-    if (!job) { /* ... return error 404 ... */ }
+    if (!job) {
+      return res.status(404).json({ ok: false, message: "Job tidak ditemukan." });
+    }
+
     const createdReport = await prisma.jobReport.create({
       data: { jobId, reason, details, evidenceUrl, reporterUserId: userId, status: ReportStatus.OPEN },
       select: { id: true, jobId: true, reason: true, details: true, evidenceUrl: true, status: true, createdAt: true, reporterUserId: true, job: { select: { title: true, employer: { select: { displayName: true } } } } },
@@ -46,18 +61,14 @@ router.post('/', requireAuth, async (req: RequestWithUser, res: Response, next: 
     return res.status(201).json({ ok: true, data: createdReport });
   } catch (e: any) {
     console.error('[Reports][POST /] Error:', e);
-    // Kirim respons error yang jelas di POST juga
     res.status(500).json({ ok: false, message: 'Gagal membuat laporan.' });
-    // Jangan panggil next(e) jika sudah mengirim respons
   }
 });
 
 
 /* ---------------------------- LIST (Untuk Admin) --------------------------- */
-// ▼▼▼ PASTIKAN RUTE GET INI SAMA PERSIS ▼▼▼
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // ... (Logika filter q, userId, jobId, status tidak berubah) ...
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : undefined;
     const userId = typeof req.query.userId === 'string' ? req.query.userId.trim() : undefined;
     const jobId = typeof req.query.jobId === 'string' ? req.query.jobId.trim() : undefined;
@@ -76,35 +87,34 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const reports = await prisma.jobReport.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      take: 50, 
+      take: 50,
       select: {
-        id: true, 
+        id: true,
         jobId: true, // Penting untuk targetId
-        reason: true, 
-        details: true, 
+        reason: true,
+        details: true,
         status: true,
-        createdAt: true, 
+        createdAt: true,
         reporterUserId: true,
         job: { // Sertakan relasi job -> employer
-          select: { 
+          select: {
             title: true, // Untuk 'judul'
-            employer: { 
-              select: { 
+            employer: {
+              select: {
                 displayName: true // Untuk 'perusahaan'
-              } 
-            } 
-          } 
+              }
+            }
+          }
         },
       },
     });
 
-    // ▼▼▼ GUNAKAN MAPPING INI ▼▼▼
     // Mapping data untuk frontend admin
     const reportsWithTarget = reports.map(report => ({
       id: report.id,
-      jobId: report.jobId, 
-      reason: report.reason, 
-      details: report.details, 
+      jobId: report.jobId,
+      reason: report.reason,
+      details: report.details,
       status: report.status,
       createdAt: report.createdAt.toISOString(), // Format tanggal
       reporterUserId: report.reporterUserId,
@@ -116,45 +126,38 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       // Field flat untuk kemudahan frontend
       judul: report.job?.title ?? null,
       perusahaan: report.job?.employer?.displayName ?? null,
-
-      // Hapus 'job' object agar tidak duplikat (opsional)
-      // job: undefined, 
     }));
-    // ▲▲▲ SELESAI MAPPING ▲▲▲
 
 
-    console.log("Data being sent from GET /api/reports:", reportsWithTarget); // Tambahkan log di backend
+    console.log("Data being sent from GET /api/reports:", reportsWithTarget.length); // Log jumlah
 
     // Kirim data yang sudah dimapping
-    return res.json({ ok: true, data: reportsWithTarget }); 
+    return res.json({ ok: true, data: reportsWithTarget });
 
   } catch (e: any) {
     console.error('[Reports][GET /] Error:', e);
-    res.status(500).json({ ok: false, message: 'Gagal mengambil data laporan.' }); 
+    res.status(500).json({ ok: false, message: 'Gagal mengambil data laporan.' });
   }
 });
-// ▲▲▲ SELESAI PEMERIKSAAN RUTE GET ▲▲▲
 
 
 /* --------------------------- DELETE -------------------------- */
-// Rute DELETE /:id (tidak berubah)
-router.delete('/:id', requireAuth, async (req: RequestWithUser, res: Response, next: NextFunction) => {
-   // ... (logika delete tidak berubah) ...
-   try {
-     const reportId = req.params.id;
-     const userId = req.user?.id; 
-     if (!userId) { return res.status(401).json({ ok: false, message: 'User not authenticated properly.' }); }
-     const report = await prisma.jobReport.findUnique({ where: { id: reportId }, select: { id: true, reporterUserId: true } });
-     if (!report) { return res.status(404).json({ ok: false, message: 'Laporan tidak ditemukan.' }); }
-     if (report.reporterUserId !== userId) { return res.status(403).json({ ok: false, message: 'Anda tidak diizinkan menghapus laporan ini.' }); }
-     await prisma.jobReport.delete({ where: { id: reportId } });
-     console.info(`[Reports][DELETE] User ${userId} deleted report ${reportId}`);
-     return res.status(204).end();
-   } catch (e: any) {
-     console.error('[Reports][DELETE /:id] Error:', e);
-     // ... (error handling P2023/P2025 tidak berubah) ...
-     res.status(500).json({ ok: false, message: 'Gagal menghapus laporan.' });
-   }
+// Gunakan 'Request' standar, bukan 'RequestWithUser'
+router.delete('/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const reportId = req.params.id;
+    const userId = req.user?.id; // Tipe global akan tahu 'req.user' punya 'id'
+    if (!userId) { return res.status(401).json({ ok: false, message: 'User not authenticated properly.' }); }
+    const report = await prisma.jobReport.findUnique({ where: { id: reportId }, select: { id: true, reporterUserId: true } });
+    if (!report) { return res.status(404).json({ ok: false, message: 'Laporan tidak ditemukan.' }); }
+    if (report.reporterUserId !== userId) { return res.status(403).json({ ok: false, message: 'Anda tidak diizinkan menghapus laporan ini.' }); }
+    await prisma.jobReport.delete({ where: { id: reportId } });
+    console.info(`[Reports][DELETE] User ${userId} deleted report ${reportId}`);
+    return res.status(204).end();
+  } catch (e: any) {
+    console.error('[Reports][DELETE /:id] Error:', e);
+    res.status(500).json({ ok: false, message: 'Gagal menghapus laporan.' });
+  }
 });
 
 export default router;

@@ -1,14 +1,16 @@
+// src/routes/admin-tenders.ts
+
 import { Router, Request, Response, NextFunction } from "express";
 import { PrismaClient, Prisma } from "@prisma/client";
 // ==========================================================
-// PERUBAHAN DI SINI: Ganti middleware
+// PERBAIKAN:
+// 1. Impor disamakan dengan 'index.ts'
+// 2. Ekstensi .js dihapus
 // ==========================================================
-// import { requireAuth } from "../middleware/requireAuth";        // <-- HAPUS
-// import { requireAdmin } from "../middleware/requireAdmin";      // <-- HAPUS
-import { requireAuthJwt } from "../middleware/requireAuthJwt";    // <-- TAMBAHKAN
-import { requireAdminRole } from "../middleware/requireAdminRole"; // <-- TAMBAHKAN
+import { authRequired, adminRequired } from "../middleware/role";
+import { prisma as sharedPrisma } from "../lib/prisma"; // <-- .js dihapus
 // ==========================================================
-import { prisma as sharedPrisma } from "../lib/prisma"; // jika kamu expose prisma named export
+
 // fallback to local if above not present (keamanan: gunakan shared client)
 const prisma: PrismaClient = (sharedPrisma as any) || new PrismaClient();
 
@@ -28,9 +30,6 @@ function toDocs(v: unknown): string[] {
 }
 
 /* sanitize output tender row */
-// Middleware global di index.ts Anda sudah menangani BigInt ke string,
-// jadi fungsi sanitizeTender ini sebenarnya tidak lagi diperlukan
-// untuk konversi BigInt, tapi bisa dipertahankan untuk konversi Date.
 function sanitizeTenderOutput(t: any) {
   if (!t) return t;
   return {
@@ -43,24 +42,23 @@ function sanitizeTenderOutput(t: any) {
 }
 
 /* ---------------- Protect all admin routes ----------------
-   Menggunakan middleware JWT
+    Menggunakan middleware JWT
 */
 // ==========================================================
-// PERUBAHAN DI SINI: Gunakan middleware baru
+// PERBAIKAN: Menggunakan nama middleware yang benar
 // ==========================================================
-router.use(requireAuthJwt, requireAdminRole); // Pastikan urutan benar
+router.use(authRequired, adminRequired); // Pastikan urutan benar
 // ==========================================================
 
 /* -----------------------------------------------------------
  * Create tender (ADMIN ONLY)
  * POST /
- * body: { title, buyer, sector, location, status, contract, budgetUSD, description, documents, deadline }
  * ---------------------------------------------------------*/
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Ambil info admin dari req.admin yang di-set oleh requireAuthJwt
+    // Ambil info admin dari req.admin yang di-set oleh middleware
     const adminId = req.admin?.id ?? "unknown";
-    const adminUsername = req.admin?.username ?? "unknown"; // Tambahan info jika perlu
+    const adminUsername = req.admin?.username ?? "unknown";
     const adminIp = req.ip || (req.headers["x-forwarded-for"] as string) || "unknown";
 
     const {
@@ -76,10 +74,11 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       deadline,
     } = req.body ?? {};
 
-    // Required fields
-    if (!title || !buyer || !sector || !status || !contract) {
-      return res.status(400).json({ message: "Missing required fields: title/buyer/sector/status/contract" });
+    // ▼▼▼ PERUBAHAN: Tambahkan 'deadline' ke validasi ▼▼▼
+    if (!title || !buyer || !sector || !status || !contract || !deadline) {
+      return res.status(400).json({ message: "Missing required fields: title/buyer/sector/status/contract/deadline" });
     }
+    // ▲▲▲ SELESAI PERUBAHAN ▲▲▲
 
     // budget input flexible: string like "1.000.000" or number -> BigInt
     const parseToBigInt = (v: unknown): bigint => {
@@ -105,7 +104,10 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         budgetUSD: parseToBigInt(budgetUSD) as any, // Konversi number (IDR) ke BigInt
         description: description !== undefined ? String(description ?? "") : undefined,
         documents: documents !== undefined ? toDocs(documents) : undefined,
-        deadline: deadline ? new Date(deadline) : null,
+        
+        // ▼▼▼ PERUBAHAN: 'deadline' sekarang wajib ada ▼▼▼
+        deadline: new Date(deadline),
+        // ▲▲▲ SELESAI PERUBAHAN ▲▲▲
       },
     });
 
@@ -129,9 +131,6 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
       orderBy: { createdAt: "desc" }, // Sesuai dengan frontend
     });
 
-    // Frontend Anda (page.tsx) mengharapkan array sederhana.
-    // Middleware global Anda akan menangani konversi BigInt.
-    // Kita tetap map untuk konversi Date jika perlu
     return res.json(items.map(sanitizeTenderOutput));
 
   } catch (err: any) {
@@ -152,7 +151,6 @@ router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
     const item = await prisma.tender.findUnique({ where: { id } });
     if (!item) return res.status(404).json({ message: "Not found" });
 
-    // Middleware global akan handle BigInt, map untuk Date
     return res.json(sanitizeTenderOutput(item));
   } catch (err: any) {
     console.error("Get tender error:", err);
@@ -199,7 +197,7 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
       return BigInt(0);
     };
 
-    // Frontend mengirim semua field (bukan patch), jadi kita set semua
+    // (TIDAK BERUBAH) - 'undefined' di sini aman untuk update
     const data: Prisma.TenderUpdateInput = {
       title: String(title),
       buyer: String(buyer),
@@ -209,7 +207,7 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
       contract: contract as any,
       description: String(description ?? ""),
       documents: toDocs(documents),
-      deadline: deadline ? new Date(deadline) : null,
+      deadline: deadline ? new Date(deadline) : undefined,
       budgetUSD: parseToBigInt(budgetUSD), // Konversi number (IDR) ke BigInt
     };
 

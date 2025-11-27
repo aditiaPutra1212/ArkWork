@@ -1,10 +1,16 @@
 // backend/src/services/employer.ts
-import { prisma } from '../lib/prisma';
+
+// ▼▼▼ PERBAIKAN 1: Tambahkan .js pada import prisma ▼▼▼
+import { prisma } from '../lib/prisma.js';
 import { z } from 'zod';
 // Jika enum Prisma sudah di-generate, boleh import untuk type-safety kuat:
 // import { OnboardingStep, EmployerStatus } from '@prisma/client';
 
 /* ======================= Helpers ======================= */
+
+// ▼▼▼ PERBAIKAN 2: Ubah 'await import' menjadi 'require' ▼▼▼
+const { hashPassword } = require('../lib/hash.js');
+
 const slugify = (s: string) =>
   s
     .toLowerCase()
@@ -126,8 +132,8 @@ export async function createAccount(input: {
 
   const slug = await ensureUniqueSlug(data.displayName);
 
-  // hashPassword milikmu (lib/hash)
-  const { hashPassword } = await import('../lib/hash');
+  // ▼▼▼ PERBAIKAN 3: Hapus import duplikat. 'hashPassword' sudah di-import di atas (baris 11) ▼▼▼
+  // const { hashPassword } = await import('../lib/hash');
   const passwordHash = await hashPassword(data.password);
 
   const result = await prisma.$transaction(async (tx) => {

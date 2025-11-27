@@ -19,7 +19,7 @@ interface AdminJwtPayload {
 declare global {
   namespace Express {
     interface Request {
-      admin?: { id: string; username: string; role: string }; // Atau tipe data admin Anda
+      admin?: { id: string; username: string; role: string }; 
     }
   }
 }
