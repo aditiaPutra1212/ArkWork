@@ -13,7 +13,7 @@ import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 
-import Logo from "@/app/Images/logo.png";
+import Logo from "@/app/Images/arkwork-new.png";
 // --- ADDED ---
 import { api, API_BASE } from "@/lib/api"; // Impor API_BASE
 // -------------
@@ -285,9 +285,9 @@ export default function AuthPage() {
             <Image
               src={Logo}
               alt="ArkWork Logo"
-              width={96}
-              height={96}
-              className="mx-auto mb-4 h-20 w-20 sm:h-20 sm:w-20 object-contain"
+              width={100}
+              height={100}
+              className="mx-auto mb-4 h-24 w-24 sm:h-24 sm:w-24 object-contain"
               priority
             />
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
-import Logo from "@/app/Images/Ungu__1_-removebg-preview.png";
+import Logo from "@/app/Images/arkwork-new.png";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 

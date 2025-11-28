@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react"; // 🆕 Tambah ikon dari lucide-react
 
-import Logo from "@/app/Images/Ungu__1_-removebg-preview.png";
+import Logo from "@/app/Images/arkwork-new.png";
 
 export default function AdminLoginPage() {
   const router = useRouter();

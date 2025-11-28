@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { api, API_BASE } from "@/lib/api";
-import ArkLogo from "@/app/Images/logo-removebg-preview.png";
+import ArkLogo from "@/app/Images/arkwork-new.png";
 
 const NAV_AVATAR_KEY_PREFIX = "ark_nav_avatar:";
 
@@ -228,7 +228,7 @@ export default function Nav() {
   if (hide) return null;
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 border-b border-neutral-200/60 bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-neutral-800 dark:bg-neutral-950/60">
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-[#16A34A] bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-[#16A34A] dark:bg-neutral-950/60">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
@@ -238,8 +238,8 @@ export default function Nav() {
           <Image
             src={ArkLogo}
             alt="ArkWork"
-            width={300}
-            height={300}
+            width={220}
+            height={220}
             priority
             className="h-20 w-auto object-contain"
           />
@@ -261,15 +261,17 @@ export default function Nav() {
         <div className="hidden items-center gap-3 md:flex">
           {mounted && !loading && isEmployer && (
             <>
+              {/* Primary CTA - Hijau ArkWork */}
               <Link
                 href="/employer/jobs/new"
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="rounded-xl bg-gradient-to-r from-[#16A34A] to-[#15803D] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(22,163,74,0.3)] transition-all duration-150 ease-out hover:from-[#15803D] hover:to-[#166534] hover:shadow-[0_14px_40px_rgba(22,163,74,0.45)] hover:scale-[1.03] active:scale-[0.97]"
               >
                 {t("emp.postJob", { defaultMessage: "Post a Job" })}
               </Link>
+              {/* Secondary - outline hijau + hover fill soft */}
               <Link
                 href="/employer/applications"
-                className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-slate-50"
+                className="rounded-xl border border-[#16A34A] px-4 py-2 text-sm font-medium text-[#065F2A] transition-all duration-150 ease-out hover:bg-[#E9F9F1] hover:text-[#065F2A] hover:scale-[1.03] active:scale-[0.97]"
               >
                 {t("emp.applications", { defaultMessage: "Applications" })}
               </Link>
@@ -280,7 +282,7 @@ export default function Nav() {
             onClick={switchLocale}
             aria-label={t("lang.switch", { defaultMessage: "Switch language" })}
             title={t("lang.switch", { defaultMessage: "Switch language" })}
-            className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-900"
+            className="inline-flex items-center gap-2 rounded-xl border border-neutral-300 px-3 py-2 text-sm text-neutral-700 transition-all duration-150 hover:border-[#16A34A] hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-[#16A34A] dark:hover:bg-neutral-900"
           >
             <GlobeIcon className="h-4 w-4" />
             <span className="font-semibold">
@@ -292,15 +294,17 @@ export default function Nav() {
             <div className="h-9 w-28 rounded-xl bg-neutral-200 animate-pulse dark:bg-neutral-800" />
           ) : !isLoggedIn ? (
             <>
+              {/* Sign In - solid hijau ArkWork */}
               <Link
                 href="/auth/signin"
-                className="inline-flex items-center rounded-xl border border-blue-600 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+                className="inline-flex items-center justify-center rounded-xl bg-[#16A34A] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-150 ease-out hover:bg-[#15803D] hover:shadow-md hover:scale-[1.03] active:scale-[0.97]"
               >
                 {t("auth.signIn", { defaultMessage: "Masuk" })}
               </Link>
+              {/* Sign Up - gradient hijau */}
               <Link
                 href="/auth/signup_perusahaan"
-                className="inline-flex items-center rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600"
+                className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#16A34A] to-[#15803D] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(22,163,74,0.3)] transition-all duration-150 ease-out hover:from-[#15803D] hover:to-[#166534] hover:shadow-[0_14px_40px_rgba(22,163,74,0.45)] hover:scale-[1.03] active:scale-[0.97]"
               >
                 {t("auth.signUp", { defaultMessage: "Daftar" })}
               </Link>
@@ -312,7 +316,7 @@ export default function Nav() {
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
-                className="flex items-center gap-2 rounded-2xl border border-neutral-200 px-2 py-1.5 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900"
+                className="flex items-center gap-2 rounded-2xl border border-neutral-200 px-2 py-1.5 transition-colors hover:border-[#16A34A] hover:bg-[#E9F9F1] dark:border-neutral-800 dark:hover:border-[#16A34A] dark:hover:bg-neutral-900"
               >
                 <Avatar src={photoURL} alt={displayName} size={32} />
                 <div className="hidden sm:flex flex-col max-w-[180px] text-left">
@@ -321,7 +325,7 @@ export default function Nav() {
                   </span>
                 </div>
                 <ChevronDownIcon
-                  className={`h-4 w-4 text-neutral-500 transition ${menuOpen ? "rotate-180" : ""}`}
+                  className={`h-4 w-4 text-neutral-500 transition-transform ${menuOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -418,7 +422,7 @@ export default function Nav() {
         {/* Mobile trigger */}
         <button
           onClick={() => setOpen((v) => !v)}
-          className="grid h-10 w-10 place-items-center rounded-xl border border-neutral-200 text-neutral-700 hover:bg-neutral-50 active:translate-y-[1px] md:hidden dark:border-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-900"
+          className="grid h-10 w-10 place-items-center rounded-xl border border-neutral-200 text-neutral-700 transition-all duration-150 hover:border-[#16A34A] hover:bg-[#E9F9F1] active:scale-[0.96] md:hidden dark:border-neutral-800 dark:text-neutral-200 dark:hover:border-[#16A34A] dark:hover:bg-neutral-900"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
             <path
@@ -462,8 +466,8 @@ export default function Nav() {
                 <Image
                   src={ArkLogo}
                   alt="ArkWork"
-                  width={120}
-                  height={120}
+                  width={140}
+                  height={140}
                   priority
                   className="h-10 w-auto object-contain md:h-12"
                 />
@@ -471,7 +475,7 @@ export default function Nav() {
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="grid h-9 w-9 place-items-center rounded-xl border border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900"
+              className="grid h-9 w-9 place-items-center rounded-xl border border-neutral-200 transition-colors hover:border-[#16A34A] hover:bg-[#E9F9F1] dark:border-neutral-800 dark:hover:border-[#16A34A] dark:hover:bg-neutral-900"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5">
                 <path
@@ -496,10 +500,10 @@ export default function Nav() {
                         href={href}
                         onClick={() => setOpen(false)}
                         className={[
-                          "flex items-center gap-3 rounded-xl px-3 py-3 text-[15px]",
+                          "flex items-center gap-3 rounded-xl px-3 py-3 text-[15px] transition-colors",
                           active
-                            ? "bg-neutral-100 text-neutral-900 dark:bg-neutral-900 dark:text-white"
-                            : "text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900",
+                            ? "bg-[#E9F9F1] text-[#065F2A] dark:bg-[#065F2A] dark:text-[#E9F9F1]"
+                            : "text-neutral-700 hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:text-neutral-300 dark:hover:bg-[#065F2A]/40 dark:hover:text-[#E9F9F1]",
                         ].join(" ")}
                       >
                         <Icon className="h-5 w-5 opacity-90" />
@@ -520,14 +524,14 @@ export default function Nav() {
                   <Link
                     href="/auth/signin"
                     onClick={() => setOpen(false)}
-                    className="rounded-xl border border-blue-600 px-3 py-2 text-center text-sm font-medium text-blue-700 hover:bg-blue-50"
+                    className="rounded-xl bg-[#16A34A] px-3 py-2 text-center text-sm font-semibold text-white shadow-sm transition-all duration-150 ease-out hover:bg-[#15803D] hover:shadow-md hover:scale-[1.03] active:scale-[0.97]"
                   >
                     {t("auth.signIn", { defaultMessage: "Masuk" })}
                   </Link>
                   <Link
                     href="/auth/signup_perusahaan"
                     onClick={() => setOpen(false)}
-                    className="rounded-xl bg-amber-500 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-amber-600"
+                    className="rounded-xl bg-gradient-to-r from-[#16A34A] to-[#15803D] px-3 py-2 text-center text-sm font-semibold text-white shadow-[0_10px_25px_rgba(22,163,74,0.3)] transition-all duration-150 ease-out hover:from-[#15803D] hover:to-[#166534] hover:shadow-[0_14px_40px_rgba(22,163,74,0.45)] hover:scale-[1.03] active:scale-[0.97]"
                   >
                     {t("auth.signUp", { defaultMessage: "Daftar" })}
                   </Link>
@@ -538,7 +542,7 @@ export default function Nav() {
                   <Link
                     href={isEmployer ? "/profile_employer" : "/profile"}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:text-neutral-300 dark:hover:bg-[#065F2A]/40 dark:hover:text-[#E9F9F1]"
                   >
                     <UserIcon className="h-5 w-5" />
                     <span>
@@ -548,7 +552,7 @@ export default function Nav() {
                   <Link
                     href={isEmployer ? "/employer" : "/dashboard"}
                     onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                    className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:text-neutral-300 dark:hover:bg-[#065F2A]/40 dark:hover:text-[#E9F9F1]"
                   >
                     <GridIcon className="h-5 w-5" />
                     <span>
@@ -560,15 +564,13 @@ export default function Nav() {
                     </span>
                   </Link>
 
-                  {/* ⚙️ Settings untuk semua role (mobile) */}
-
                   {/* Tambahan khusus employer */}
                   {isEmployer && (
                     <>
                       <Link
                         href="/employer/jobs/new"
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:text-neutral-300 dark:hover:bg-[#065F2A]/40 dark:hover:text-[#E9F9F1]"
                       >
                         <BriefcaseIcon className="h-5 w-5" />
                         <span>
@@ -578,7 +580,7 @@ export default function Nav() {
                       <Link
                         href="/employer/applications"
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                        className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:text-neutral-300 dark:hover:bg-[#065F2A]/40 dark:hover:text-[#E9F9F1]"
                       >
                         <FileTextIcon className="h-5 w-5" />
                         <span>
@@ -596,7 +598,7 @@ export default function Nav() {
                         switchLocale();
                         setOpen(false);
                       }}
-                      className="rounded-xl border border-neutral-300 px-3 py-2 text-center text-sm text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-900"
+                      className="rounded-xl border border-neutral-300 px-3 py-2 text-center text-sm text-neutral-700 transition-colors hover:border-[#16A34A] hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:border-neutral-700 dark:text-neutral-300 dark:hover:border-[#16A34A] dark:hover:bg-neutral-900"
                     >
                       🌐 {locale === "en" ? "EN" : "ID"}
                     </button>
@@ -605,7 +607,7 @@ export default function Nav() {
                         await handleSignout();
                         setOpen(false);
                       }}
-                      className="rounded-xl border border-red-600 px-3 py-2 text-center text-sm font-medium text-red-600 hover:bg-red-600 hover:text-white"
+                      className="rounded-xl border border-red-600 px-3 py-2 text-center text-sm font-medium text-red-600 transition-all duration-150 hover:bg-red-600 hover:text-white hover:scale-[1.03] active:scale-[0.97]"
                     >
                       {t("user.logout", { defaultMessage: "Sign out" })}
                     </button>
@@ -634,10 +636,10 @@ function NavLink({
     <Link
       href={href}
       className={[
-        "rounded-xl px-3 py-2 text-sm transition",
+        "rounded-xl px-3 py-2 text-sm transition-colors",
         active
-          ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900"
-          : "text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-900",
+          ? "bg-[#16A34A] text-white shadow-sm"
+          : "text-neutral-700 hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:text-neutral-300 dark:hover:bg-[#065F2A]/40 dark:hover:text-[#E9F9F1]",
       ].join(" ")}
     >
       {children}
@@ -694,7 +696,7 @@ function MenuItem({
       role="menuitem"
       href={href}
       onClick={onClick}
-      className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-50 dark:text-neutral-300 dark:hover:bg-neutral-900"
+      className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-700 transition-colors hover:bg-[#E9F9F1] hover:text-[#065F2A] dark:text-neutral-300 dark:hover:bg-[#065F2A]/40 dark:hover:text-[#E9F9F1]"
     >
       {children}
     </Link>

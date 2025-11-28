@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import Logo from "@/app/Images/logo.png";
+import Logo from "@/app/Images/arkwork-new.png";
 import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -625,9 +625,9 @@ export default function Page() {
             <Image
               src={Logo}
               alt="ArkWork Logo"
-              width={72}
-              height={72}
-              className="mx-auto mb-4 h-20 w-20 sm:h-20 sm:w-20 object-contain"
+              width={100}
+              height={100}
+              className="mx-auto mb-4 h-24 w-24 sm:h-24 sm:w-24 object-contain"
               priority
             />
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900">
