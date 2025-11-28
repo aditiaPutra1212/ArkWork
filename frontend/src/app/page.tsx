@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import ArkHero from "@/app/Images/1.jpg";
 
@@ -25,44 +26,52 @@ export default function HomePage() {
             className="object-cover object-[center_35%]"
           />
           {/* dark overlay for readability */}
-          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-0 bg-slate-950/60" />
         </div>
 
-        {/* soft radial glows */}
+        {/* soft radial glows hijau + biru */}
         <div
-          className="absolute inset-0 -z-10"
+          className="absolute inset-0 -z-10 opacity-90"
           style={{
             backgroundImage:
-              "radial-gradient(1000px 500px at 20% -10%, rgba(29,78,216,.30), transparent), radial-gradient(800px 450px at 90% 0%, rgba(234,179,8,.18), transparent)",
+              "radial-gradient(900px 480px at 10% -10%, rgba(16,185,129,0.52), transparent), radial-gradient(800px 420px at 90% 0%, rgba(56,189,248,0.4), transparent)",
           }}
         />
 
         {/* content */}
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-18 md:py-24 text-center">
+          {/* small badge */}
+          <div className="mb-4 flex justify-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/70 bg-emerald-950/40 px-3 py-1 text-xs font-medium text-emerald-50 shadow-sm backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+              {t("cta.energy")}
+            </span>
+          </div>
+
           <h1
             id="hero-title"
             className="text-4xl md:text-6xl font-extrabold tracking-tight text-white drop-shadow-sm leading-tight"
           >
             {t("home.hero.title.1")}{" "}
-            <span className="bg-gradient-to-r from-blue-400 via-blue-300 to-amber-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-300 via-sky-300 to-emerald-100 bg-clip-text text-transparent">
               {t("home.hero.title.2")}
             </span>
           </h1>
 
-          <p className="mt-4 text-lg md:text-xl text-neutral-100/90 max-w-2xl mx-auto leading-relaxed">
+          <p className="mt-4 text-lg md:text-xl text-slate-100/90 max-w-2xl mx-auto leading-relaxed">
             {t("home.hero.desc")}
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row justify-center gap-3">
             <a
               href="/jobs"
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-white font-semibold shadow hover:bg-blue-500 active:translate-y-[1px] transition"
+              className="inline-flex items-center justify-center rounded-xl bg-emerald-500 px-7 py-3 text-white font-semibold shadow-lg shadow-emerald-500/25 hover:bg-emerald-400 active:translate-y-[1px] transition"
             >
               {t("home.hero.cta.jobs")}
             </a>
             <a
               href="/applications"
-              className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/10 px-6 py-3 text-white font-semibold backdrop-blur hover:bg-white/20 transition"
+              className="inline-flex items-center justify-center rounded-xl border border-emerald-200/80 bg-emerald-50/10 px-7 py-3 text-emerald-50 font-semibold backdrop-blur hover:bg-emerald-50/20 hover:border-emerald-100/90 transition"
             >
               {t("home.hero.cta.companies")}
             </a>
@@ -75,10 +84,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           {/* heading */}
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold text-neutral-900">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
               {t("home.explore.title")}
             </h2>
-            <p className="mt-2 text-neutral-600 leading-relaxed">
+            <p className="mt-2 text-slate-600 leading-relaxed">
               {t("home.explore.desc")}
             </p>
           </div>
@@ -89,28 +98,32 @@ export default function HomePage() {
               href="/jobs"
               title={t("home.card.jobs.title")}
               desc={t("home.card.jobs.desc")}
-              icon={<MagnifierIcon className="h-6 w-6 text-blue-700" />}
+              icon={
+                <MagnifierIcon className="h-6 w-6 text-emerald-600" />
+              }
+              chip={t("jobs.heading")}
             />
 
             <CardLink
               href="/news"
               title={t("home.card.news.title")}
               desc={t("home.card.news.desc")}
-              icon={<PulseIcon className="h-6 w-6 text-violet-600" />}
+              icon={<PulseIcon className="h-6 w-6 text-sky-600" />}
+              chip={t("news.latest")}
             />
           </div>
         </div>
       </section>
 
       {/* ========== FEATURES GRID ========== */}
-      <section className="py-12 md:py-16 bg-neutral-50">
+      <section className="py-12 md:py-16 bg-gradient-to-b from-emerald-50 via-sky-50 to-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* heading */}
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold text-neutral-900">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
               {t("home.features.title")}
             </h2>
-            <p className="mt-2 text-neutral-600 leading-relaxed">
+            <p className="mt-2 text-slate-600 leading-relaxed">
               {t("home.features.desc")}
             </p>
           </div>
@@ -120,32 +133,34 @@ export default function HomePage() {
             <Feature
               title={t("home.feature.1.title")}
               desc={t("home.feature.1.desc")}
-              icon={<SearchSparkIcon className="h-6 w-6 text-blue-700" />}
+              icon={
+                <SearchSparkIcon className="h-6 w-6 text-emerald-600" />
+              }
             />
             <Feature
               title={t("home.feature.2.title")}
               desc={t("home.feature.2.desc")}
-              icon={<FolderIcon className="h-6 w-6 text-indigo-600" />}
+              icon={<FolderIcon className="h-6 w-6 text-sky-600" />}
             />
             <Feature
               title={t("home.feature.3.title")}
               desc={t("home.feature.3.desc")}
-              icon={<MatchIcon className="h-6 w-6 text-sky-600" />}
+              icon={<MatchIcon className="h-6 w-6 text-emerald-500" />}
             />
             <Feature
               title={t("home.feature.4.title")}
               desc={t("home.feature.4.desc")}
-              icon={<NewsIcon className="h-6 w-6 text-rose-600" />}
+              icon={<NewsIcon className="h-6 w-6 text-sky-500" />}
             />
             <Feature
               title={t("home.feature.5.title")}
               desc={t("home.feature.5.desc")}
-              icon={<UsersIcon className="h-6 w-6 text-amber-600" />}
+              icon={<UsersIcon className="h-6 w-6 text-emerald-500" />}
             />
             <Feature
               title={t("home.feature.6.title")}
               desc={t("home.feature.6.desc")}
-              icon={<BoltIcon className="h-6 w-6 text-emerald-600" />}
+              icon={<BoltIcon className="h-6 w-6 text-sky-600" />}
             />
           </div>
         </div>
@@ -154,26 +169,33 @@ export default function HomePage() {
       {/* ========== FINAL CTA BOX ========== */}
       <section className="py-14 md:py-20 bg-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl border border-neutral-200 bg-gradient-to-tr from-blue-700 via-blue-600 to-amber-500 p-[1px] shadow-xl">
-            <div className="rounded-3xl bg-white p-8 md:p-12 text-center">
-              <h3 className="text-2xl md:text-3xl font-extrabold text-neutral-900 leading-tight">
+          <div className="rounded-3xl bg-gradient-to-tr from-emerald-500 via-sky-500 to-emerald-400 p-[1px] shadow-xl shadow-emerald-500/20">
+            <div className="rounded-3xl bg-slate-950/95 px-6 py-8 md:px-10 md:py-12 text-center">
+              <div className="mb-3 flex justify-center">
+                <span className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-emerald-100 border border-emerald-400/40">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                  ArkWork · Energy Talent Hub
+                </span>
+              </div>
+
+              <h3 className="text-2xl md:text-3xl font-extrabold text-white leading-tight">
                 {t("home.final.title")}
               </h3>
 
-              <p className="mt-3 text-neutral-600 max-w-2xl mx-auto leading-relaxed">
+              <p className="mt-3 text-sm md:text-base text-slate-200 max-w-2xl mx-auto leading-relaxed">
                 {t("home.final.desc")}
               </p>
 
               <div className="mt-6">
                 <a
                   href="/auth/signin"
-                  className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-white font-semibold shadow hover:bg-blue-500 active:translate-y-[1px] transition"
+                  className="inline-flex items-center justify-center rounded-xl bg-emerald-500 px-7 py-3 text-white font-semibold shadow-lg shadow-emerald-500/30 hover:bg-emerald-400 active:translate-y-[1px] transition"
                 >
                   {t("home.final.cta")}
                 </a>
               </div>
 
-              <p className="mt-4 text-xs text-neutral-500 leading-relaxed">
+              <p className="mt-4 text-xs text-slate-400 leading-relaxed">
                 {t("home.final.note")}
               </p>
             </div>
@@ -193,26 +215,35 @@ function CardLink({
   title,
   desc,
   icon,
+  chip,
 }: {
   href: string;
   title: string;
   desc: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
+  chip?: string;
 }) {
   return (
     <a
       href={href}
-      className="group block rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-neutral-300 transition"
+      className="group block rounded-2xl border border-emerald-100 bg-white/80 p-5 shadow-sm hover:shadow-md hover:border-emerald-300/90 hover:bg-emerald-50/60 transition"
     >
       <div className="flex items-start gap-4">
-        <div className="h-10 w-10 rounded-xl bg-neutral-100 grid place-items-center group-hover:scale-105 transition">
+        <div className="relative h-10 w-10 rounded-xl bg-emerald-50 grid place-items-center group-hover:bg-emerald-100 transition">
           {icon}
         </div>
         <div className="text-left">
-          <h3 className="font-semibold text-neutral-900 leading-tight">
+          {chip && (
+            <div className="mb-1">
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-100">
+                {chip}
+              </span>
+            </div>
+          )}
+          <h3 className="font-semibold text-slate-900 leading-tight">
             {title}
           </h3>
-          <p className="text-sm text-neutral-600 mt-1 leading-relaxed">
+          <p className="text-sm text-slate-600 mt-1 leading-relaxed">
             {desc}
           </p>
         </div>
@@ -228,19 +259,19 @@ function Feature({
 }: {
   title: string;
   desc: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm hover:shadow-md hover:border-neutral-300 transition">
+    <div className="rounded-2xl border border-emerald-100 bg-white/90 p-5 shadow-sm hover:shadow-md hover:border-emerald-300/80 transition">
       <div className="flex items-start gap-3">
-        <div className="h-10 w-10 rounded-xl bg-neutral-100 grid place-items-center">
+        <div className="h-10 w-10 rounded-xl bg-emerald-50 grid place-items-center">
           {icon}
         </div>
         <div>
-          <h4 className="font-semibold text-neutral-900 leading-tight">
+          <h4 className="font-semibold text-slate-900 leading-tight">
             {title}
           </h4>
-          <p className="text-sm text-neutral-600 mt-1 leading-relaxed">
+          <p className="text-sm text-slate-600 mt-1 leading-relaxed">
             {desc}
           </p>
         </div>
@@ -281,7 +312,6 @@ function PulseIcon(p: any) {
   );
 }
 
-// (dipake? kalau nggak bisa dihapus buat clean)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function BuildingIcon(p: any) {
   return (
