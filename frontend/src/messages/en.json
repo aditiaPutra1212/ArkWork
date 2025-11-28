@@ -173,19 +173,26 @@
       "linkedin": "LinkedIn",
       "email": "Email"
     },
+    "badge": {
+      "primary": "Green talent platform",
+      "secondary": "Powered by smart technology"
+    },
     "copyright": "© {year} ArkWork. All rights reserved.",
     "madeFor": "Made for the energy & oil & gas community."
   },
   "Halaman-about": {},
   "about": {
     "title": "About",
+    "badge": "About ArkWork",
     "intro": "ArkWork is an innovative platform that connects jobs, tenders, and industry news with professionals and businesses in the energy sector.",
     "vision": {
       "title": "Our Vision",
+      "badge": "Vision",
       "desc": "To be the main bridge between talent, companies, and business opportunities—creating a collaborative ecosystem that drives economic growth and innovation."
     },
     "mission": {
       "title": "Our Mission",
+      "badge": "Mission",
       "points": {
         "1": "Provide easy access to the latest jobs and tenders.",
         "2": "Help companies efficiently find the right talent.",
@@ -195,6 +202,7 @@
     },
     "values": {
       "title": "Our Values",
+      "subtitle": "Core principles that guide ArkWork in building a strong talent ecosystem for the energy & oil & gas sector.",
       "items": {
         "integrity": {
           "title": "Integrity",
@@ -217,7 +225,8 @@
     "closing": {
       "title": "Join ArkWork Today",
       "desc": "Whether you’re a professional looking for new opportunities or a company seeking top talent, ArkWork is the place to start.",
-      "cta": "Explore Opportunities"
+      "cta": "Explore Opportunities",
+      "subnote": "Build your career in the energy & oil & gas sector with ArkWork."
     }
   },
   "Halaman-signin": {},

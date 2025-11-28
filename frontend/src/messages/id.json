@@ -173,19 +173,26 @@
       "linkedin": "LinkedIn",
       "email": "Email"
     },
+    "badge": {
+      "primary": "Platform talenta hijau",
+      "secondary": "Didukung teknologi cerdas"
+    },
     "copyright": "© {year} ArkWork. Hak cipta dilindungi.",
     "madeFor": "Dibuat untuk komunitas energi & oil & gas."
   },
   "Halaman-about": {},
   "about": {
     "title": "Tentang",
+    "badge": "Tentang ArkWork",
     "intro": "ArkWork adalah platform inovatif yang menghubungkan lowongan kerja, tender, dan kabar industri dengan profesional serta bisnis di sektor energi.",
     "vision": {
       "title": "Visi Kami",
+      "badge": "Visi",
       "desc": "Menjadi jembatan utama antara talenta, perusahaan, dan peluang bisnis—menciptakan ekosistem kolaboratif yang mendorong pertumbuhan ekonomi dan inovasi."
     },
     "mission": {
       "title": "Misi Kami",
+      "badge": "Misi",
       "points": {
         "1": "Memberikan akses mudah ke lowongan dan tender terbaru.",
         "2": "Membantu perusahaan menemukan talenta yang tepat secara efisien.",
@@ -195,6 +202,7 @@
     },
     "values": {
       "title": "Nilai-Nilai Kami",
+      "subtitle": "Nilai inti yang menjadi fondasi ArkWork dalam membangun ekosistem talenta energi & oil & gas.",
       "items": {
         "integrity": {
           "title": "Integritas",
@@ -217,7 +225,8 @@
     "closing": {
       "title": "Bergabung dengan ArkWork Hari Ini",
       "desc": "Apakah kamu profesional yang mencari peluang baru atau perusahaan yang ingin merekrut talenta terbaik, ArkWork adalah tempat yang tepat untuk memulai.",
-      "cta": "Jelajahi Peluang"
+      "cta": "Jelajahi Peluang",
+      "subnote": "Bangun karier Anda di sektor energi & oil & gas bersama ArkWork."
     }
   },
   "Halaman-signin": {},
