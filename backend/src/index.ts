@@ -1,4 +1,3 @@
-// backend/src/index.ts (VERSI ASLI ANDA YANG SUDAH BENAR)
 import 'dotenv/config';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
@@ -8,6 +7,15 @@ import http from 'node:http';
 import morgan from 'morgan';
 import session from 'express-session';
 import passport from 'passport';
+import { createClient } from 'redis';
+
+// --- FIX FINAL: Cara Import yang Benar untuk connect-redis v9+ ---
+// Di versi terbaru, class RedisStore ada di dalam properti .RedisStore
+const RedisStore = require("connect-redis").RedisStore;
+
+import { rateLimit } from 'express-rate-limit';
+import { RedisStore as RateLimitRedisStore } from 'rate-limit-redis';
+import helmet from 'helmet';
 
 // Routes
 import authRouter from './routes/auth';
@@ -24,78 +32,61 @@ import { jobsRouter } from './routes/jobs';
 import reportsRouter from './routes/reports';
 import ratesRouter from './routes/rates';
 import googleRouter from './routes/google';
-
-// NEW
 import applicationsRouter from './routes/applications';
 import employerApplicationsRouter from './routes/employer-applications';
-
-// Admin Jobs router
 import adminJobsRouter from './routes/admin-jobs';
 
 // DEV helper routes
 import authDev from './routes/auth-dev';
-
-// 🔔 Dev mail testing
 import devBillingMailRouter from './routes/dev-billing-mail';
 
 import { authRequired, employerRequired, adminRequired } from './middleware/role';
 
-// 🔔 Aktifkan CRON billing
+// Aktifkan CRON billing
 import './jobs/billingCron';
 
 const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const DEFAULT_PORT = Number(process.env.PORT || 4000);
 
-app.set('etag', false);
+app.set('etag', false);     
+
+/* ======= SECURITY HEADERS (HELMET) ======= */
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 
 /* ======= CORS ======= */
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
-const defaultAllowed = [
+const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3001',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
+  'https://arkwork.vercel.app',
+  'https://arkwork-staging.vercel.app',
 ];
-const allowedOrigins = Array.from(
-  new Set([
-    ...defaultAllowed,
-    ...FRONTEND_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean),
-  ])
-);
 
-function isLocalhost(origin?: string) {
-  try {
-    if (!origin) return false;
-    const { hostname } = new URL(origin);
-    return hostname === 'localhost' || hostname === '127.0.0.1';
-  } catch {
-    return false;
-  }
-}
-
-function isVercel(origin?: string) {
-  try {
-    if (!origin) return false;
-    const { hostname } = new URL(origin);
-    return hostname.endsWith('.vercel.app');
-  } catch {
-    return false;
-  }
+if (process.env.FRONTEND_ORIGIN) {
+  process.env.FRONTEND_ORIGIN.split(',').forEach((origin) => {
+    const cleanOrigin = origin.trim();
+    if (cleanOrigin && !allowedOrigins.includes(cleanOrigin)) {
+      allowedOrigins.push(cleanOrigin);
+    }
+  });
 }
 
 const corsOptions: cors.CorsOptions = {
-  origin(origin, cb) {
-    if (!origin) return cb(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      isLocalhost(origin) ||
-      isVercel(origin)
-    )
-      return cb(null, true);
-    return cb(new Error(`Not allowed by CORS: ${origin}`));
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error(`CORS Blocked: Origin ${origin} is not allowed.`));
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -106,6 +97,7 @@ const corsOptions: cors.CorsOptions = {
     'x-employer-id',
   ],
 };
+
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
@@ -115,10 +107,27 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
 
-/* ====== Session & Passport ====== */
-const SESSION_SECRET = process.env.SESSION_SECRET || 'dev_session_secret';
+/* ====== REDIS CLIENT ====== */
+const redisClient = createClient({
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
+});
+
+redisClient.on('error', (err) => console.error('Redis Client Error', err));
+redisClient.connect().catch(console.error);
+
+/* ====== SESSION SETUP ====== */
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  throw new Error('FATAL: SESSION_SECRET is not defined in .env');
+}
+
 app.use(
   session({
+    // --- FIX: Panggil Class RedisStore dengan benar ---
+    store: new RedisStore({
+      client: redisClient,
+      prefix: 'arkwork:', 
+    }),
     name: 'arkwork.sid',
     secret: SESSION_SECRET,
     resave: false,
@@ -127,13 +136,36 @@ app.use(
       httpOnly: true,
       secure: NODE_ENV === 'production',
       sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+      maxAge: 1000 * 60 * 60 * 24, // 1 Day
     },
   })
 );
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+/* --- RATE LIMITING CONFIGURATION --- */
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  limit: 5, 
+  message: { error: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new (RateLimitRedisStore as any)({
+    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+  }),
+});
+
+const adminLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  limit: 3, 
+  message: { error: 'Akses Admin ditahan sementara karena terlalu banyak percobaan gagal.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new (RateLimitRedisStore as any)({
+    sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+  }),
+});
 
 /* BigInt -> string (safe untuk res.json) */
 app.use((_req, res, next) => {
@@ -153,7 +185,6 @@ app.use((_req, res, next) => {
   next();
 });
 
-/* Log sederhana & static */
 app.use((req, _res, next) => {
   console.log(`${req.method} ${req.originalUrl}`);
   next();
@@ -172,16 +203,35 @@ if (NODE_ENV !== 'production' && process.env.DEV_AUTH === '1') {
   app.use(devBillingMailRouter);
 }
 
-/* ================= ROUTES (ORDER MATTERS!) ================= */
+/* ================= ROUTES ================= */
 
-/* Public / auth routes */
-app.use('/auth', authRouter); // <-- KEMBALIKAN KE /auth
-app.use('/auth', googleRouter); // <-- KEMBALIKAN KE /auth
+// 1. RATE LIMITING (Hanya pasang di pintu masuk berbahaya)
+//    Jangan pasang di parent route '/auth' agar '/auth/me' tidak kena blokir.
 
-/* Employer */
-app.use('/api/employers/auth', employerAuthRouter);
+// -- User Auth --
+app.use('/auth/signin', authLimiter);         // Limit Login
+app.use('/auth/signup', authLimiter);         // Limit Daftar
+app.use('/auth/forgot', authLimiter);         // Limit Lupa Password
+app.use('/auth/reset-password', authLimiter); // Limit Reset Password
+app.use('/auth', authRouter);                 // Sisa route (termasuk /me) BEBAS limit
+app.use('/auth', googleRouter); 
+
+// -- Employer Auth --
+app.use('/api/employers/auth/signin', authLimiter);
+app.use('/api/employers/auth/signup', authLimiter);
+app.use('/api/employers/auth/forgot', authLimiter);
+app.use('/api/employers/auth', employerAuthRouter); // Route lain bebas
 app.use('/api/employers', employerRouter);
 app.use('/api/employers/applications', employerApplicationsRouter);
+
+// -- Admin Auth --
+app.use('/api/admin/signin', adminLimiter); // Cuma login admin yang dilimit ketat
+app.use('/api/admin', adminRouter);         // Dashboard admin bebas limit
+
+// -- Route Lainnya --
+app.use('/api/admin/jobs', adminJobsRouter);
+app.use('/api/admin/tenders', adminTendersRouter);
+app.use('/api/admin/plans', adminPlansRouter);
 
 /* Public APIs */
 app.use('/api/reports', reportsRouter);
@@ -192,12 +242,6 @@ app.use('/api/tenders', tendersRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api', jobsRouter);
 app.use('/api', applicationsRouter);
-
-/* ========== ADMIN API ========== */
-app.use('/api/admin', adminRouter);
-app.use('/api/admin/jobs', adminJobsRouter);
-app.use('/api/admin/tenders', adminTendersRouter);
-app.use('/api/admin/plans', adminPlansRouter);
 
 /* Example protected endpoints */
 app.get('/api/profile', authRequired, (req, res) =>
@@ -231,15 +275,15 @@ function startServer(port: number) {
   server.on('listening', () => {
     console.log('========================================');
     console.log(`🚀 Backend listening on http://localhost:${port}`);
-    console.log(`NODE_ENV     	: ${NODE_ENV}`);
+    console.log(`NODE_ENV           : ${NODE_ENV}`);
     console.log(`FRONTEND_ORIGIN(s) : ${allowedOrigins.join(', ')}`);
-    console.log('✅ Billing CRON     : loaded (via import ./jobs/billingCron)');
+    console.log('✅ Billing CRON     : loaded');
     if (NODE_ENV !== 'production' && process.env.DEV_AUTH === '1') {
-      console.log('✅ Dev mail route   : GET /dev/mail/try (dev only)');
-      console.log('✅ Dev auth routes 	: enabled (dev only)');
+      console.log('✅ Dev auth routes  : enabled');
     }
-    console.log('✅ Passport-ready   : passport initialized and session enabled');
-    console.log('✅ Google OAuth     : route /auth/google loaded'); // <-- Log Anda yang asli
+    console.log('✅ Redis Session    : connected & active');
+    console.log('✅ Rate Limiting    : enabled (Targeted: Login Only)'); // Cek log ini nanti
+    console.log('✅ Security Headers : enabled (Helmet)');
     console.log('========================================');
   });
 }

@@ -1,90 +1,104 @@
-// backend/src/routes/admin.ts
 import { Router, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { z } from "zod";
+
+// Import nama cookie agar konsisten dengan middleware lain
+import { ADMIN_COOKIE } from "../middleware/role";
 
 const router = Router();
 
-const IS_LOCAL = process.env.NODE_ENV !== "production";
-const ADMIN_COOKIE = process.env.ADMIN_COOKIE_NAME || "admin_token";
-const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET || process.env.JWT_SECRET || "";
-const COOKIE_SAMESITE = (process.env.COOKIE_SAMESITE || (IS_LOCAL ? "lax" : "lax")) as 'lax'|'none'|'strict';
-const COOKIE_SECURE = process.env.COOKIE_SECURE === 'true' || (!IS_LOCAL && COOKIE_SAMESITE === 'none');
+/* ===== 1. SECURITY CONFIGURATION ===== */
+const NODE_ENV = process.env.NODE_ENV || "development";
+const IS_PROD = NODE_ENV === "production";
 
-if (!IS_LOCAL && !JWT_ADMIN_SECRET) {
-  console.error("[FATAL] JWT_ADMIN_SECRET is required in production.");
+// Gunakan secret yang sama atau khusus admin, tapi WAJIB ada
+const JWT_ADMIN_SECRET = process.env.JWT_ADMIN_SECRET || process.env.JWT_SECRET;
+
+if (!JWT_ADMIN_SECRET) {
+  throw new Error("[FATAL] JWT_ADMIN_SECRET (or JWT_SECRET) is required in .env");
 }
 
-// Very small in-memory rate limiter for signin attempts (dev only; replace with Redis in prod)
-const SIGNIN_LIMIT_WINDOW_MS = Number(process.env.SIGNIN_RATE_WINDOW_MS ?? 60_000);
-const SIGNIN_LIMIT_MAX = Number(process.env.SIGNIN_RATE_MAX ?? 10);
-const signinAttempts = new Map<string, { count: number; resetAt: number }>();
-function rateLimit(ip: string) {
-  const now = Date.now();
-  const r = signinAttempts.get(ip);
-  if (!r || now > r.resetAt) {
-    signinAttempts.set(ip, { count: 1, resetAt: now + SIGNIN_LIMIT_WINDOW_MS });
-    return { ok: true, remaining: SIGNIN_LIMIT_MAX - 1 };
-  }
-  r.count += 1;
-  signinAttempts.set(ip, r);
-  if (r.count > SIGNIN_LIMIT_MAX) return { ok: false, retryAfter: Math.ceil((r.resetAt - now) / 1000) };
-  return { ok: true, remaining: SIGNIN_LIMIT_MAX - r.count };
-}
+const COOKIE_SAMESITE = IS_PROD ? 'none' : 'lax';
+const COOKIE_SECURE = IS_PROD; // Wajib true di production (HTTPS)
 
+/* ===== 2. HELPERS ===== */
 function signAdminToken(payload: { uid: string; role?: string }) {
-  if (!JWT_ADMIN_SECRET) throw new Error("JWT_ADMIN_SECRET not set");
-  return jwt.sign({ uid: payload.uid, role: payload.role ?? "admin" }, JWT_ADMIN_SECRET, { expiresIn: "7d", issuer: "arkwork-admin", audience: "arkwork-admins" });
+  return jwt.sign(
+    { uid: payload.uid, role: payload.role ?? "admin" },
+    JWT_ADMIN_SECRET!,
+    { expiresIn: "7d", issuer: "arkwork-admin", audience: "arkwork-admins" }
+  );
 }
+
 function setAdminCookie(res: Response, token: string) {
   res.cookie(ADMIN_COOKIE, token, {
     httpOnly: true,
     sameSite: COOKIE_SAMESITE,
-    secure: COOKIE_SECURE && !IS_LOCAL ? true : false,
+    secure: COOKIE_SECURE,
     path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 Hari
   });
 }
+
 function clearAdminCookie(res: Response) {
-  res.clearCookie(ADMIN_COOKIE, { path: "/", httpOnly: true, sameSite: COOKIE_SAMESITE, secure: COOKIE_SECURE && !IS_LOCAL ? true : false });
+  res.clearCookie(ADMIN_COOKIE, {
+    path: "/",
+    httpOnly: true,
+    sameSite: COOKIE_SAMESITE,
+    secure: COOKIE_SECURE
+  });
 }
 
+/* ===== 3. VALIDATORS ===== */
+const adminSigninSchema = z.object({
+  usernameOrEmail: z.string().min(1, "Username/Email wajib diisi"),
+  password: z.string().min(1, "Password wajib diisi"),
+});
+
+/* ===== 4. ROUTES ===== */
+
 /* POST /api/admin/signin */
+// Catatan: Rate Limit sudah ditangani oleh adminLimiter di index.ts
 router.post("/signin", async (req: Request, res: Response) => {
   try {
-    const ip = (req.headers['x-forwarded-for'] as string) || req.ip || 'unknown';
-    const rl = rateLimit(ip);
-    if (!rl.ok) {
-      res.setHeader("Retry-After", String(rl.retryAfter || 60));
-      return res.status(429).json({ message: "Too many attempts. Try again later." });
+    const parsed = adminSigninSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: "Invalid request data" });
     }
 
-    const { usernameOrEmail, password } = req.body ?? {};
-    if (!usernameOrEmail || !password) return res.status(400).json({ message: "Invalid request" });
+    const { usernameOrEmail, password } = parsed.data;
+    const input = usernameOrEmail.trim().toLowerCase();
 
-    // normalize username/email
-    const input = String(usernameOrEmail).toLowerCase().trim();
-
-    // resolve username: if email => map to user part OR use ADMIN_EMAILS env to map specific emails
+    // Logika Normalisasi Username (Email -> Username mapping jika perlu)
     let usernameToFind = input.includes("@") ? input.split("@")[0] : input;
+    
+    // Support hardcoded admin email mapping via ENV (Optional feature)
     const emailsEnv = (process.env.ADMIN_EMAILS || "").split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
     if (input.includes("@") && emailsEnv.includes(input) && process.env.ADMIN_USERNAME) {
       usernameToFind = process.env.ADMIN_USERNAME;
     }
 
+    // Cari Admin di Database
     const admin = await prisma.admin.findUnique({ where: { username: usernameToFind } });
-    const failure = "Email/Username atau password salah";
-    if (!admin) return res.status(401).json({ message: failure });
+    
+    // Generic Error Message (Security Practice: Jangan kasih tau user tidak ditemukan)
+    const failureMsg = "Kredensial tidak valid";
 
+    if (!admin) return res.status(401).json({ message: failureMsg });
+
+    // Cek Password
     const ok = await bcrypt.compare(password, admin.passwordHash);
-    if (!ok) return res.status(401).json({ message: failure });
+    if (!ok) return res.status(401).json({ message: failureMsg });
 
+    // Login Sukses
     const token = signAdminToken({ uid: admin.id, role: "admin" });
     setAdminCookie(res, token);
 
-    console.info(`[ADMIN][SIGNIN][OK] admin=${admin.id} ip=${ip}`);
+    console.info(`[ADMIN][SIGNIN] Success: ${admin.username} (IP: ${req.ip})`);
     return res.json({ ok: true, admin: { id: admin.id, username: admin.username } });
+
   } catch (err: any) {
     console.error("[ADMIN][SIGNIN][ERROR]", err);
     return res.status(500).json({ message: "Internal server error" });
@@ -94,21 +108,35 @@ router.post("/signin", async (req: Request, res: Response) => {
 /* GET /api/admin/me */
 router.get("/me", async (req: Request, res: Response) => {
   try {
-    const raw = (req as any).cookies?.[ADMIN_COOKIE];
-    if (!raw) return res.status(401).json({ message: "Unauthorized" });
-
-    if (!JWT_ADMIN_SECRET) return res.status(500).json({ message: "Server misconfiguration" });
+    // Ambil cookie
+    const token = (req as any).cookies?.[ADMIN_COOKIE];
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
 
     try {
-      const payload = jwt.verify(raw, JWT_ADMIN_SECRET) as any;
-      if (!payload || payload.role !== "admin" || !payload.uid) return res.status(401).json({ message: "Unauthorized" });
+      // Verifikasi Token
+      const payload = jwt.verify(token, JWT_ADMIN_SECRET!) as any;
+      
+      if (!payload || payload.role !== "admin" || !payload.uid) {
+        clearAdminCookie(res);
+        return res.status(401).json({ message: "Unauthorized" });
+      }
 
-      const admin = await prisma.admin.findUnique({ where: { id: payload.uid }, select: { id: true, username: true } });
-      if (!admin) return res.status(401).json({ message: "Unauthorized" });
+      // Pastikan Admin masih ada di DB
+      const admin = await prisma.admin.findUnique({ 
+        where: { id: payload.uid }, 
+        select: { id: true, username: true } 
+      });
+
+      if (!admin) {
+        clearAdminCookie(res);
+        return res.status(401).json({ message: "Unauthorized" });
+      }
 
       return res.json({ id: admin.id, username: admin.username, role: "admin" });
+
     } catch (e: any) {
-      return res.status(401).json({ message: "Invalid token" });
+      clearAdminCookie(res);
+      return res.status(401).json({ message: "Sesi kedaluwarsa atau tidak valid" });
     }
   } catch (e: any) {
     console.error("[ADMIN][ME] error", e);

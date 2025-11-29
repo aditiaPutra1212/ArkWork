@@ -1,40 +1,15 @@
 import { Router, Request, Response } from 'express';
-import path from 'node:path';
-import fs from 'node:fs';
-import crypto from 'node:crypto';
-import multer from 'multer';
-
 import { prisma } from '../lib/prisma';
 import { authRequired } from '../middleware/role';
 import { Prisma } from '@prisma/client';
+import fs from 'node:fs';
+import { uploadCV } from '../middleware/upload';
 
 const router = Router();
 
-/* ========= Upload CV (PDF) ========= */
-const UP_DIR = path.join(process.cwd(), 'public', 'uploads', 'cv');
-fs.mkdirSync(UP_DIR, { recursive: true });
-
-const upload = multer({
-  storage: multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, UP_DIR),
-    filename: (_req, file, cb) => {
-      const ext = '.pdf';
-      const rand = crypto.randomBytes(8).toString('hex');
-      cb(null, `${Date.now()}_${rand}${ext}`);
-    },
-  }),
-  fileFilter: (_req, file, cb) => {
-    const isPdf =
-      file.mimetype === 'application/pdf' ||
-      (file.originalname || '').toLowerCase().endsWith('.pdf');
-    if (!isPdf) return cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'ONLY_PDF'));
-    cb(null, true);
-  },
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
-});
-
 /**
- * GET /api/users/applications  (list aplikasi user login)
+ * GET /api/users/applications
+ * List aplikasi user login
  */
 router.get('/users/applications', authRequired, async (req: Request, res: Response) => {
   try {
@@ -50,8 +25,8 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
           select: {
             id: true,
             title: true,
-            location: true,   // Field ini ADA di schema kamu
-            employment: true, // Field ini ADA di schema kamu
+            location: true,
+            employment: true,
             employer: { select: { displayName: true } },
           },
         },
@@ -85,47 +60,61 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
 });
 
 /**
- * POST /api/applications   ← penting: path disamakan agar tidak 404
- * Form-Data:
- *   - jobId: string
- *   - cv: (file pdf) opsional
+ * POST /api/applications
+ * Endpoint melamar kerja + Upload CV Aman
  */
-router.post('/applications', authRequired, upload.single('cv'), async (req: Request, res: Response) => {
+
+router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Request, res: Response) => {
+  
+  // Helper: Hapus file jika validasi gagal (agar server tidak penuh sampah)
+  const cleanupFile = () => {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch {}
+    }
+  };
+
   try {
     const jobId = String(req.body?.jobId || '').trim();
+    
+    // 1. Validasi Job ID
     if (!jobId) {
-      if (req.file) try { fs.unlinkSync(req.file.path); } catch {}
+      cleanupFile();
       return res.status(400).json({ ok: false, error: 'jobId required' });
     }
 
+    // 2. Validasi User
     const user = (req as any).auth as { uid: string };
     const userId = user?.uid;
     if (!userId) {
-      if (req.file) try { fs.unlinkSync(req.file.path); } catch {}
+      cleanupFile();
       return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
     }
 
+    // 3. Cek Status Job di Database
     const job = await prisma.job.findUnique({
       where: { id: jobId },
       select: { id: true, isActive: true, isHidden: true, title: true },
     });
+
     if (!job || !job.isActive || job.isHidden) {
-      if (req.file) try { fs.unlinkSync(req.file.path); } catch {}
-      return res.status(404).json({ ok: false, error: 'Job not found/active' });
+      cleanupFile();
+      return res.status(404).json({ ok: false, error: 'Job not found, closed, or hidden.' });
     }
 
-    // Infos CV (jika ada)
-    let cv: null | { url: string; name: string; type: string; size: number } = null;
+    // 4. Siapkan Data CV (Jika ada file yang lolos upload)
+    let cvData: null | { url: string; name: string; type: string; size: number } = null;
+    
     if (req.file) {
-      cv = {
-        url: `/uploads/cv/${req.file.filename}`,
-        name: req.file.originalname || req.file.filename,
-        type: req.file.mimetype || 'application/pdf',
+      // req.file.filename sudah diacak otomatis oleh middleware upload.ts
+      cvData = {
+        url: `/uploads/${req.file.filename}`, 
+        name: req.file.originalname,
+        type: req.file.mimetype,
         size: req.file.size,
       };
     }
 
-    // Type hasil upsert supaya .job terdeteksi
+    // 5. Simpan ke Database (Upsert: Create or Update)
     type AppWithJob = Prisma.JobApplicationGetPayload<{
       include: { job: { select: { id: true; title: true } } };
     }>;
@@ -135,19 +124,20 @@ router.post('/applications', authRequired, upload.single('cv'), async (req: Requ
       create: {
         jobId,
         applicantId: userId,
-        ...(cv ? {
-          cvUrl: cv.url,
-          cvFileName: cv.name,
-          cvFileType: cv.type,
-          cvFileSize: cv.size,
+        ...(cvData ? {
+          cvUrl: cvData.url,
+          cvFileName: cvData.name,
+          cvFileType: cvData.type,
+          cvFileSize: cvData.size,
         } : {}),
       },
       update: {
-        ...(cv ? {
-          cvUrl: cv.url,
-          cvFileName: cv.name,
-          cvFileType: cv.type,
-          cvFileSize: cv.size,
+        // Jika upload file baru, update data CV. Jika tidak, biarkan yang lama.
+        ...(cvData ? {
+          cvUrl: cvData.url,
+          cvFileName: cvData.name,
+          cvFileType: cvData.type,
+          cvFileSize: cvData.size,
         } : {}),
         updatedAt: new Date(),
       },
@@ -162,27 +152,29 @@ router.post('/applications', authRequired, upload.single('cv'), async (req: Requ
         jobTitle: result.job.title,
         status: result.status,
         createdAt: result.createdAt,
-        cv: result.cvUrl
-          ? {
-              url: result.cvUrl,
-              name: result.cvFileName,
-              type: result.cvFileType,
-              size: result.cvFileSize,
-            }
-          : null,
+        cv: result.cvUrl ? {
+          url: result.cvUrl,
+          name: result.cvFileName,
+          type: result.cvFileType,
+          size: result.cvFileSize
+        } : null,
       },
     });
+
   } catch (e: any) {
-    if (e instanceof multer.MulterError) {
-      if (e.code === 'LIMIT_FILE_SIZE') {
-        return res.status(413).json({ ok: false, error: 'CV terlalu besar. Maks 2 MB.' });
-      }
-      return res.status(400).json({ ok: false, error: 'Upload CV gagal. Pastikan file PDF.' });
+    // ⚠️ Error Handling Khusus Multer (Dari Middleware Upload)
+    if (e.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ ok: false, error: 'Ukuran CV terlalu besar (Max 5MB).' });
     }
+    // Error jika format bukan PDF/Doc
+    if (e.message?.includes('Hanya file dokumen')) {
+      return res.status(400).json({ ok: false, error: e.message });
+    }
+
     if (e?.code === 'P2002') {
-      // unique constraint (jobId, applicantId)
-      return res.status(409).json({ ok: false, error: 'Anda sudah melamar job ini' });
+      return res.status(409).json({ ok: false, error: 'Anda sudah melamar pekerjaan ini.' });
     }
+
     console.error('[POST /api/applications] error:', e);
     return res.status(500).json({ ok: false, error: 'SERVER_ERROR' });
   }
