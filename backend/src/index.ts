@@ -9,15 +9,17 @@ import session from 'express-session';
 import passport from 'passport';
 import { createClient } from 'redis';
 
-// --- FIX FINAL: Cara Import yang Benar untuk connect-redis v9+ ---
-// Di versi terbaru, class RedisStore ada di dalam properti .RedisStore
+// --- IMPORT LOGGER (BARU) ---
+import { logger } from './lib/logger';
+
+// Fix Connect-Redis v9
 const RedisStore = require("connect-redis").RedisStore;
 
 import { rateLimit } from 'express-rate-limit';
 import { RedisStore as RateLimitRedisStore } from 'rate-limit-redis';
 import helmet from 'helmet';
 
-// Routes
+// Routes Imports
 import authRouter from './routes/auth';
 import newsRouter from './routes/news';
 import chatRouter from './routes/chat';
@@ -49,7 +51,7 @@ const app = express();
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const DEFAULT_PORT = Number(process.env.PORT || 4000);
 
-app.set('etag', false);     
+app.set('etag', false);
 
 /* ======= SECURITY HEADERS (HELMET) ======= */
 app.use(
@@ -58,7 +60,7 @@ app.use(
   })
 );
 
-/* ======= CORS ======= */
+/* ======= CORS SETUP ======= */
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
@@ -103,6 +105,7 @@ app.options('*', cors(corsOptions));
 
 if (NODE_ENV === 'production') app.set('trust proxy', 1);
 
+// Morgan tetap dipakai untuk log HTTP request singkat
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
@@ -112,8 +115,9 @@ const redisClient = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
-redisClient.on('error', (err) => console.error('Redis Client Error', err));
-redisClient.connect().catch(console.error);
+// Ganti console.error -> logger.error
+redisClient.on('error', (err) => logger.error('Redis Client Error', { error: err }));
+redisClient.connect().catch((err) => logger.error('Redis Connect Fail', { error: err }));
 
 /* ====== SESSION SETUP ====== */
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -123,7 +127,6 @@ if (!SESSION_SECRET) {
 
 app.use(
   session({
-    // --- FIX: Panggil Class RedisStore dengan benar ---
     store: new RedisStore({
       client: redisClient,
       prefix: 'arkwork:', 
@@ -144,10 +147,10 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-/* --- RATE LIMITING CONFIGURATION --- */
+/* --- RATE LIMITING --- */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  limit: 5, 
+  limit: 10,
   message: { error: 'Terlalu banyak percobaan login. Coba lagi dalam 15 menit.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -158,8 +161,8 @@ const authLimiter = rateLimit({
 
 const adminLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  limit: 3, 
-  message: { error: 'Akses Admin ditahan sementara karena terlalu banyak percobaan gagal.' },
+  limit: 5, 
+  message: { error: 'Akses Admin ditahan sementara karena percobaan login berulang.' },
   standardHeaders: true,
   legacyHeaders: false,
   store: new (RateLimitRedisStore as any)({
@@ -167,7 +170,7 @@ const adminLimiter = rateLimit({
   }),
 });
 
-/* BigInt -> string (safe untuk res.json) */
+/* BigInt -> JSON Safe */
 app.use((_req, res, next) => {
   const old = res.json.bind(res);
   function conv(x: any): any {
@@ -185,10 +188,7 @@ app.use((_req, res, next) => {
   next();
 });
 
-app.use((req, _res, next) => {
-  console.log(`${req.method} ${req.originalUrl}`);
-  next();
-});
+// Static Files
 app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
 
 /* ========= HEALTH ========= */
@@ -205,35 +205,30 @@ if (NODE_ENV !== 'production' && process.env.DEV_AUTH === '1') {
 
 /* ================= ROUTES ================= */
 
-// 1. RATE LIMITING (Hanya pasang di pintu masuk berbahaya)
-//    Jangan pasang di parent route '/auth' agar '/auth/me' tidak kena blokir.
-
-// -- User Auth --
-app.use('/auth/signin', authLimiter);         // Limit Login
-app.use('/auth/signup', authLimiter);         // Limit Daftar
-app.use('/auth/forgot', authLimiter);         // Limit Lupa Password
-app.use('/auth/reset-password', authLimiter); // Limit Reset Password
-app.use('/auth', authRouter);                 // Sisa route (termasuk /me) BEBAS limit
+// Auth (Targeted Limiter)
+app.use('/auth/signin', authLimiter);
+app.use('/auth/signup', authLimiter);
+app.use('/auth/forgot', authLimiter);
+app.use('/auth/reset-password', authLimiter);
+app.use('/auth', authRouter); 
 app.use('/auth', googleRouter); 
 
-// -- Employer Auth --
+// Employer Auth
 app.use('/api/employers/auth/signin', authLimiter);
 app.use('/api/employers/auth/signup', authLimiter);
 app.use('/api/employers/auth/forgot', authLimiter);
-app.use('/api/employers/auth', employerAuthRouter); // Route lain bebas
+app.use('/api/employers/auth', employerAuthRouter);
 app.use('/api/employers', employerRouter);
 app.use('/api/employers/applications', employerApplicationsRouter);
 
-// -- Admin Auth --
-app.use('/api/admin/signin', adminLimiter); // Cuma login admin yang dilimit ketat
-app.use('/api/admin', adminRouter);         // Dashboard admin bebas limit
-
-// -- Route Lainnya --
+// Admin Auth
+app.use('/api/admin/signin', adminLimiter);
+app.use('/api/admin', adminRouter);
 app.use('/api/admin/jobs', adminJobsRouter);
 app.use('/api/admin/tenders', adminTendersRouter);
 app.use('/api/admin/plans', adminPlansRouter);
 
-/* Public APIs */
+// Public APIs
 app.use('/api/reports', reportsRouter);
 app.use('/api/news', newsRouter);
 app.use('/api/chat', chatRouter);
@@ -243,7 +238,7 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api', jobsRouter);
 app.use('/api', applicationsRouter);
 
-/* Example protected endpoints */
+// Protected Examples
 app.get('/api/profile', authRequired, (req, res) =>
   res.json({ ok: true, whoami: (req as any).auth })
 );
@@ -257,9 +252,11 @@ app.post('/api/admin/stats', adminRequired, (_req, res) =>
 /* 404 */
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
-/* Error handler */
+/* Global Error Handler (Pakai Logger!) */
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  console.error('Unhandled error:', err);
+  // --- GUNAKAN LOGGER DI SINI ---
+  logger.error(`Global Error: ${err.message}`, { stack: err.stack });
+
   if (err instanceof Error && err.message.startsWith('Not allowed by CORS')) {
     return res.status(403).json({ error: 'CORS: Origin not allowed' });
   }
@@ -273,18 +270,17 @@ function startServer(port: number) {
   const server = http.createServer(app);
   server.listen(port);
   server.on('listening', () => {
-    console.log('========================================');
-    console.log(`🚀 Backend listening on http://localhost:${port}`);
-    console.log(`NODE_ENV           : ${NODE_ENV}`);
-    console.log(`FRONTEND_ORIGIN(s) : ${allowedOrigins.join(', ')}`);
-    console.log('✅ Billing CRON     : loaded');
-    if (NODE_ENV !== 'production' && process.env.DEV_AUTH === '1') {
-      console.log('✅ Dev auth routes  : enabled');
-    }
-    console.log('✅ Redis Session    : connected & active');
-    console.log('✅ Rate Limiting    : enabled (Targeted: Login Only)'); // Cek log ini nanti
-    console.log('✅ Security Headers : enabled (Helmet)');
-    console.log('========================================');
+    // --- GUNAKAN LOGGER DI SINI ---
+    logger.info('========================================');
+    logger.info(`🚀 Backend listening on http://localhost:${port}`);
+    logger.info(`NODE_ENV           : ${NODE_ENV}`);
+    logger.info(`FRONTEND_ORIGIN(s) : ${allowedOrigins.join(', ')}`);
+    logger.info('✅ Billing CRON     : loaded');
+    logger.info('✅ Redis Session    : connected & active');
+    logger.info('✅ Rate Limiting    : enabled (Targeted)');
+    logger.info('✅ Security Headers : enabled (Helmet)');
+    logger.info('✅ Logging System   : enabled (Winston)');
+    logger.info('========================================');
   });
 }
 
