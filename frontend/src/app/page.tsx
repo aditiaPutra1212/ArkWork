@@ -4,6 +4,8 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import ArkHero from "@/app/Images/1.jpg";
+import Team1 from "@/app/Images/team1.jpg";
+import Team2 from "@/app/Images/team2.jpg";
 
 export default function HomePage() {
   const t = useTranslations();
@@ -79,6 +81,38 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ========== ABOUT JOBS STATS (HIJAU MUDA) ========== */}
+      <section
+        className="py-10 md:py-14 border-b border-[#bbf7d0]"
+        style={{
+          background:
+            "linear-gradient(180deg, #E6FFF3 0%, #BAF7D3 40%, #A3F0C8 100%)",
+        }}
+      >
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-xl md:text-2xl font-semibold text-emerald-900">
+            <span className="text-emerald-700 font-semibold underline underline-offset-4 decoration-emerald-400/80">
+              About
+            </span>{" "}
+            <span className="font-bold text-emerald-900">Jobs</span>
+          </h2>
+
+          <p className="mt-3 text-sm md:text-base text-emerald-800 max-w-2xl mx-auto leading-relaxed">
+            As a fast-growing energy job board, ArkWork helps great individuals
+            connect with leading companies across oil &amp; gas, LNG, and
+            utilities.
+          </p>
+
+          {/* Stats row */}
+          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+            <StatItem value="52,015" label="Jobs posted" />
+            <StatItem value="24,325" label="Successful hires" />
+            <StatItem value="1,532" label="Verified companies" />
+            <StatItem value="1.2M" label="Monthly visitors" />
+          </div>
+        </div>
+      </section>
+
       {/* ========== EXPLORE WITHOUT SIGN IN ========== */}
       <section className="py-12 md:py-16 bg-white">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -98,9 +132,7 @@ export default function HomePage() {
               href="/jobs"
               title={t("home.card.jobs.title")}
               desc={t("home.card.jobs.desc")}
-              icon={
-                <MagnifierIcon className="h-6 w-6 text-emerald-600" />
-              }
+              icon={<MagnifierIcon className="h-6 w-6 text-emerald-600" />}
               chip={t("jobs.heading")}
             />
 
@@ -111,6 +143,50 @@ export default function HomePage() {
               icon={<PulseIcon className="h-6 w-6 text-sky-600" />}
               chip={t("news.latest")}
             />
+          </div>
+        </div>
+      </section>
+
+      {/* ========== TEAM SECTION (HIJAU MUDA) ========== */}
+      <section
+        className="py-14 md:py-20"
+        style={{
+          background:
+            "linear-gradient(180deg, #E6FFF3 0%, #BAF7D3 40%, #A3F0C8 100%)",
+        }}
+      >
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          {/* heading */}
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="text-xl md:text-2xl font-semibold text-emerald-900">
+              The team behind{" "}
+              <span className="text-emerald-700 underline underline-offset-4 decoration-emerald-400/80">
+                this mission
+              </span>
+            </h2>
+            <p className="mt-3 text-sm md:text-base text-emerald-800 leading-relaxed">
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Rutrum
+              libero lectus nunc posuere egestas. Built by a small team of
+              people who care about the future of energy careers.
+            </p>
+          </div>
+
+          {/* images */}
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <figure className="overflow-hidden rounded-3xl bg-white shadow-xl">
+              <Image
+                src={Team1}
+                alt="ArkWork team presenting in the office"
+                className="h-full w-full object-cover"
+              />
+            </figure>
+            <figure className="overflow-hidden rounded-3xl bg-white shadow-xl">
+              <Image
+                src={Team2}
+                alt="ArkWork team collaborating around a whiteboard"
+                className="h-full w-full object-cover"
+              />
+            </figure>
           </div>
         </div>
       </section>
@@ -133,9 +209,7 @@ export default function HomePage() {
             <Feature
               title={t("home.feature.1.title")}
               desc={t("home.feature.1.desc")}
-              icon={
-                <SearchSparkIcon className="h-6 w-6 text-emerald-600" />
-              }
+              icon={<SearchSparkIcon className="h-6 w-6 text-emerald-600" />}
             />
             <Feature
               title={t("home.feature.2.title")}
@@ -275,6 +349,20 @@ function Feature({
             {desc}
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* Stat item component */
+function StatItem({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center rounded-xl bg-white px-4 py-5 shadow-[0_14px_30px_rgba(0,0,0,0.20)] border border-emerald-100">
+      <div className="text-2xl md:text-3xl font-extrabold tracking-tight text-emerald-700">
+        {value}
+      </div>
+      <div className="mt-1 text-xs md:text-sm text-emerald-800/80">
+        {label}
       </div>
     </div>
   );

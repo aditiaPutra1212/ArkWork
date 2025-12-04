@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { api, API_BASE } from "@/lib/api";
-import ArkLogo from "@/app/Images/arkwork-new.png";
+import ArkLogo from "@/app/Images/POST-removebg-preview.png";
 
 const NAV_AVATAR_KEY_PREFIX = "ark_nav_avatar:";
 
@@ -159,7 +159,7 @@ export default function Nav() {
             setPhotoURL(logo);
             return;
           }
-        } catch {}
+        } catch { }
       }
 
       if (U.email) {
@@ -180,7 +180,7 @@ export default function Nav() {
             setPhotoURL(legacy);
             return;
           }
-        } catch {}
+        } catch { }
       }
     })();
     return () => {
@@ -377,8 +377,8 @@ export default function Nav() {
                     <span>
                       {isEmployer
                         ? t("emp.dashboard", {
-                            defaultMessage: "Employer Dashboard",
-                          })
+                          defaultMessage: "Employer Dashboard",
+                        })
                         : t("user.dashboard", { defaultMessage: "Dashboard" })}
                     </span>
                   </MenuItem>
@@ -437,9 +437,8 @@ export default function Nav() {
 
       {/* Mobile drawer */}
       <aside
-        className={`fixed inset-y-0 right-0 z-[60] w-[86%] max-w-sm transform transition-transform duration-250 ease-out md:hidden ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed inset-y-0 right-0 z-[60] w-[86%] max-w-sm transform transition-transform duration-250 ease-out md:hidden ${open ? "translate-x-0" : "translate-x-full"
+          }`}
         aria-hidden={!open}
         role="dialog"
         aria-modal="true"
@@ -558,8 +557,8 @@ export default function Nav() {
                     <span>
                       {isEmployer
                         ? t("emp.dashboard", {
-                            defaultMessage: "Employer Dashboard",
-                          })
+                          defaultMessage: "Employer Dashboard",
+                        })
                         : t("user.dashboard", { defaultMessage: "Dashboard" })}
                     </span>
                   </Link>
