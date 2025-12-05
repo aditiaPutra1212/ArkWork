@@ -1,156 +1,168 @@
 'use client';
 
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import Image from 'next/image';
+import ArkHero from '@/app/Images/3.jpg';
 
 export default function AboutPage() {
-  const t = useTranslations('about');
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#F0FDF4] via-white to-[#EFF6FF] dark:from-[#020617] dark:via-[#020617] dark:to-[#020617] py-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1 text-xs font-medium text-[#166534] shadow-sm ring-1 ring-[#16A34A]/20 dark:bg-white/5 dark:text-[#bbf7d0] dark:ring-[#16A34A]/40 mb-4">
-            <span className="h-2 w-2 rounded-full bg-[#16A34A]" />
-            <span>{t('badge', { defaultMessage: 'About ArkWork' })}</span>
-          </div>
+    <div className="relative min-h-screen overflow-hidden bg-[#F6FBF8]">
+      {/* ====== GLOBAL BACKGROUND DECORATION (GRID + BLUR) ====== */}
+      <div className="pointer-events-none absolute inset-0">
+        {/* soft grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(16,185,129,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(16,185,129,0.04)_1px,transparent_1px)] bg-[size:48px_48px]" />
 
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">
-            <span className="bg-gradient-to-r from-[#16A34A] via-[#0EA5E9] to-[#F97316] bg-clip-text text-transparent">
-              {t('title')} ArkWork
+        {/* top blur */}
+        <div className="absolute -top-40 -left-40 h-[420px] w-[420px] rounded-full bg-emerald-200/30 blur-3xl" />
+        <div className="absolute top-1/3 -right-40 h-[380px] w-[380px] rounded-full bg-emerald-300/20 blur-3xl" />
+      </div>
+
+      {/* ====== HEADER DENGAN BACKGROUND GAMBAR ====== */}
+      <section className="relative overflow-hidden border-b border-emerald-100">
+        {/* background image + overlay */}
+        <div className="pointer-events-none absolute inset-0 -z-10">
+          <Image
+            src={ArkHero}
+            alt="ArkWork energy background"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-[center_40%] opacity-40"
+          />
+          {/* gradient supaya kiri terang (buat teks), kanan sedikit hijau */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#F6FBF8] via-[#F6FBF8]/92 to-emerald-900/20" />
+        </div>
+
+        <div className="mx-auto max-w-6xl px-6 py-14">
+          <p className="text-xs font-semibold tracking-[0.28em] text-emerald-700 uppercase">
+            TENTANG KAMI
+          </p>
+
+          <h1 className="mt-3 max-w-3xl text-3xl md:text-4xl xl:text-5xl font-semibold tracking-tight text-slate-900">
+            Membantu Talenta & Perusahaan Energi
+            <span className="block mt-2">
+              Bertemu dalam Satu Ekosistem Profesional
             </span>
           </h1>
 
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto dark:text-neutral-300">
-            {t('intro')}
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-700">
+            ArkWork adalah platform industri energi yang dirancang untuk
+            menghubungkan talenta berkualitas, perusahaan terpercaya, tender,
+            dan wawasan industri secara profesional dan berkelanjutan.
           </p>
         </div>
+      </section>
 
-        {/* Mission & Vision */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          {/* Vision */}
-          <div className="relative overflow-hidden rounded-3xl bg-white/90 p-8 shadow-sm ring-1 ring-[#16A34A]/15 hover:-translate-y-1 hover:shadow-lg transition dark:bg-[#020617] dark:ring-[#16A34A]/30">
-            <div className="absolute inset-x-0 -top-16 h-32 bg-gradient-to-br from-[#BBF7D0]/60 via-transparent to-[#0EA5E9]/40 pointer-events-none" />
-            <div className="relative">
-              <div className="inline-flex items-center justify-center rounded-2xl bg-[#DCFCE7] px-3 py-1 text-xs font-semibold text-[#166534] dark:bg-[#052e16] dark:text-[#bbf7d0] mb-4">
-                💚 {t('vision.badge', { defaultMessage: 'Vision' })}
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-neutral-50">
-                {t('vision.title')}
-              </h2>
-              <p className="text-gray-600 leading-relaxed dark:text-neutral-300">
-                {t('vision.desc')}
-              </p>
-            </div>
-          </div>
-
-          {/* Mission */}
-          <div className="relative overflow-hidden rounded-3xl bg-white/90 p-8 shadow-sm ring-1 ring-[#0EA5E9]/20 hover:-translate-y-1 hover:shadow-lg transition dark:bg-[#020617] dark:ring-[#0EA5E9]/40">
-            <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-[#0EA5E9]/60 via-[#F97316]/50 to-transparent blur-sm pointer-events-none" />
-            <div className="relative">
-              <div className="inline-flex items-center justify-center rounded-2xl bg-[#DBEAFE] px-3 py-1 text-xs font-semibold text-[#1D4ED8] dark:bg-[#1e293b] dark:text-[#bfdbfe] mb-4">
-                💙 {t('mission.badge', { defaultMessage: 'Mission' })}
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3 dark:text-neutral-50">
-                {t('mission.title')}
-              </h2>
-              <ul className="list-disc list-inside text-gray-600 space-y-2 dark:text-neutral-300">
-                <li>{t('mission.points.1')}</li>
-                <li>{t('mission.points.2')}</li>
-                <li>{t('mission.points.3')}</li>
-                <li>{t('mission.points.4')}</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Core Values */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center text-gray-900 mb-3 dark:text-neutral-50">
-            {t('values.title')}
-          </h2>
-          <p className="text-sm text-center text-gray-600 mb-8 max-w-2xl mx-auto dark:text-neutral-300">
-            {t('values.subtitle', {
-              defaultMessage:
-                'Nilai inti yang menjadi fondasi ArkWork dalam membangun ekosistem talent energi & oil and gas.',
-            })}
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { k: 'integrity' as const, color: 'green' },
-              { k: 'innovation' as const, color: 'blue' },
-              { k: 'collaboration' as const, color: 'orange' },
-              { k: 'quality' as const, color: 'neutral' },
-            ].map(({ k, color }) => {
-              const colorClass =
-                color === 'green'
-                  ? 'border-[#16A34A]/40 bg-[#F0FDF4]'
-                  : color === 'blue'
-                  ? 'border-[#0EA5E9]/40 bg-[#EFF6FF]'
-                  : color === 'orange'
-                  ? 'border-[#F97316]/40 bg-[#FFF7ED]'
-                  : 'border-neutral-200 bg-white';
-
-              const dotColor =
-                color === 'green'
-                  ? 'bg-[#16A34A]'
-                  : color === 'blue'
-                  ? 'bg-[#0EA5E9]'
-                  : color === 'orange'
-                  ? 'bg-[#F97316]'
-                  : 'bg-neutral-400';
-
-              return (
-                <div
-                  key={k}
-                  className={`group rounded-2xl border ${colorClass} p-6 shadow-sm hover:-translate-y-1 hover:shadow-lg transition dark:bg-[#020617] dark:border-neutral-700`}
-                >
-                  <div className="mb-3 flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${dotColor}`} />
-                    <h3 className="text-base font-semibold text-gray-900 dark:text-neutral-50">
-                      {t(`values.items.${k}.title`)}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-neutral-300">
-                    {t(`values.items.${k}.desc`)}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Closing CTA */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#16A34A] via-[#0EA5E9] to-[#22C55E] px-6 py-10 sm:px-10 text-center shadow-lg">
-          <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#F97316]/40 blur-2xl opacity-60" />
-          <div className="relative">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-              {t('closing.title')}
+      {/* ====== CONTENT ====== */}
+      <main className="relative mx-auto max-w-6xl px-6 py-16 space-y-20">
+        {/* ====== VISION & MISSION ====== */}
+        <section className="grid gap-10 md:grid-cols-2">
+          {/* VISION */}
+          <div className="rounded-3xl bg-white px-8 py-10 shadow-sm ring-1 ring-emerald-100">
+            <p className="text-xs font-semibold tracking-widest text-emerald-600 uppercase">
+              Visi Kami
+            </p>
+            <h2 className="mt-3 text-xl font-semibold text-slate-900">
+              Menjadi platform utama ekosistem karier dan bisnis energi.
             </h2>
-            <p className="text-sm sm:text-base text-white/90 max-w-2xl mx-auto mb-6">
-              {t('closing.desc')}
-            </p>
-
-            <Link
-              href="/jobs"
-              className="inline-flex items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm sm:text-base font-semibold text-[#166534] shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition"
-            >
-              {t('closing.cta')}
-              <span className="ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#DCFCE7] text-[11px]">
-                💚
-              </span>
-            </Link>
-
-            <p className="mt-4 text-xs text-white/80">
-              {t('closing.subnote', {
-                defaultMessage: 'Bangun karier Anda di sektor energi & oil and gas bersama ArkWork.',
-              })}
+            <p className="mt-4 text-sm leading-relaxed text-slate-700">
+              Kami berfokus menciptakan lingkungan kolaboratif yang mempertemukan
+              talenta profesional dengan perusahaan dan peluang strategis,
+              mendorong pertumbuhan industri energi yang berintegritas.
             </p>
           </div>
-        </div>
-      </div>
+
+          {/* MISSION */}
+          <div className="rounded-3xl bg-white px-8 py-10 shadow-sm ring-1 ring-emerald-100">
+            <p className="text-xs font-semibold tracking-widest text-emerald-600 uppercase">
+              Misi Kami
+            </p>
+            <ul className="mt-4 space-y-3 text-sm text-slate-700 leading-relaxed">
+              <li>• Menyediakan akses terpercaya ke lowongan dan tender energi</li>
+              <li>• Membantu perusahaan menemukan talenta secara efisien</li>
+              <li>• Menyajikan informasi industri yang relevan dan kredibel</li>
+              <li>• Mendukung kolaborasi jangka panjang dalam sektor energi</li>
+            </ul>
+          </div>
+        </section>
+
+        {/* ====== CORE VALUES ====== */}
+        <section>
+          <div className="mb-10">
+            <h2 className="text-2xl font-semibold text-slate-900">
+              Nilai Inti ArkWork
+            </h2>
+            <p className="mt-2 max-w-xl text-sm text-slate-700">
+              Prinsip yang menjadi fondasi bagaimana kami membangun produk,
+              layanan, dan relasi jangka panjang.
+            </p>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: 'Integritas',
+                desc: 'Menjunjung transparansi dan kepercayaan dalam setiap proses.',
+              },
+              {
+                title: 'Inovasi',
+                desc: 'Terus mengembangkan solusi yang relevan dan adaptif.',
+              },
+              {
+                title: 'Kolaborasi',
+                desc: 'Mewadahi sinergi antara talenta, perusahaan, dan mitra.',
+              },
+              {
+                title: 'Kualitas',
+                desc: 'Berkomitmen pada standar layanan dan hasil terbaik.',
+              },
+            ].map((v) => (
+              <div
+                key={v.title}
+                className="rounded-2xl bg-white px-6 py-6 shadow-sm ring-1 ring-emerald-100 hover:shadow-md transition"
+              >
+                <h3 className="text-sm font-semibold text-slate-900">
+                  {v.title}
+                </h3>
+                <p className="mt-2 text-sm text-slate-700 leading-relaxed">
+                  {v.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ====== CTA ====== */}
+        <section>
+          <div className="relative overflow-hidden rounded-3xl bg-emerald-900 px-10 py-14 text-white shadow-xl">
+            {/* decoration */}
+            <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-600/30 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-28 -left-28 h-80 w-80 rounded-full bg-emerald-500/20 blur-3xl" />
+
+            <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+              <div className="max-w-xl">
+                <p className="text-xs font-semibold tracking-widest uppercase text-emerald-200">
+                  Bergabung dengan ArkWork
+                </p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-semibold leading-tight">
+                  Bangun Masa Depan Karier & Bisnis Energi
+                </h2>
+                <p className="mt-3 text-sm text-emerald-100 leading-relaxed">
+                  Temukan peluang terbaik atau rekrut talenta profesional melalui
+                  platform yang dirancang khusus untuk industri energi.
+                </p>
+              </div>
+
+              <Link
+                href="/jobs"
+                className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-emerald-900 shadow-md hover:bg-emerald-50 transition"
+              >
+                Jelajahi Peluang
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
