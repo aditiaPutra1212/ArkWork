@@ -140,6 +140,58 @@
       "desc": "Bergabung dengan ribuan profesional yang mempercayai ArkWork.",
       "cta": "Ke Dashboard",
       "note": "Tanpa kartu kredit • Daftar kurang dari 1 menit"
+    },
+    "aboutJobs": {
+      "title": {
+        "1": "Tentang",
+        "2": "Pekerjaan"
+      },
+      "desc": "Sebagai job board energi yang berkembang pesat, ArkWork membantu individu hebat terhubung dengan perusahaan terkemuka di minyak & gas, LNG, dan utilitas.",
+      "stats": {
+        "jobs": "Lowongan dipasang",
+        "hires": "Perekrutan sukses",
+        "companies": "Perusahaan terverifikasi",
+        "visitors": "Pengunjung bulanan"
+      }
+    },
+    "howItWorks": {
+      "title": "Cara ArkWork Bekerja",
+      "desc": "Proses sederhana yang dirancang untuk mempertemukan profesional energi dengan perusahaan yang tepat.",
+      "steps": {
+        "1": {
+          "title": "Telusuri Peluang",
+          "desc": "Cari lowongan dan tender energi berdasarkan lokasi, posisi, dan jenis proyek."
+        },
+        "2": {
+          "title": "Bangun Profil Profesional",
+          "desc": "Lengkapi profil karier dan pengalaman industri agar mudah ditemukan perusahaan."
+        },
+        "3": {
+          "title": "Terhubung & Melamar",
+          "desc": "Ajukan lamaran, pantau proses, dan bangun relasi jangka panjang dengan perusahaan."
+        }
+      }
+    },
+    "sectors": {
+      "title": "Sektor & Peran yang Kami Dukung",
+      "desc": "ArkWork fokus pada ekosistem energi, dari operasi lapangan hingga peran strategis di kantor pusat.",
+      "items": {
+        "oilGas": "Oil & Gas",
+        "lng": "LNG & Petrochemical",
+        "power": "Pembangkit & Utilitas",
+        "renewable": "Energi Terbarukan",
+        "om": "Operasi & Pemeliharaan",
+        "hse": "K3 & Kepatuhan",
+        "project": "Manajemen Proyek",
+        "engineering": "Teknik & Teknis"
+      }
+    },
+    "team": {
+      "title": {
+        "1": "Tim di balik",
+        "2": "misi ini"
+      },
+      "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Rutrum libero lectus nunc posuere egestas. Dibangun oleh tim kecil yang peduli dengan masa depan karier energi."
     }
   },
   "lang": {
@@ -182,51 +234,55 @@
   },
   "Halaman-about": {},
   "about": {
-    "title": "Tentang",
-    "badge": "Tentang ArkWork",
-    "intro": "ArkWork adalah platform inovatif yang menghubungkan lowongan kerja, tender, dan kabar industri dengan profesional serta bisnis di sektor energi.",
+    "header": {
+      "badge": "TENTANG KAMI",
+      "title": {
+        "1": "Membantu Talenta & Perusahaan Energi",
+        "2": "Bertemu dalam Satu Ekosistem Profesional"
+      },
+      "desc": "ArkWork adalah platform industri energi yang dirancang untuk menghubungkan talenta berkualitas, perusahaan terpercaya, tender, dan wawasan industri secara profesional dan berkelanjutan."
+    },
     "vision": {
-      "title": "Visi Kami",
-      "badge": "Visi",
-      "desc": "Menjadi jembatan utama antara talenta, perusahaan, dan peluang bisnis—menciptakan ekosistem kolaboratif yang mendorong pertumbuhan ekonomi dan inovasi."
+      "badge": "Visi Kami",
+      "title": "Menjadi platform utama ekosistem karier dan bisnis energi.",
+      "desc": "Kami berfokus menciptakan lingkungan kolaboratif yang mempertemukan talenta profesional dengan perusahaan dan peluang strategis, mendorong pertumbuhan industri energi yang berintegritas."
     },
     "mission": {
-      "title": "Misi Kami",
-      "badge": "Misi",
+      "badge": "Misi Kami",
       "points": {
-        "1": "Memberikan akses mudah ke lowongan dan tender terbaru.",
-        "2": "Membantu perusahaan menemukan talenta yang tepat secara efisien.",
-        "3": "Menyajikan berita industri yang tepercaya dan relevan.",
-        "4": "Mendorong kolaborasi antara pelaku industri dan profesional."
+        "1": "Menyediakan akses terpercaya ke lowongan dan tender energi",
+        "2": "Membantu perusahaan menemukan talenta secara efisien",
+        "3": "Menyajikan informasi industri yang relevan dan kredibel",
+        "4": "Mendukung kolaborasi jangka panjang dalam sektor energi"
       }
     },
     "values": {
-      "title": "Nilai-Nilai Kami",
-      "subtitle": "Nilai inti yang menjadi fondasi ArkWork dalam membangun ekosistem talenta energi & oil & gas.",
+      "title": "Nilai Inti ArkWork",
+      "desc": "Prinsip yang menjadi fondasi bagaimana kami membangun produk, layanan, dan relasi jangka panjang.",
       "items": {
         "integrity": {
           "title": "Integritas",
-          "desc": "Menjunjung kejujuran dan transparansi dalam setiap aspek kerja."
+          "desc": "Menjunjung transparansi dan kepercayaan dalam setiap proses."
         },
         "innovation": {
           "title": "Inovasi",
-          "desc": "Terus beradaptasi dan menciptakan solusi kreatif untuk kebutuhan pasar."
+          "desc": "Terus mengembangkan solusi yang relevan dan adaptif."
         },
         "collaboration": {
           "title": "Kolaborasi",
-          "desc": "Percaya pada kekuatan sinergi antar individu dan organisasi."
+          "desc": "Mewadahi sinergi antara talenta, perusahaan, dan mitra."
         },
         "quality": {
           "title": "Kualitas",
-          "desc": "Berkomitmen memberikan layanan terbaik bagi pengguna."
+          "desc": "Berkomitmen pada standar layanan dan hasil terbaik."
         }
       }
     },
-    "closing": {
-      "title": "Bergabung dengan ArkWork Hari Ini",
-      "desc": "Apakah kamu profesional yang mencari peluang baru atau perusahaan yang ingin merekrut talenta terbaik, ArkWork adalah tempat yang tepat untuk memulai.",
-      "cta": "Jelajahi Peluang",
-      "subnote": "Bangun karier Anda di sektor energi & oil & gas bersama ArkWork."
+    "cta": {
+      "badge": "Bergabung dengan ArkWork",
+      "title": "Bangun Masa Depan Karier & Bisnis Energi",
+      "desc": "Temukan peluang terbaik atau rekrut talenta profesional melalui platform yang dirancang khusus untuk industri energi.",
+      "button": "Jelajahi Peluang"
     }
   },
   "Halaman-signin": {},
@@ -293,7 +349,6 @@
       "google": "Gagal lanjut dengan Google."
     }
   },
-
   "Halaman-forgot": {},
   "forgotPassword": {
     "title": "Lupa Kata Sandi",
@@ -332,7 +387,6 @@
     "validating": "Memvalidasi link reset...",
     "backToForgot": "Minta link reset baru"
   },
-
   "dashboard": {
     "greeting": "Hai, {name}!",
     "greetingSmall": "Selamat datang kembali",

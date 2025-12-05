@@ -2,9 +2,11 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import ArkHero from '@/app/Images/3.jpg';
 
 export default function AboutPage() {
+  const t = useTranslations();
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#F6FBF8]">
       {/* ====== GLOBAL BACKGROUND DECORATION (GRID + BLUR) ====== */}
@@ -35,20 +37,18 @@ export default function AboutPage() {
 
         <div className="mx-auto max-w-6xl px-6 py-14">
           <p className="text-xs font-semibold tracking-[0.28em] text-emerald-700 uppercase">
-            TENTANG KAMI
+            {t('about.header.badge')}
           </p>
 
           <h1 className="mt-3 max-w-3xl text-3xl md:text-4xl xl:text-5xl font-semibold tracking-tight text-slate-900">
-            Membantu Talenta & Perusahaan Energi
+            {t('about.header.title.1')}
             <span className="block mt-2">
-              Bertemu dalam Satu Ekosistem Profesional
+              {t('about.header.title.2')}
             </span>
           </h1>
 
           <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-700">
-            ArkWork adalah platform industri energi yang dirancang untuk
-            menghubungkan talenta berkualitas, perusahaan terpercaya, tender,
-            dan wawasan industri secara profesional dan berkelanjutan.
+            {t('about.header.desc')}
           </p>
         </div>
       </section>
@@ -60,28 +60,26 @@ export default function AboutPage() {
           {/* VISION */}
           <div className="rounded-3xl bg-white px-8 py-10 shadow-sm ring-1 ring-emerald-100">
             <p className="text-xs font-semibold tracking-widest text-emerald-600 uppercase">
-              Visi Kami
+              {t('about.vision.badge')}
             </p>
             <h2 className="mt-3 text-xl font-semibold text-slate-900">
-              Menjadi platform utama ekosistem karier dan bisnis energi.
+              {t('about.vision.title')}
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-700">
-              Kami berfokus menciptakan lingkungan kolaboratif yang mempertemukan
-              talenta profesional dengan perusahaan dan peluang strategis,
-              mendorong pertumbuhan industri energi yang berintegritas.
+              {t('about.vision.desc')}
             </p>
           </div>
 
           {/* MISSION */}
           <div className="rounded-3xl bg-white px-8 py-10 shadow-sm ring-1 ring-emerald-100">
             <p className="text-xs font-semibold tracking-widest text-emerald-600 uppercase">
-              Misi Kami
+              {t('about.mission.badge')}
             </p>
             <ul className="mt-4 space-y-3 text-sm text-slate-700 leading-relaxed">
-              <li>• Menyediakan akses terpercaya ke lowongan dan tender energi</li>
-              <li>• Membantu perusahaan menemukan talenta secara efisien</li>
-              <li>• Menyajikan informasi industri yang relevan dan kredibel</li>
-              <li>• Mendukung kolaborasi jangka panjang dalam sektor energi</li>
+              <li>• {t('about.mission.points.1')}</li>
+              <li>• {t('about.mission.points.2')}</li>
+              <li>• {t('about.mission.points.3')}</li>
+              <li>• {t('about.mission.points.4')}</li>
             </ul>
           </div>
         </section>
@@ -90,31 +88,30 @@ export default function AboutPage() {
         <section>
           <div className="mb-10">
             <h2 className="text-2xl font-semibold text-slate-900">
-              Nilai Inti ArkWork
+              {t('about.values.title')}
             </h2>
             <p className="mt-2 max-w-xl text-sm text-slate-700">
-              Prinsip yang menjadi fondasi bagaimana kami membangun produk,
-              layanan, dan relasi jangka panjang.
+              {t('about.values.desc')}
             </p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
-                title: 'Integritas',
-                desc: 'Menjunjung transparansi dan kepercayaan dalam setiap proses.',
+                title: t('about.values.items.integrity.title'),
+                desc: t('about.values.items.integrity.desc'),
               },
               {
-                title: 'Inovasi',
-                desc: 'Terus mengembangkan solusi yang relevan dan adaptif.',
+                title: t('about.values.items.innovation.title'),
+                desc: t('about.values.items.innovation.desc'),
               },
               {
-                title: 'Kolaborasi',
-                desc: 'Mewadahi sinergi antara talenta, perusahaan, dan mitra.',
+                title: t('about.values.items.collaboration.title'),
+                desc: t('about.values.items.collaboration.desc'),
               },
               {
-                title: 'Kualitas',
-                desc: 'Berkomitmen pada standar layanan dan hasil terbaik.',
+                title: t('about.values.items.quality.title'),
+                desc: t('about.values.items.quality.desc'),
               },
             ].map((v) => (
               <div
@@ -142,14 +139,13 @@ export default function AboutPage() {
             <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
               <div className="max-w-xl">
                 <p className="text-xs font-semibold tracking-widest uppercase text-emerald-200">
-                  Bergabung dengan ArkWork
+                  {t('about.cta.badge')}
                 </p>
                 <h2 className="mt-3 text-2xl md:text-3xl font-semibold leading-tight">
-                  Bangun Masa Depan Karier & Bisnis Energi
+                  {t('about.cta.title')}
                 </h2>
                 <p className="mt-3 text-sm text-emerald-100 leading-relaxed">
-                  Temukan peluang terbaik atau rekrut talenta profesional melalui
-                  platform yang dirancang khusus untuk industri energi.
+                  {t('about.cta.desc')}
                 </p>
               </div>
 
@@ -157,7 +153,7 @@ export default function AboutPage() {
                 href="/jobs"
                 className="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-emerald-900 shadow-md hover:bg-emerald-50 transition"
               >
-                Jelajahi Peluang
+                {t('about.cta.button')}
               </Link>
             </div>
           </div>

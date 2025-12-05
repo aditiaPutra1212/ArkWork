@@ -96,23 +96,23 @@ export default function HomePage() {
           <div className="rounded-3xl bg-white/95 px-6 py-8 md:px-10 md:py-10 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
             <h2 className="text-xl md:text-2xl font-semibold text-emerald-900 text-center">
               <span className="text-emerald-700 font-semibold underline underline-offset-4 decoration-emerald-400/80">
-                About
+                {t("home.aboutJobs.title.1")}
               </span>{" "}
-              <span className="font-bold text-emerald-900">Jobs</span>
+              <span className="font-bold text-emerald-900">
+                {t("home.aboutJobs.title.2")}
+              </span>
             </h2>
 
             <p className="mt-3 text-sm md:text-base text-emerald-800 max-w-2xl mx-auto leading-relaxed text-center">
-              As a fast-growing energy job board, ArkWork helps great individuals
-              connect with leading companies across oil &amp; gas, LNG, and
-              utilities.
+              {t("home.aboutJobs.desc")}
             </p>
 
             {/* Stats row */}
             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
-              <StatItem value="52,015" label="Jobs posted" />
-              <StatItem value="24,325" label="Successful hires" />
-              <StatItem value="1,532" label="Verified companies" />
-              <StatItem value="1.2M" label="Monthly visitors" />
+              <StatItem value="52,015" label={t("home.aboutJobs.stats.jobs")} />
+              <StatItem value="24,325" label={t("home.aboutJobs.stats.hires")} />
+              <StatItem value="1,532" label={t("home.aboutJobs.stats.companies")} />
+              <StatItem value="1.2M" label={t("home.aboutJobs.stats.visitors")} />
             </div>
           </div>
         </div>
@@ -123,11 +123,10 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              Cara ArkWork Bekerja
+              {t("home.howItWorks.title")}
             </h2>
             <p className="mt-2 text-slate-600 leading-relaxed text-sm md:text-base">
-              Proses sederhana yang dirancang untuk mempertemukan profesional
-              energi dengan perusahaan yang tepat.
+              {t("home.howItWorks.desc")}
             </p>
           </div>
 
@@ -135,18 +134,18 @@ export default function HomePage() {
             {[
               {
                 step: "01",
-                title: "Telusuri Peluang",
-                desc: "Cari lowongan dan tender energi berdasarkan lokasi, posisi, dan jenis proyek.",
+                title: t("home.howItWorks.steps.1.title"),
+                desc: t("home.howItWorks.steps.1.desc"),
               },
               {
                 step: "02",
-                title: "Bangun Profil Profesional",
-                desc: "Lengkapi profil karier dan pengalaman industri agar mudah ditemukan perusahaan.",
+                title: t("home.howItWorks.steps.2.title"),
+                desc: t("home.howItWorks.steps.2.desc"),
               },
               {
                 step: "03",
-                title: "Terhubung & Melamar",
-                desc: "Ajukan lamaran, pantau proses, dan bangun relasi jangka panjang dengan perusahaan.",
+                title: t("home.howItWorks.steps.3.title"),
+                desc: t("home.howItWorks.steps.3.desc"),
               },
             ].map((item) => (
               <div
@@ -173,24 +172,23 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              Sektor & Peran yang Kami Dukung
+              {t("home.sectors.title")}
             </h2>
             <p className="mt-2 text-slate-600 leading-relaxed text-sm md:text-base">
-              ArkWork fokus pada ekosistem energi, dari operasi lapangan
-              hingga peran strategis di kantor pusat.
+              {t("home.sectors.desc")}
             </p>
           </div>
 
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {[
-              "Oil & Gas",
-              "LNG & Petrochemical",
-              "Power Plant & Utilities",
-              "Renewable Energy",
-              "Operations & Maintenance",
-              "HSE & Compliance",
-              "Project Management",
-              "Engineering & Technical",
+              t("home.sectors.items.oilGas"),
+              t("home.sectors.items.lng"),
+              t("home.sectors.items.power"),
+              t("home.sectors.items.renewable"),
+              t("home.sectors.items.om"),
+              t("home.sectors.items.hse"),
+              t("home.sectors.items.project"),
+              t("home.sectors.items.engineering"),
             ].map((label) => (
               <div
                 key={label}
@@ -217,15 +215,13 @@ export default function HomePage() {
           {/* heading */}
           <div className="text-center max-w-2xl mx-auto">
             <h2 className="text-xl md:text-2xl font-semibold text-emerald-900">
-              The team behind{" "}
+              {t("home.team.title.1")}{" "}
               <span className="text-emerald-700 underline underline-offset-4 decoration-emerald-400/80">
-                this mission
+                {t("home.team.title.2")}
               </span>
             </h2>
             <p className="mt-3 text-sm md:text-base text-emerald-800 leading-relaxed">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Rutrum
-              libero lectus nunc posuere egestas. Built by a small team of
-              people who care about the future of energy careers.
+              {t("home.team.desc")}
             </p>
           </div>
 

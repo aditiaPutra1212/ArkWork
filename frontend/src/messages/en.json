@@ -140,6 +140,58 @@
       "desc": "Join thousands of professionals who trust ArkWork.",
       "cta": "Go to Dashboard",
       "note": "No credit card • Sign up in less than 1 minute"
+    },
+    "aboutJobs": {
+      "title": {
+        "1": "About",
+        "2": "Jobs"
+      },
+      "desc": "As a fast-growing energy job board, ArkWork helps great individuals connect with leading companies across oil & gas, LNG, and utilities.",
+      "stats": {
+        "jobs": "Jobs posted",
+        "hires": "Successful hires",
+        "companies": "Verified companies",
+        "visitors": "Monthly visitors"
+      }
+    },
+    "howItWorks": {
+      "title": "How ArkWork Works",
+      "desc": "A simple process designed to connect energy professionals with the right companies.",
+      "steps": {
+        "1": {
+          "title": "Browse Opportunities",
+          "desc": "Search for energy jobs and tenders based on location, position, and project type."
+        },
+        "2": {
+          "title": "Build Professional Profile",
+          "desc": "Complete your career profile and industry experience to be easily found by companies."
+        },
+        "3": {
+          "title": "Connect & Apply",
+          "desc": "Submit applications, track progress, and build long-term relationships with companies."
+        }
+      }
+    },
+    "sectors": {
+      "title": "Sectors & Roles We Support",
+      "desc": "ArkWork focuses on the energy ecosystem, from field operations to strategic roles at headquarters.",
+      "items": {
+        "oilGas": "Oil & Gas",
+        "lng": "LNG & Petrochemical",
+        "power": "Power Plant & Utilities",
+        "renewable": "Renewable Energy",
+        "om": "Operations & Maintenance",
+        "hse": "HSE & Compliance",
+        "project": "Project Management",
+        "engineering": "Engineering & Technical"
+      }
+    },
+    "team": {
+      "title": {
+        "1": "The team behind",
+        "2": "this mission"
+      },
+      "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Rutrum libero lectus nunc posuere egestas. Built by a small team of people who care about the future of energy careers."
     }
   },
   "lang": {
@@ -182,51 +234,55 @@
   },
   "Halaman-about": {},
   "about": {
-    "title": "About",
-    "badge": "About ArkWork",
-    "intro": "ArkWork is an innovative platform that connects jobs, tenders, and industry news with professionals and businesses in the energy sector.",
+    "header": {
+      "badge": "ABOUT US",
+      "title": {
+        "1": "Helping Talent & Energy Companies",
+        "2": "Meet in One Professional Ecosystem"
+      },
+      "desc": "ArkWork is an energy industry platform designed to connect quality talent, trusted companies, tenders, and industry insights professionally and sustainably."
+    },
     "vision": {
-      "title": "Our Vision",
-      "badge": "Vision",
-      "desc": "To be the main bridge between talent, companies, and business opportunities—creating a collaborative ecosystem that drives economic growth and innovation."
+      "badge": "Our Vision",
+      "title": "To be the main platform for the energy career and business ecosystem.",
+      "desc": "We focus on creating a collaborative environment that brings together professional talent with companies and strategic opportunities, driving integrity-based growth in the energy industry."
     },
     "mission": {
-      "title": "Our Mission",
-      "badge": "Mission",
+      "badge": "Our Mission",
       "points": {
-        "1": "Provide easy access to the latest jobs and tenders.",
-        "2": "Help companies efficiently find the right talent.",
-        "3": "Deliver trusted and relevant industry news.",
-        "4": "Encourage collaboration between industry players and professionals."
+        "1": "Provide trusted access to energy jobs and tenders",
+        "2": "Help companies find talent efficiently",
+        "3": "Present relevant and credible industry information",
+        "4": "Support long-term collaboration in the energy sector"
       }
     },
     "values": {
-      "title": "Our Values",
-      "subtitle": "Core principles that guide ArkWork in building a strong talent ecosystem for the energy & oil & gas sector.",
+      "title": "ArkWork Core Values",
+      "desc": "Principles that are the foundation of how we build products, services, and long-term relationships.",
       "items": {
         "integrity": {
           "title": "Integrity",
-          "desc": "Upholding honesty and transparency in every aspect of work."
+          "desc": "Upholding transparency and trust in every process."
         },
         "innovation": {
           "title": "Innovation",
-          "desc": "Constantly adapting and creating creative solutions for market needs."
+          "desc": "Continuously developing relevant and adaptive solutions."
         },
         "collaboration": {
           "title": "Collaboration",
-          "desc": "Believing in the power of synergy between individuals and organizations."
+          "desc": "Facilitating synergy between talent, companies, and partners."
         },
         "quality": {
           "title": "Quality",
-          "desc": "Committed to delivering the best service to users."
+          "desc": "Committed to service standards and best results."
         }
       }
     },
-    "closing": {
-      "title": "Join ArkWork Today",
-      "desc": "Whether you’re a professional looking for new opportunities or a company seeking top talent, ArkWork is the place to start.",
-      "cta": "Explore Opportunities",
-      "subnote": "Build your career in the energy & oil & gas sector with ArkWork."
+    "cta": {
+      "badge": "Join ArkWork",
+      "title": "Build the Future of Energy Careers & Business",
+      "desc": "Find the best opportunities or recruit professional talent through a platform designed specifically for the energy industry.",
+      "button": "Explore Opportunities"
     }
   },
   "Halaman-signin": {},
