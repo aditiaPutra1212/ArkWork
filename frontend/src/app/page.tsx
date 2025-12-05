@@ -12,13 +12,13 @@ export default function HomePage() {
 
   return (
     <>
-      {/* ========== HERO ========== */}
+      {/* ========== HERO (PAKAI BACKGROUND FOTO) ========== */}
       <section
         className="relative overflow-hidden"
         aria-labelledby="hero-title"
       >
         {/* Background image */}
-        <div className="absolute inset-0 -z-20">
+        <div className="absolute inset-0 -z-20 bg-[#020617]">
           <Image
             src={ArkHero}
             alt="ArkWork Background"
@@ -28,7 +28,7 @@ export default function HomePage() {
             className="object-cover object-[center_35%]"
           />
           {/* dark overlay for readability */}
-          <div className="absolute inset-0 bg-slate-950/60" />
+          <div className="absolute inset-0 bg-slate-950/65" />
         </div>
 
         {/* soft radial glows hijau + biru */}
@@ -81,80 +81,138 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== ABOUT JOBS STATS (HIJAU MUDA) ========== */}
-      <section
-        className="py-10 md:py-14 border-b border-[#bbf7d0]"
-        style={{
-          background:
-            "linear-gradient(180deg, #E6FFF3 0%, #BAF7D3 40%, #A3F0C8 100%)",
-        }}
-      >
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-xl md:text-2xl font-semibold text-emerald-900">
-            <span className="text-emerald-700 font-semibold underline underline-offset-4 decoration-emerald-400/80">
-              About
-            </span>{" "}
-            <span className="font-bold text-emerald-900">Jobs</span>
-          </h2>
+      {/* ========== ABOUT JOBS STATS (CARD DI ATAS GRADIENT) ========== */}
+      <section className="relative py-12 md:py-16">
+        {/* soft background hijau muda */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-full"
+          style={{
+            background:
+              "linear-gradient(180deg, #E6FFF3 0%, #D9FBEC 40%, #F6FBF8 100%)",
+          }}
+        />
 
-          <p className="mt-3 text-sm md:text-base text-emerald-800 max-w-2xl mx-auto leading-relaxed">
-            As a fast-growing energy job board, ArkWork helps great individuals
-            connect with leading companies across oil &amp; gas, LNG, and
-            utilities.
-          </p>
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-3xl bg-white/95 px-6 py-8 md:px-10 md:py-10 shadow-sm ring-1 ring-emerald-100 backdrop-blur">
+            <h2 className="text-xl md:text-2xl font-semibold text-emerald-900 text-center">
+              <span className="text-emerald-700 font-semibold underline underline-offset-4 decoration-emerald-400/80">
+                About
+              </span>{" "}
+              <span className="font-bold text-emerald-900">Jobs</span>
+            </h2>
 
-          {/* Stats row */}
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            <StatItem value="52,015" label="Jobs posted" />
-            <StatItem value="24,325" label="Successful hires" />
-            <StatItem value="1,532" label="Verified companies" />
-            <StatItem value="1.2M" label="Monthly visitors" />
+            <p className="mt-3 text-sm md:text-base text-emerald-800 max-w-2xl mx-auto leading-relaxed text-center">
+              As a fast-growing energy job board, ArkWork helps great individuals
+              connect with leading companies across oil &amp; gas, LNG, and
+              utilities.
+            </p>
+
+            {/* Stats row */}
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-5 md:gap-6">
+              <StatItem value="52,015" label="Jobs posted" />
+              <StatItem value="24,325" label="Successful hires" />
+              <StatItem value="1,532" label="Verified companies" />
+              <StatItem value="1.2M" label="Monthly visitors" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ========== EXPLORE WITHOUT SIGN IN ========== */}
+      {/* ========== NEW: HOW IT WORKS ========== */}
       <section className="py-12 md:py-16 bg-white">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          {/* heading */}
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              {t("home.explore.title")}
+              Cara ArkWork Bekerja
             </h2>
-            <p className="mt-2 text-slate-600 leading-relaxed">
-              {t("home.explore.desc")}
+            <p className="mt-2 text-slate-600 leading-relaxed text-sm md:text-base">
+              Proses sederhana yang dirancang untuk mempertemukan profesional
+              energi dengan perusahaan yang tepat.
             </p>
           </div>
 
-          {/* cards */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            <CardLink
-              href="/jobs"
-              title={t("home.card.jobs.title")}
-              desc={t("home.card.jobs.desc")}
-              icon={<MagnifierIcon className="h-6 w-6 text-emerald-600" />}
-              chip={t("jobs.heading")}
-            />
-
-            <CardLink
-              href="/news"
-              title={t("home.card.news.title")}
-              desc={t("home.card.news.desc")}
-              icon={<PulseIcon className="h-6 w-6 text-sky-600" />}
-              chip={t("news.latest")}
-            />
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+            {[
+              {
+                step: "01",
+                title: "Telusuri Peluang",
+                desc: "Cari lowongan dan tender energi berdasarkan lokasi, posisi, dan jenis proyek.",
+              },
+              {
+                step: "02",
+                title: "Bangun Profil Profesional",
+                desc: "Lengkapi profil karier dan pengalaman industri agar mudah ditemukan perusahaan.",
+              },
+              {
+                step: "03",
+                title: "Terhubung & Melamar",
+                desc: "Ajukan lamaran, pantau proses, dan bangun relasi jangka panjang dengan perusahaan.",
+              },
+            ].map((item) => (
+              <div
+                key={item.step}
+                className="relative rounded-2xl bg-white px-6 py-7 shadow-sm ring-1 ring-emerald-100 hover:shadow-md transition"
+              >
+                <div className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-xs font-semibold text-emerald-700">
+                  {item.step}
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ========== TEAM SECTION (HIJAU MUDA) ========== */}
-      <section
-        className="py-14 md:py-20"
-        style={{
-          background:
-            "linear-gradient(180deg, #E6FFF3 0%, #BAF7D3 40%, #A3F0C8 100%)",
-        }}
-      >
+      {/* ========== NEW: SECTORS & ROLES ========== */}
+      <section className="py-12 md:py-16 bg-gradient-to-b from-emerald-50/80 via-white to-white">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
+              Sektor & Peran yang Kami Dukung
+            </h2>
+            <p className="mt-2 text-slate-600 leading-relaxed text-sm md:text-base">
+              ArkWork fokus pada ekosistem energi, dari operasi lapangan
+              hingga peran strategis di kantor pusat.
+            </p>
+          </div>
+
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {[
+              "Oil & Gas",
+              "LNG & Petrochemical",
+              "Power Plant & Utilities",
+              "Renewable Energy",
+              "Operations & Maintenance",
+              "HSE & Compliance",
+              "Project Management",
+              "Engineering & Technical",
+            ].map((label) => (
+              <div
+                key={label}
+                className="flex items-center justify-center rounded-2xl bg-white px-3 py-3 text-xs md:text-sm font-medium text-emerald-800 shadow-sm ring-1 ring-emerald-100"
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== TEAM SECTION ========== */}
+      <section className="relative py-14 md:py-20">
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-full"
+          style={{
+            background:
+              "linear-gradient(180deg, #E6FFF3 0%, #BAF7D3 35%, #F6FBF8 100%)",
+          }}
+        />
+
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           {/* heading */}
           <div className="text-center max-w-2xl mx-auto">
@@ -173,14 +231,14 @@ export default function HomePage() {
 
           {/* images */}
           <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <figure className="overflow-hidden rounded-3xl bg-white shadow-xl">
+            <figure className="overflow-hidden rounded-3xl bg-white shadow-md ring-1 ring-emerald-100/80">
               <Image
                 src={Team1}
                 alt="ArkWork team presenting in the office"
                 className="h-full w-full object-cover"
               />
             </figure>
-            <figure className="overflow-hidden rounded-3xl bg-white shadow-xl">
+            <figure className="overflow-hidden rounded-3xl bg-white shadow-md ring-1 ring-emerald-100/80">
               <Image
                 src={Team2}
                 alt="ArkWork team collaborating around a whiteboard"
@@ -191,7 +249,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== FEATURES GRID ========== */}
+      {/* ========== FEATURES GRID (tetap) ========== */}
       <section className="py-12 md:py-16 bg-gradient-to-b from-emerald-50 via-sky-50 to-white">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           {/* heading */}
@@ -240,7 +298,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== FINAL CTA BOX ========== */}
+      {/* ========== FINAL CTA BOX (tetap) ========== */}
       <section className="py-14 md:py-20 bg-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl bg-gradient-to-tr from-emerald-500 via-sky-500 to-emerald-400 p-[1px] shadow-xl shadow-emerald-500/20">
@@ -357,11 +415,11 @@ function Feature({
 /* Stat item component */
 function StatItem({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex flex-col items-center rounded-xl bg-white px-4 py-5 shadow-[0_14px_30px_rgba(0,0,0,0.20)] border border-emerald-100">
-      <div className="text-2xl md:text-3xl font-extrabold tracking-tight text-emerald-700">
+    <div className="flex flex-col items-center rounded-xl bg-emerald-50 px-4 py-5 shadow-sm border border-emerald-100">
+      <div className="text-2xl md:text-3xl font-extrabold tracking-tight text-emerald-800">
         {value}
       </div>
-      <div className="mt-1 text-xs md:text-sm text-emerald-800/80">
+      <div className="mt-1 text-xs md:text-sm text-emerald-700/85">
         {label}
       </div>
     </div>

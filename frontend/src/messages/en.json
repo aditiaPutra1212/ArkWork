@@ -178,7 +178,7 @@
       "secondary": "Powered by smart technology"
     },
     "copyright": "© {year} ArkWork. All rights reserved.",
-    "madeFor": "Made for the energy & oil & gas community."
+    "madeFor": "ArkWork by PT Hempart Indonesia."
   },
   "Halaman-about": {},
   "about": {
@@ -293,7 +293,6 @@
       "google": "Google signup failed."
     }
   },
-
   "Halaman-forgot": {},
   "forgotPassword": {
     "title": "Forgot Password",
@@ -332,7 +331,6 @@
     "validating": "Validating reset link...",
     "backToForgot": "Request a new reset link"
   },
-
   "dashboard": {
     "greeting": "Hi, {name}!",
     "greetingSmall": "Welcome back",

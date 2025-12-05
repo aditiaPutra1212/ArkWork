@@ -175,7 +175,7 @@ export default function Footer() {
             <span>{t("footer.copyright", { year })}</span>
           </p>
           <p className="rounded-full bg-[#FFEDD5] px-3 py-1 text-xs font-medium text-[#C2410C] opacity-90 dark:bg-[#431407] dark:text-[#fed7aa]">
-            🧡 {t("footer.madeFor")}
+            {t("footer.madeFor")}
           </p>
         </div>
       </div>
