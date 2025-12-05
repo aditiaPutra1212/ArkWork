@@ -18,7 +18,7 @@ export default function AboutPage() {
       </div>
 
       {/* ====== HEADER DENGAN BACKGROUND GAMBAR ====== */}
-      <section className="relative overflow-hidden border-b border-emerald-100">
+      <section className="relative isolate overflow-hidden border-b border-emerald-100">
         {/* background image + overlay */}
         <div className="pointer-events-none absolute inset-0 -z-10">
           <Image

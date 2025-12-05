@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/useAuth";
 import { api, API_BASE } from "@/lib/api";
-import ArkLogo from "@/app/Images/POST-removebg-preview.png";
+import ArkLogo from "@/app/Images/arkwork-new.png";
 
 const NAV_AVATAR_KEY_PREFIX = "ark_nav_avatar:";
 
