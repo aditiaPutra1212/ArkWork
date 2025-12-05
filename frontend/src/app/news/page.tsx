@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 /* ================= Types & simple client ================= */
 type EnergyNewsItem = {
@@ -41,6 +42,7 @@ async function fetchEnergyNews(params: {
 
 /* ================= Page ================= */
 export default function NewsPage() {
+  const t = useTranslations();
   const [items, setItems] = useState<EnergyNewsItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export default function NewsPage() {
       const data = await fetchEnergyNews({ scope, limit, country, when, keywords });
       setItems(data.items);
     } catch (e: any) {
-      setError(e?.message ?? 'Gagal memuat berita.');
+      setError(e?.message ?? t('news.error.load'));
     } finally {
       setLoading(false);
     }
@@ -109,61 +111,61 @@ export default function NewsPage() {
   return (
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 className="mb-6 text-3xl font-bold text-gray-900">Energy News (Oil &amp; Gas)</h1>
+        <h1 className="mb-6 text-3xl font-bold text-gray-900">{t('news.title')}</h1>
 
         {/* Controls */}
         <div className="mb-6 grid gap-3 rounded-lg bg-white p-4 shadow md:grid-cols-7 md:gap-4 md:p-6">
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Scope</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.scope')}</span>
             <select
               className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
               value={scope}
               onChange={(e) => setScope(e.target.value as any)}
             >
-              <option value="id">Indonesia</option>
-              <option value="global">Global (Situs Intl)</option>
-              <option value="both">Keduanya</option>
+              <option value="id">{t('news.filters.scopeOpt.id')}</option>
+              <option value="global">{t('news.filters.scopeOpt.global')}</option>
+              <option value="both">{t('news.filters.scopeOpt.both')}</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Negara</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.country')}</span>
             <select
               className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               title="Pilih ALL untuk lintas negara"
             >
-              <option value="ALL">ALL (Global CEID)</option>
-              <option value="ID">Indonesia (ID)</option>
-              <option value="US">United States (US)</option>
-              <option value="GB">United Kingdom (GB)</option>
-              <option value="AE">United Arab Emirates (AE)</option>
-              <option value="SG">Singapore (SG)</option>
-              <option value="AU">Australia (AU)</option>
-              <option value="CA">Canada (CA)</option>
-              <option value="DE">Germany (DE)</option>
-              <option value="FR">France (FR)</option>
-              <option value="JP">Japan (JP)</option>
+              <option value="ALL">{t('news.filters.countryOpt.all')}</option>
+              <option value="ID">{t('news.filters.countryOpt.id')}</option>
+              <option value="US">{t('news.filters.countryOpt.us')}</option>
+              <option value="GB">{t('news.filters.countryOpt.gb')}</option>
+              <option value="AE">{t('news.filters.countryOpt.ae')}</option>
+              <option value="SG">{t('news.filters.countryOpt.sg')}</option>
+              <option value="AU">{t('news.filters.countryOpt.au')}</option>
+              <option value="CA">{t('news.filters.countryOpt.ca')}</option>
+              <option value="DE">{t('news.filters.countryOpt.de')}</option>
+              <option value="FR">{t('news.filters.countryOpt.fr')}</option>
+              <option value="JP">{t('news.filters.countryOpt.jp')}</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Periode</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.period')}</span>
             <select
               className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
               value={when}
               onChange={(e) => setWhen(e.target.value as any)}
             >
-              <option value="7d">7 hari</option>
-              <option value="14d">14 hari</option>
-              <option value="30d">30 hari</option>
-              <option value="48h">48 jam</option>
+              <option value="7d">{t('news.filters.periodOpt.7d')}</option>
+              <option value="14d">{t('news.filters.periodOpt.14d')}</option>
+              <option value="30d">{t('news.filters.periodOpt.30d')}</option>
+              <option value="48h">{t('news.filters.periodOpt.48h')}</option>
             </select>
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Limit</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.limit')}</span>
             <select
               className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
               value={limit}
@@ -171,16 +173,16 @@ export default function NewsPage() {
             >
               {[10, 15, 20, 30, 50].map((n) => (
                 <option key={n} value={n}>
-                  {n} item
+                  {t('news.filters.limitOpt', { n })}
                 </option>
               ))}
             </select>
           </div>
 
           <div className="md:col-span-2 flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Kata Kunci</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.keywords')}</span>
             <input
-              placeholder="Opsional; contoh: refinery OR LNG"
+              placeholder={t('news.filters.keywordsPh')}
               className="rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
@@ -188,20 +190,20 @@ export default function NewsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] opacity-0 select-none">Ambil</span>
+            <span className="text-[11px] opacity-0 select-none">{t('news.filters.fetchLabel')}</span>
             <button
               onClick={load}
               className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
               disabled={loading}
             >
-              {loading ? 'Memuat…' : 'Ambil Berita'}
+              {loading ? t('news.filters.loading') : t('news.filters.fetchBtn')}
             </button>
           </div>
 
           <div className="md:col-span-3 flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">Pencarian Cepat</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.quick')}</span>
             <input
-              placeholder="Cari cepat di hasil (judul/sumber)…"
+              placeholder={t('news.filters.quickPh')}
               className="rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
               value={quick}
               onChange={(e) => setQuick(e.target.value)}
@@ -223,11 +225,11 @@ export default function NewsPage() {
                 <path d="M14 3v2h3.59L7 15.59 8.41 17 19 6.41V10h2V3zM5 5h6V3H3v8h2z" />
                 <path d="M19 19H5V8H3v13h18V10h-2z" />
               </svg>
-              <span className="font-semibold">Berita Terbaru</span>
+              <span className="font-semibold">{t('news.list.title')}</span>
             </div>
             {quick && (
               <button onClick={() => setQuick('')} className="text-sm text-gray-900 hover:underline">
-                Hapus filter cepat
+                {t('news.list.clearQuick')}
               </button>
             )}
           </div>
@@ -257,7 +259,7 @@ export default function NewsPage() {
                     </h3>
                   </a>
                   <span className="inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs text-gray-700">
-                    {it.source || getDomain(it.link) || 'Sumber'}
+                    {it.source || getDomain(it.link) || t('news.list.source')}
                   </span>
                 </div>
 
@@ -273,7 +275,7 @@ export default function NewsPage() {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 text-gray-900 hover:underline"
                   >
-                    Buka Artikel
+                    {t('news.list.open')}
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                       <path d="M14 3h7v7h-2V6.41l-9.29 9.3-1.42-1.42 9.3-9.29H14V3z" />
                       <path d="M5 5h6V3H3v8h2z" />
@@ -285,7 +287,7 @@ export default function NewsPage() {
         </section>
 
         {!loading && !error && filtered.length === 0 && (
-          <p className="mt-10 text-center text-gray-500">Tidak ada berita yang cocok.</p>
+          <p className="mt-10 text-center text-gray-500">{t('news.list.empty')}</p>
         )}
       </div>
     </div>

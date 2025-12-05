@@ -476,42 +476,54 @@
   },
   "Halaman-news": {},
   "news": {
-    "title": "Energy & Oil & Gas News",
-    "latest": "Latest Industry News",
-    "readMore": "Read More",
-    "empty": "No articles available.",
+    "title": "Energy News (Oil & Gas)",
+    "filters": {
+      "scope": "Scope",
+      "scopeOpt": {
+        "id": "Indonesia",
+        "global": "Global (Intl Sites)",
+        "both": "Both"
+      },
+      "country": "Country",
+      "countryOpt": {
+        "all": "ALL (Global CEID)",
+        "id": "Indonesia (ID)",
+        "us": "United States (US)",
+        "gb": "United Kingdom (GB)",
+        "ae": "United Arab Emirates (AE)",
+        "sg": "Singapore (SG)",
+        "au": "Australia (AU)",
+        "ca": "Canada (CA)",
+        "de": "Germany (DE)",
+        "fr": "France (FR)",
+        "jp": "Japan (JP)"
+      },
+      "period": "Period",
+      "periodOpt": {
+        "7d": "7 days",
+        "14d": "14 days",
+        "30d": "30 days",
+        "48h": "48 hours"
+      },
+      "limit": "Limit",
+      "limitOpt": "{n} items",
+      "keywords": "Keywords",
+      "keywordsPh": "Optional; e.g. refinery OR LNG",
+      "fetchLabel": "Fetch",
+      "fetchBtn": "Fetch News",
+      "loading": "Loading…",
+      "quick": "Quick Search",
+      "quickPh": "Quick search in results (title/source)…"
+    },
     "error": {
-      "load": "Failed to load news"
+      "load": "Failed to load news."
     },
-    "scope": {
-      "id": "Coverage: Indonesia",
-      "global": "Coverage: Global",
-      "both": "Coverage: Both"
-    },
-    "lang": {
-      "id": "Language: ID",
-      "en": "Language: EN"
-    },
-    "country": {
-      "id": "Country: ID",
-      "us": "Country: US"
-    },
-    "limit": {
-      "n": "Limit: {n}"
-    },
-    "keywords": {
-      "placeholder": "Custom keywords (optional)"
-    },
-    "btn": {
-      "fetch": "Fetch News",
-      "loading": "Loading…"
-    },
-    "quick": {
-      "placeholder": "Quick filter title/source…",
-      "clear": "Clear Filter"
-    },
-    "source": {
-      "unknown": "Source"
+    "list": {
+      "title": "Latest News",
+      "clearQuick": "Clear quick filter",
+      "source": "Source",
+      "open": "Open Article",
+      "empty": "No matching news found."
     }
   },
   "Halaman-profile": {},

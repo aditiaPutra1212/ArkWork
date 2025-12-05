@@ -476,42 +476,54 @@
   },
   "Halaman-news": {},
   "news": {
-    "title": "Berita Energi & Migas",
-    "latest": "Berita Industri Terbaru",
-    "readMore": "Baca Selengkapnya",
-    "empty": "Tidak ada artikel.",
+    "title": "Berita Energi (Migas)",
+    "filters": {
+      "scope": "Cakupan",
+      "scopeOpt": {
+        "id": "Indonesia",
+        "global": "Global (Situs Intl)",
+        "both": "Keduanya"
+      },
+      "country": "Negara",
+      "countryOpt": {
+        "all": "ALL (Global CEID)",
+        "id": "Indonesia (ID)",
+        "us": "United States (US)",
+        "gb": "United Kingdom (GB)",
+        "ae": "United Arab Emirates (AE)",
+        "sg": "Singapore (SG)",
+        "au": "Australia (AU)",
+        "ca": "Canada (CA)",
+        "de": "Germany (DE)",
+        "fr": "France (FR)",
+        "jp": "Japan (JP)"
+      },
+      "period": "Periode",
+      "periodOpt": {
+        "7d": "7 hari",
+        "14d": "14 hari",
+        "30d": "30 hari",
+        "48h": "48 jam"
+      },
+      "limit": "Limit",
+      "limitOpt": "{n} item",
+      "keywords": "Kata Kunci",
+      "keywordsPh": "Opsional; contoh: refinery OR LNG",
+      "fetchLabel": "Ambil",
+      "fetchBtn": "Ambil Berita",
+      "loading": "Memuat…",
+      "quick": "Pencarian Cepat",
+      "quickPh": "Cari cepat di hasil (judul/sumber)…"
+    },
     "error": {
-      "load": "Gagal memuat berita"
+      "load": "Gagal memuat berita."
     },
-    "scope": {
-      "id": "Cakupan: Indonesia",
-      "global": "Cakupan: Global",
-      "both": "Cakupan: Keduanya"
-    },
-    "lang": {
-      "id": "Bahasa: ID",
-      "en": "Bahasa: EN"
-    },
-    "country": {
-      "id": "Negara: ID",
-      "us": "Negara: US"
-    },
-    "limit": {
-      "n": "Batas: {n}"
-    },
-    "keywords": {
-      "placeholder": "Kata kunci kustom (opsional)"
-    },
-    "btn": {
-      "fetch": "Ambil Berita",
-      "loading": "Memuat…"
-    },
-    "quick": {
-      "placeholder": "Saring cepat judul/sumber…",
-      "clear": "Hapus Saringan"
-    },
-    "source": {
-      "unknown": "Sumber"
+    "list": {
+      "title": "Berita Terbaru",
+      "clearQuick": "Hapus filter cepat",
+      "source": "Sumber",
+      "open": "Buka Artikel",
+      "empty": "Tidak ada berita yang cocok."
     }
   },
   "Halaman-profile": {},
