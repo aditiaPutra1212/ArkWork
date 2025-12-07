@@ -238,10 +238,10 @@ export default function Nav() {
           <Image
             src={ArkLogo}
             alt="ArkWork"
-            width={220}
-            height={220}
+            width={150}
+            height={150}
             priority
-            className="h-20 w-auto object-contain"
+            className="mt-10 pb-2 object-contain"
           />
         </Link>
 
