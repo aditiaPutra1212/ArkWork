@@ -29,14 +29,14 @@ export default function Footer() {
     "text-sm text-neutral-600 hover:text-[#065F2A] dark:text-neutral-400 dark:hover:text-[#A5F3FC] transition-colors";
 
   return (
-    <footer className="mt-16 border-t border-[#16A34A]/30 bg-gradient-to-b from-[#F0FDF4] via-white to-[#EFF6FF] backdrop-blur dark:from-[#020617] dark:via-[#020617] dark:to-[#0B1120] dark:border-[#16A34A]/40">
+    <footer className="mt-16 border-t border-emerald-900 bg-emerald-950 text-neutral-300">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         {/* Top (layout & ukuran sama, hanya warna dan logo diupdate) */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2">
-              <div className="rounded-2xl bg-white/80 p-2 shadow-sm ring-1 ring-[#16A34A]/15 dark:bg-white/5 dark:ring-[#16A34A]/40">
+              <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-emerald-900/10">
                 <Image
                   src={Logo}
                   alt={t("footer.logoAlt")}
@@ -46,7 +46,7 @@ export default function Footer() {
               </div>
             </div>
 
-            <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-400">
+            <p className="mt-3 text-sm text-neutral-400">
               {t("footer.description")}
             </p>
 
@@ -56,7 +56,7 @@ export default function Footer() {
               <Social
                 href="https://www.linkedin.com/company/hempart-indonesia-official1/posts/?feedView=all"
                 label={t("footer.social.linkedin")}
-                className="border-[#0A66C2]/60 text-[#0A66C2] hover:bg-[#0A66C2] hover:text-white dark:border-[#0A66C2]/80"
+                className="border-white/10 bg-white/5 text-white hover:bg-[#0A66C2] hover:text-white"
               >
                 <path d="M4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3 8h2v13H3V8Zm5 0h2v2h.03c.28-.53 1.02-1.09 2.1-1.09C14.76 8.91 16 10 16 12.33V21h-2v-7.3c0-1.37-.49-2.3-1.71-2.3-.93 0-1.49.63-1.73 1.24-.09.2-.11.48-.11.76V21H8V8Z" />
               </Social>
@@ -65,7 +65,7 @@ export default function Footer() {
               <Social
                 href="https://www.instagram.com/hempart.indonesia"
                 label={t("footer.social.instagram")}
-                className="border-[#F97316]/60 text-[#EA580C] hover:bg-gradient-to-tr hover:from-[#F97316] hover:via-[#DB2777] hover:to-[#0EA5E9] hover:text-white dark:border-[#FDBA74]/80"
+                className="border-white/10 bg-white/5 text-white hover:bg-gradient-to-tr hover:from-[#F97316] hover:via-[#DB2777] hover:to-[#0EA5E9] hover:text-white"
               >
                 <rect
                   x="3"
@@ -93,7 +93,7 @@ export default function Footer() {
               <Social
                 href="mailto:info@hempartindonesia.com"
                 label={t("footer.social.email")}
-                className="border-[#16A34A]/60 text-[#166534] hover:bg-[#16A34A] hover:text-white dark:border-[#16A34A]/80"
+                className="border-white/10 bg-white/5 text-white hover:bg-emerald-600 hover:text-white"
               >
                 <path d="M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2Zm8 7L4.5 6.5h15L12 11Z" />
               </Social>
@@ -102,22 +102,22 @@ export default function Footer() {
 
           {/* Product */}
           <div>
-            <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            <h4 className="text-sm font-semibold text-white">
               {t("footer.headings.product")}
             </h4>
             <ul className="mt-3 space-y-2">
               <li>
-                <Link href="/jobs" className={linkCls}>
+                <Link href="/jobs" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.jobs")}
                 </Link>
               </li>
               <li>
-                <Link href="/tender" className={linkCls}>
+                <Link href="/tender" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.tenders")}
                 </Link>
               </li>
               <li>
-                <Link href="/news" className={linkCls}>
+                <Link href="/news" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.news")}
                 </Link>
               </li>
@@ -126,17 +126,17 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            <h4 className="text-sm font-semibold text-white">
               {t("footer.headings.company")}
             </h4>
             <ul className="mt-3 space-y-2">
               <li>
-                <Link href="/" className={linkCls}>
+                <Link href="/" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.home")}
                 </Link>
               </li>
               <li>
-                <Link href="/about" className={linkCls}>
+                <Link href="/about" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.about")}
                 </Link>
               </li>
@@ -145,22 +145,22 @@ export default function Footer() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+            <h4 className="text-sm font-semibold text-white">
               {t("footer.headings.legal")}
             </h4>
             <ul className="mt-3 space-y-2">
               <li>
-                <Link href="/terms" className={linkCls}>
+                <Link href="/terms" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.terms")}
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className={linkCls}>
+                <Link href="/privacy" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.privacy")}
                 </Link>
               </li>
               <li>
-                <Link href="/cookies" className={linkCls}>
+                <Link href="/cookies" className="text-sm text-neutral-400 hover:text-emerald-400 transition-colors">
                   {t("footer.links.cookies")}
                 </Link>
               </li>
@@ -169,17 +169,17 @@ export default function Footer() {
         </div>
 
         {/* Bottom (layout sama, warna pakai palette baru) */}
-        <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-neutral-200/70 pt-5 text-sm text-neutral-600 dark:border-neutral-800 dark:text-neutral-400 md:flex-row">
+        <div className="mt-8 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-5 text-sm text-neutral-500 md:flex-row">
           <p className="flex items-center gap-2">
-            <span className="inline-flex h-2 w-2 rounded-full bg-[#16A34A]" />
+            <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             <span>{t("footer.copyright", { year })}</span>
           </p>
-          <p className="rounded-full bg-[#FFEDD5] px-3 py-1 text-xs font-medium text-[#C2410C] opacity-90 dark:bg-[#431407] dark:text-[#fed7aa]">
+          <p className="rounded-full bg-emerald-900/50 px-3 py-1 text-xs font-medium text-emerald-200 ring-1 ring-white/10">
             {t("footer.madeFor")}
           </p>
         </div>
       </div>
-    </footer>
+    </footer >
   );
 }
 
@@ -201,7 +201,7 @@ function Social({
       target="_blank"
       rel="noreferrer"
       className={[
-        "grid h-9 w-9 place-items-center rounded-xl border bg-white/90 text-neutral-700 shadow-sm transition-all duration-150 hover:shadow-md hover:scale-[1.05] active:scale-[0.97] dark:bg-white/5 dark:text-neutral-200",
+        "grid h-9 w-9 place-items-center rounded-xl border transition-all duration-200 hover:shadow-md hover:scale-[1.05] active:scale-[0.97]",
         className ?? "",
       ].join(" ")}
     >
