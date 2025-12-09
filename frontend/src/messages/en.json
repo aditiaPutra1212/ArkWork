@@ -568,82 +568,69 @@
   },
   "Halaman-tender": {},
   "tenders": {
-    "title": "Search Tenders",
-    "subtitle": "Project & procurement opportunities for multi-team collaboration.",
-    "ph": {
-      "search": "Search title / buyer…"
+    "header": {
+      "title": "Public Tenders",
+      "subtitle": "Find the latest tenders and participate according to your field.",
+      "error": "Failed to load data"
+    },
+    "search": {
+      "placeholder": "Search title or tender owner…"
     },
     "sort": {
-      "label": "Sort by",
-      "nearest": "Nearest deadline",
-      "farthest": "Farthest deadline"
+      "label": "Sort",
+      "newest": "Newest",
+      "oldest": "Oldest"
     },
-    "filters": {
-      "title": "Filters",
+    "filter": {
+      "mobileBtn": "Filter",
+      "title": "Filter",
+      "currency": {
+        "title": "Currency",
+        "unavailable": "Rate unavailable",
+        "active": "Active rate: 1 USD ≈ {rate}",
+        "view": "USD View"
+      },
       "location": "Location",
       "sector": "Sector",
       "status": "Status",
       "contract": "Contract",
-      "all": "All {what}",
-      "clear": "Clear all",
+      "results": "{n} results",
+      "reset": "Reset",
       "ph": {
-        "location": "Filter location…"
+        "location": "Search location…",
+        "all": "All {label}"
       }
     },
-    "enums": {
-      "sector": {
-        "Oil & Gas": "Oil & Gas",
-        "Renewable Energy": "Renewable Energy",
-        "Utilities": "Utilities",
-        "Engineering": "Engineering"
-      },
-      "status": {
-        "Open": "Open",
-        "Prequalification": "Prequalification",
-        "Closed": "Closed"
-      },
-      "contract": {
-        "EPC": "EPC",
-        "Supply": "Supply",
-        "Consulting": "Consulting",
-        "Maintenance": "Maintenance"
-      }
-    },
-    "labels": {
-      "budget": "Budget",
-      "teamSlots": "Team slots",
-      "teamN": "{n} teams",
-      "sector": "Sector",
-      "contract": "Contract",
-      "status": "Status",
-      "deadline": "Deadline"
-    },
-    "btn": {
+    "card": {
+      "detail": "Detail",
+      "posted": "Posted: {date}",
       "save": "Save",
       "saved": "Saved",
-      "view": "View details",
-      "participate": "Participate",
-      "saveTender": "Save Tender"
-    },
-    "docs": {
-      "title": "Documents",
-      "none": "No documents"
-    },
-    "deadline": {
-      "closed": "Submission closed",
-      "today": "Due today",
-      "left": "{n} days left"
-    },
-    "detail": {
-      "empty": "Select a tender to view details"
+      "deadline": "Deadline {date}"
     },
     "empty": {
       "title": "No tenders found",
       "desc": "Try changing filters or keywords."
     },
-    "results": "{count} results",
-    "participate": {
-      "alert": "Interested in participating: {title}\nPlease upload documents in the next step."
+    "detail": {
+      "title": "Tender Detail",
+      "posted": "Posted: {date}",
+      "labels": {
+        "location": "Location",
+        "sector": "Sector",
+        "contract": "Contract",
+        "status": "Status",
+        "deadline": "Deadline",
+        "budget": "Project Value"
+      },
+      "desc": "Description",
+      "docs": {
+        "title": "Documents",
+        "empty": "No documents."
+      },
+      "close": "Close",
+      "participate": "Participate",
+      "alert": "Interested in participating: {title}"
     }
   }
 }

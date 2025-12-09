@@ -568,82 +568,69 @@
   },
   "Halaman-tender": {},
   "tenders": {
-    "title": "Cari Tender",
-    "subtitle": "Peluang proyek & pengadaan untuk kolaborasi multi-tim.",
-    "ph": {
-      "search": "Cari judul / pembeli…"
+    "header": {
+      "title": "Public Tenders",
+      "subtitle": "Cari tender terbaru dan ikuti sesuai bidangmu.",
+      "error": "Gagal memuat data"
+    },
+    "search": {
+      "placeholder": "Cari judul atau pemilik tender…"
     },
     "sort": {
       "label": "Urutkan",
-      "nearest": "Deadline terdekat",
-      "farthest": "Deadline terjauh"
+      "newest": "Terbaru",
+      "oldest": "Terlama"
     },
-    "filters": {
+    "filter": {
+      "mobileBtn": "Filter",
       "title": "Filter",
+      "currency": {
+        "title": "Currency",
+        "unavailable": "Rate unavailable",
+        "active": "Kurs aktif: 1 USD ≈ {rate}",
+        "view": "Tampilan USD"
+      },
       "location": "Lokasi",
       "sector": "Sektor",
       "status": "Status",
       "contract": "Kontrak",
-      "all": "Semua {what}",
-      "clear": "Hapus semua",
+      "results": "{n} hasil",
+      "reset": "Reset",
       "ph": {
-        "location": "Saring lokasi…"
+        "location": "Cari lokasi…",
+        "all": "Semua {label}"
       }
     },
-    "enums": {
-      "sector": {
-        "Oil & Gas": "Migas",
-        "Renewable Energy": "Energi Terbarukan",
-        "Utilities": "Utilitas",
-        "Engineering": "Rekayasa"
-      },
-      "status": {
-        "Open": "Dibuka",
-        "Prequalification": "Prakualifikasi",
-        "Closed": "Ditutup"
-      },
-      "contract": {
-        "EPC": "EPC",
-        "Supply": "Pengadaan",
-        "Consulting": "Konsultansi",
-        "Maintenance": "Pemeliharaan"
-      }
-    },
-    "labels": {
-      "budget": "Anggaran",
-      "teamSlots": "Slot tim",
-      "teamN": "{n} tim",
-      "sector": "Sektor",
-      "contract": "Kontrak",
-      "status": "Status",
-      "deadline": "Batas akhir"
-    },
-    "btn": {
+    "card": {
+      "detail": "Detail",
+      "posted": "Diposting: {date}",
       "save": "Simpan",
       "saved": "Tersimpan",
-      "view": "Lihat detail",
-      "participate": "Ikut serta",
-      "saveTender": "Simpan Tender"
-    },
-    "docs": {
-      "title": "Dokumen",
-      "none": "Tidak ada dokumen"
-    },
-    "deadline": {
-      "closed": "Pengajuan ditutup",
-      "today": "Jatuh tempo hari ini",
-      "left": "Sisa {n} hari"
-    },
-    "detail": {
-      "empty": "Pilih tender untuk melihat detail"
+      "deadline": "Deadline {date}"
     },
     "empty": {
       "title": "Tidak ada tender",
       "desc": "Coba ubah filter atau kata kunci."
     },
-    "results": "{count} hasil",
-    "participate": {
-      "alert": "Berminat ikut serta: {title}\nSilakan unggah dokumen pada langkah berikutnya."
+    "detail": {
+      "title": "Detail Tender",
+      "posted": "Diposting: {date}",
+      "labels": {
+        "location": "Lokasi",
+        "sector": "Sektor",
+        "contract": "Kontrak",
+        "status": "Status",
+        "deadline": "Deadline",
+        "budget": "Nilai Proyek"
+      },
+      "desc": "Deskripsi",
+      "docs": {
+        "title": "Dokumen",
+        "empty": "Tidak ada dokumen."
+      },
+      "close": "Tutup",
+      "participate": "Ikuti Tender",
+      "alert": "Anda berminat mengikuti: {title}"
     }
   }
 }

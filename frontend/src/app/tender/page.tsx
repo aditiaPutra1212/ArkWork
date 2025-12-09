@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useLocale } from 'next-intl';
+
+import { useTranslations, useLocale } from 'next-intl';
 
 /* ---------------- Server base (dukung 2 var + fallback dev) ---------------- */
 const API =
@@ -33,17 +34,17 @@ type TenderDTO = {
   location: string;
   status: 'OPEN' | 'PREQUALIFICATION' | 'CLOSED';
   contract:
-    | 'EPC'
-    | 'SUPPLY'
-    | 'CONSULTING'
-    | 'MAINTENANCE'
-    | 'PSC'
-    | 'SERVICE'
-    | 'JOC'
-    | 'TURNKEY'
-    | 'LOGISTICS'
-    | 'DRILLING'
-    | 'O_M';
+  | 'EPC'
+  | 'SUPPLY'
+  | 'CONSULTING'
+  | 'MAINTENANCE'
+  | 'PSC'
+  | 'SERVICE'
+  | 'JOC'
+  | 'TURNKEY'
+  | 'LOGISTICS'
+  | 'DRILLING'
+  | 'O_M';
   budgetUSD: number;               // ⬅️ di DB; ISINYA IDR
   deadline: string;                // ISO
   description: string;
@@ -145,6 +146,7 @@ function normalizeServer(list: TenderDTO[]): Tender[] {
 /* ---------------- Page ---------------- */
 export default function TendersLikeJobsPage() {
   const locale = useLocale();
+  const t = useTranslations();
 
   const [tenders, setTenders] = useState<Tender[]>([]);
   const [loadErr, setLoadErr] = useState<string | null>(null);
@@ -180,7 +182,7 @@ export default function TendersLikeJobsPage() {
         const r = await getRateUSDToIDR();
         if (!stop) setRateUSDtoIDR(r);
       } catch (e: any) {
-        if (!stop) setRateErr(e?.message || 'Failed to load rate');
+        if (!stop) setRateErr(e?.message || t('tenders.filter.currency.unavailable'));
       }
     })();
     return () => { stop = true; };
@@ -197,8 +199,8 @@ export default function TendersLikeJobsPage() {
         const j = await r.json().catch(() => null);
         const arr: TenderDTO[] = Array.isArray(j) ? j
           : Array.isArray(j?.data) ? j.data
-          : Array.isArray(j?.items) ? j.items
-          : [];
+            : Array.isArray(j?.items) ? j.items
+              : [];
         const mapped = normalizeServer(arr);
         const sorted = mapped.sort((a, b) =>
           sort === 'newest'
@@ -208,14 +210,14 @@ export default function TendersLikeJobsPage() {
         setTenders(sorted);
       } catch (e: any) {
         console.error('[Tenders] load error:', e);
-        setLoadErr(e?.message || 'Gagal memuat data');
+        setLoadErr(e?.message || t('tenders.header.error'));
         setTenders([]);
       }
 
       // load saved
       try {
         setSaved(JSON.parse(localStorage.getItem('ark_saved_tenders') ?? '[]'));
-      } catch {}
+      } catch { }
     })();
   }, [sort]);
 
@@ -281,7 +283,7 @@ export default function TendersLikeJobsPage() {
 
   function participateSelected(sel: Tender | null) {
     if (!sel) return;
-    alert(`Anda berminat mengikuti: ${sel.title}`);
+    alert(t('tenders.detail.alert', { title: sel.title }));
     setDetailOpen(false);
   }
 
@@ -292,8 +294,8 @@ export default function TendersLikeJobsPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">Public Tenders</h1>
-              <p className="text-neutral-600">Cari tender terbaru dan ikuti sesuai bidangmu.</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">{t('tenders.header.title')}</h1>
+              <p className="text-neutral-600">{t('tenders.header.subtitle')}</p>
               {loadErr && (
                 <div className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                   {loadErr}
@@ -310,20 +312,20 @@ export default function TendersLikeJobsPage() {
                 <input
                   value={filters.q}
                   onChange={(e) => setFilters((s) => ({ ...s, q: e.target.value }))}
-                  placeholder="Cari judul atau pemilik tender…"
+                  placeholder={t('tenders.search.placeholder')}
                   className="w-full sm:w-80 rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400"
                 />
               </div>
 
               <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-600">Urutkan</label>
+                <label className="text-sm text-neutral-600">{t('tenders.sort.label')}</label>
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value as any)}
                   className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
                 >
-                  <option value="newest">Terbaru</option>
-                  <option value="oldest">Terlama</option>
+                  <option value="newest">{t('tenders.sort.newest')}</option>
+                  <option value="oldest">{t('tenders.sort.oldest')}</option>
                 </select>
               </div>
 
@@ -331,7 +333,7 @@ export default function TendersLikeJobsPage() {
                 onClick={() => setDrawer(true)}
                 className="sm:hidden inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
               >
-                <FilterIcon className="h-4 w-4" /> Filter
+                <FilterIcon className="h-4 w-4" /> {t('tenders.filter.mobileBtn')}
               </button>
             </div>
           </div>
@@ -358,13 +360,13 @@ export default function TendersLikeJobsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setDisplayCurrency('IDR')}
-                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency==='IDR' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
+                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'IDR' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
                 >
                   IDR
                 </button>
                 <button
                   onClick={() => setDisplayCurrency('USD')}
-                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency==='USD' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
+                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'USD' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
                 >
                   USD
                 </button>
@@ -372,27 +374,31 @@ export default function TendersLikeJobsPage() {
             </div>
 
             <FilterInput
-              label="Lokasi"
+              label={t('tenders.filter.location')}
+              placeholder={t('tenders.filter.ph.location')}
               value={filters.loc}
               onChange={(v) => setFilters((s) => ({ ...s, loc: v }))}
               icon={<PinIcon className="h-4 w-4" />}
             />
             <FilterSelect
-              label="Sektor"
+              label={t('tenders.filter.sector')}
+              placeholder={t('tenders.filter.ph.all', { label: t('tenders.filter.sector') })}
               value={filters.sector}
               onChange={(v) => setFilters((s) => ({ ...s, sector: v }))}
               options={['', 'Oil & Gas', 'Renewable Energy', 'Utilities', 'Engineering']}
               icon={<LayersIcon className="h-4 w-4" />}
             />
             <FilterSelect
-              label="Status"
+              label={t('tenders.filter.status')}
+              placeholder={t('tenders.filter.ph.all', { label: t('tenders.filter.status') })}
               value={filters.status}
               onChange={(v) => setFilters((s) => ({ ...s, status: v }))}
               options={['', 'Open', 'Prequalification', 'Closed']}
               icon={<FlagIcon className="h-4 w-4" />}
             />
             <FilterSelect
-              label="Kontrak"
+              label={t('tenders.filter.contract')}
+              placeholder={t('tenders.filter.ph.all', { label: t('tenders.filter.contract') })}
               value={filters.contract}
               onChange={(v) => setFilters((s) => ({ ...s, contract: v }))}
               options={[
@@ -414,10 +420,10 @@ export default function TendersLikeJobsPage() {
 
             <div className="pt-3 flex items-center justify-between">
               <span className="text-sm text-neutral-500">
-                {items.length} hasil
+                {t('tenders.filter.results', { n: items.length })}
               </span>
               <button onClick={clearFilters} className="text-sm text-blue-700 hover:underline">
-                Reset
+                {t('tenders.filter.reset')}
               </button>
             </div>
           </FilterCard>
@@ -426,60 +432,60 @@ export default function TendersLikeJobsPage() {
         {/* List */}
         <section className="lg:col-span-9 space-y-4">
           {items.length === 0 ? (
-            <EmptyState />
+            <EmptyState t={t} />
           ) : (
-            items.map((t) => (
+            items.map((item) => (
               <article
-                key={t.id}
-                onClick={() => openDetail(t)}
+                key={item.id}
+                onClick={() => openDetail(item)}
                 className="group cursor-pointer rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm hover:shadow-md transition"
               >
                 <div className="flex gap-4">
                   <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 grid place-items-center overflow-hidden text-white text-sm font-bold">
-                    {initials(t.company || 'AW')}
+                    {initials(item.company || 'AW')}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h3 className="truncate text-base md:text-lg font-semibold text-neutral-900">
-                          {t.title}
+                          {item.title}
                         </h3>
-                        <p className="text-sm text-neutral-600 truncate">{t.company}</p>
+                        <p className="text-sm text-neutral-600 truncate">{item.company}</p>
                       </div>
                       <span className="rounded-lg border border-neutral-300 px-2 py-1 text-xs text-neutral-700">
-                        Detail
+                        {t('tenders.card.detail')}
                       </span>
                     </div>
 
                     {/* meta row */}
                     <div className="mt-3 grid grid-cols-2 sm:grid-cols-6 gap-2 text-[13px]">
-                      <Meta icon={<PinIcon className="h-4 w-4" />} text={t.location} />
-                      <Meta icon={<LayersIcon className="h-4 w-4" />} text={t.sector} />
-                      <Meta icon={<BriefcaseIcon className="h-4 w-4" />} text={t.contract} />
-                      <Meta icon={<FlagIcon className="h-4 w-4" />} text={t.status} />
-                      <Meta icon={<CalendarIcon className="h-4 w-4" />} text={`Deadline ${fmtDate(t.deadline)}`} />
-                      <Meta icon={<MoneyIcon className="h-4 w-4" />} text={fmtMoney(t.budgetUSD)} />
+                      <Meta icon={<PinIcon className="h-4 w-4" />} text={item.location} />
+                      <Meta icon={<LayersIcon className="h-4 w-4" />} text={item.sector} />
+                      <Meta icon={<BriefcaseIcon className="h-4 w-4" />} text={item.contract} />
+                      <Meta icon={<FlagIcon className="h-4 w-4" />} text={item.status} />
+                      <Meta icon={<CalendarIcon className="h-4 w-4" />} text={t('tenders.card.deadline', { date: fmtDate(item.deadline) })} />
+                      <Meta icon={<MoneyIcon className="h-4 w-4" />} text={fmtMoney(item.budgetUSD)} />
                     </div>
 
-                    <p className="mt-3 line-clamp-2 text-sm text-neutral-600">{t.description}</p>
+                    <p className="mt-3 line-clamp-2 text-sm text-neutral-600">{item.description}</p>
 
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-xs text-neutral-500">
-                        Diposting: {fmtDate(t.created)}
+                        {t('tenders.card.posted', { date: fmtDate(item.created) })}
                       </span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleSave(t.id);
+                          toggleSave(item.id);
                         }}
                         className={[
                           'rounded-lg border px-2.5 py-1 text-xs transition',
-                          saved.includes(t.id)
+                          saved.includes(item.id)
                             ? 'border-amber-500 bg-amber-50 text-amber-700'
                             : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50',
                         ].join(' ')}
                       >
-                        {saved.includes(t.id) ? 'Tersimpan' : 'Simpan'}
+                        {saved.includes(item.id) ? t('tenders.card.saved') : t('tenders.card.save')}
                       </button>
                     </div>
                   </div>
@@ -492,7 +498,7 @@ export default function TendersLikeJobsPage() {
 
       {/* Drawer (mobile filters) */}
       {drawer && (
-        <Drawer onClose={() => setDrawer(false)} title="Filter">
+        <Drawer onClose={() => setDrawer(false)} title={t('tenders.filter.title')}>
           <div className="space-y-3">
             {/* Currency switch (mobile) */}
             <div className="mb-1 flex items-center justify-between rounded-xl border border-neutral-200 p-2">
@@ -509,13 +515,13 @@ export default function TendersLikeJobsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setDisplayCurrency('IDR')}
-                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency==='IDR' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
+                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'IDR' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
                 >
                   IDR
                 </button>
                 <button
                   onClick={() => setDisplayCurrency('USD')}
-                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency==='USD' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
+                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'USD' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
                 >
                   USD
                 </button>
@@ -523,27 +529,31 @@ export default function TendersLikeJobsPage() {
             </div>
 
             <FilterInput
-              label="Lokasi"
+              label={t('tenders.filter.location')}
+              placeholder={t('tenders.filter.ph.location')}
               value={filters.loc}
               onChange={(v) => setFilters((s) => ({ ...s, loc: v }))}
               icon={<PinIcon className="h-4 w-4" />}
             />
             <FilterSelect
-              label="Sektor"
+              label={t('tenders.filter.sector')}
+              placeholder={t('tenders.filter.ph.all', { label: t('tenders.filter.sector') })}
               value={filters.sector}
               onChange={(v) => setFilters((s) => ({ ...s, sector: v }))}
               options={['', 'Oil & Gas', 'Renewable Energy', 'Utilities', 'Engineering']}
               icon={<LayersIcon className="h-4 w-4" />}
             />
             <FilterSelect
-              label="Status"
+              label={t('tenders.filter.status')}
+              placeholder={t('tenders.filter.ph.all', { label: t('tenders.filter.status') })}
               value={filters.status}
               onChange={(v) => setFilters((s) => ({ ...s, status: v }))}
               options={['', 'Open', 'Prequalification', 'Closed']}
               icon={<FlagIcon className="h-4 w-4" />}
             />
             <FilterSelect
-              label="Kontrak"
+              label={t('tenders.filter.contract')}
+              placeholder={t('tenders.filter.ph.all', { label: t('tenders.filter.contract') })}
               value={filters.contract}
               onChange={(v) => setFilters((s) => ({ ...s, contract: v }))}
               options={[
@@ -565,10 +575,10 @@ export default function TendersLikeJobsPage() {
 
             <div className="pt-2 flex items-center justify-between">
               <span className="text-sm text-neutral-500">
-                {items.length} hasil
+                {t('tenders.filter.results', { n: items.length })}
               </span>
               <button onClick={clearFilters} className="text-sm text-blue-700 hover:underline">
-                Reset
+                {t('tenders.filter.reset')}
               </button>
             </div>
           </div>
@@ -581,9 +591,10 @@ export default function TendersLikeJobsPage() {
           tender={detailTender}
           onClose={() => setDetailOpen(false)}
           onParticipate={() => participateSelected(detailTender)}
-          postedText={fmtDate(detailTender.created)}
+          postedText={t('tenders.detail.posted', { date: fmtDate(detailTender.created) })}
           money={(n) => fmtMoney(n)}
           dateFmt={(ymd) => fmtDate(ymd)}
+          t={t}
         />
       )}
     </div>
@@ -601,11 +612,13 @@ function FilterCard({ children }: { children: React.ReactNode }) {
 }
 function FilterInput({
   label,
+  placeholder,
   value,
   onChange,
   icon,
 }: {
   label: string;
+  placeholder?: string;
   value: string;
   onChange: (v: string) => void;
   icon?: React.ReactNode;
@@ -619,7 +632,7 @@ function FilterInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400"
-          placeholder={`Cari ${label.toLowerCase()}…`}
+          placeholder={placeholder}
         />
       </div>
     </label>
@@ -627,12 +640,14 @@ function FilterInput({
 }
 function FilterSelect({
   label,
+  placeholder,
   value,
   onChange,
   options,
   icon,
 }: {
   label: string;
+  placeholder?: string;
   value: string;
   onChange: (v: string) => void;
   options: string[];
@@ -650,7 +665,7 @@ function FilterSelect({
         >
           {options.map((o) => (
             <option key={o || 'all'} value={o}>
-              {o || `Semua ${label}`}
+              {o || placeholder}
             </option>
           ))}
         </select>
@@ -676,6 +691,7 @@ function DetailModal({
   money,
   dateFmt,
   postedText,
+  t,
 }: {
   tender: Tender;
   onClose: () => void;
@@ -683,6 +699,7 @@ function DetailModal({
   money: (n: number) => string;
   dateFmt: (ymd: string) => string;
   postedText: string;
+  t: any;
 }) {
   // bikin dokumen bisa diklik (http/https/blob/relative)
   const base = API.replace(/\/+$/, '');
@@ -703,8 +720,8 @@ function DetailModal({
             <div className="flex justify-center mb-3">
               <AvatarLogo name={tender.company} size={64} />
             </div>
-            <h2 className="text-center text-lg font-semibold text-slate-900">Detail Tender</h2>
-            <p className="mt-1 text-center text-sm text-slate-600">Diposting: {postedText}</p>
+            <h2 className="text-center text-lg font-semibold text-slate-900">{t('tenders.detail.title')}</h2>
+            <p className="mt-1 text-center text-sm text-slate-600">{postedText}</p>
           </div>
 
           {/* Body */}
@@ -714,22 +731,24 @@ function DetailModal({
               <div className="text-sm text-slate-600">{tender.company}</div>
             </div>
 
+
+
             <div className="grid gap-2 sm:grid-cols-2">
-              <InfoRow label="Lokasi" value={tender.location} />
-              <InfoRow label="Sektor" value={tender.sector} />
-              <InfoRow label="Kontrak" value={tender.contract} />
-              <InfoRow label="Status" value={tender.status} />
-              <InfoRow label="Deadline" value={dateFmt(tender.deadline)} />
-              <InfoRow label="Nilai Proyek" value={money(tender.budgetUSD)} />
+              <InfoRow label={t('tenders.detail.labels.location')} value={tender.location} />
+              <InfoRow label={t('tenders.detail.labels.sector')} value={tender.sector} />
+              <InfoRow label={t('tenders.detail.labels.contract')} value={tender.contract} />
+              <InfoRow label={t('tenders.detail.labels.status')} value={tender.status} />
+              <InfoRow label={t('tenders.detail.labels.deadline')} value={dateFmt(tender.deadline)} />
+              <InfoRow label={t('tenders.detail.labels.budget')} value={money(tender.budgetUSD)} />
             </div>
 
-            <Section title="Deskripsi">
+            <Section title={t('tenders.detail.desc')}>
               <RichText text={tender.description || '-'} />
             </Section>
 
-            <Section title="Dokumen">
+            <Section title={t('tenders.detail.docs.title')}>
               {tender.documents.length === 0 ? (
-                <div className="text-sm text-slate-600">Tidak ada dokumen.</div>
+                <div className="text-sm text-slate-600">{t('tenders.detail.docs.empty')}</div>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {tender.documents.map((d) => {
@@ -765,13 +784,13 @@ function DetailModal({
               onClick={onClose}
               className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
-              Tutup
+              {t('tenders.detail.close')}
             </button>
             <button
               onClick={onParticipate}
               className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
             >
-              Ikuti Tender
+              {t('tenders.detail.participate')}
             </button>
           </div>
         </div>
@@ -851,14 +870,14 @@ function Drawer({
     </div>
   );
 }
-function EmptyState() {
+function EmptyState({ t }: { t?: any }) {
   return (
     <div className="rounded-3xl border border-dashed border-neutral-300 bg-white p-10 text-center">
       <div className="mx-auto mb-3 h-12 w-12 rounded-2xl bg-neutral-100 grid place-items-center">
         <SearchIcon className="h-6 w-6 text-neutral-600" />
       </div>
-      <h3 className="font-semibold text-neutral-900">Tidak ada tender</h3>
-      <p className="mt-1 text-sm text-neutral-600">Coba ubah filter atau kata kunci.</p>
+      <h3 className="font-semibold text-neutral-900">{t ? t('tenders.empty.title') : 'Tidak ada tender'}</h3>
+      <p className="mt-1 text-sm text-neutral-600">{t ? t('tenders.empty.desc') : 'Coba ubah filter atau kata kunci.'}</p>
     </div>
   );
 }
@@ -964,3 +983,4 @@ function AvatarLogo({ name, size = 64 }: { name?: string; size?: number }) {
     </div>
   );
 }
+
