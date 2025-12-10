@@ -35,18 +35,18 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2">
-              <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-emerald-900/10">
-                <Image
+            <div className="flex items-center gap-1">
+              <Image
                   src={Logo}
                   alt={t("footer.logoAlt")}
-                  className="h-24 w-auto sm:h-24 md:h-24"
+                  width={180}
+                  height={180}
+                  className="m-0 p-0 drop-shadow-[0_1px_1px_#ffffff] filter"
                   priority
                 />
-              </div>
             </div>
 
-            <p className="mt-3 text-sm text-neutral-400">
+            <p className="mt-0 pt-0 text-sm text-neutral-400">
               {t("footer.description")}
             </p>
 
