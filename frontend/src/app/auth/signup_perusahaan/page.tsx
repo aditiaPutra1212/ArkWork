@@ -625,9 +625,9 @@ export default function Page() {
             <Image
               src={Logo}
               alt="ArkWork Logo"
-              width={100}
-              height={100}
-              className="mx-auto mb-4 h-24 w-24 sm:h-24 sm:w-24 object-contain"
+              width={170}
+              height={170}
+              className="mb-0 mt-0 pt-0 dispalay-block mx-auto"
               priority
             />
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900">
