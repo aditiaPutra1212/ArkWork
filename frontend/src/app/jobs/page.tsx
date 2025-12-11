@@ -199,15 +199,15 @@ export default function JobsPage() {
 
   const [reportOpen, setReportOpen] = useState(false);
   const [jobToReport, setJobToReport] = useState<Job | null>(null); // Ganti reportDefaults
-  
+
   // CV states
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [isApplying, setIsApplying] = useState(false);
 
   // toast
-  const [toast, setToast] = useState<{type:"ok"|"err"; msg:string}|null>(null);
+  const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
   const hideToastRef = useRef<number | null>(null);
-  const showToast = (type:"ok"|"err", msg:string) => {
+  const showToast = (type: "ok" | "err", msg: string) => {
     setToast({ type, msg });
     if (hideToastRef.current) window.clearTimeout(hideToastRef.current);
     hideToastRef.current = window.setTimeout(() => setToast(null), 3000);
@@ -225,7 +225,7 @@ export default function JobsPage() {
             localStorage.setItem("ark_current", userIdFromCookie);
             window.dispatchEvent(new Event("storage"));
           }
-        } catch {}
+        } catch { }
       }
     })();
   }, []);
@@ -278,12 +278,12 @@ export default function JobsPage() {
       }
     })();
 
-    try { setSaved(JSON.parse(localStorage.getItem("ark_saved_global") ?? "[]").map(String)); } catch {}
+    try { setSaved(JSON.parse(localStorage.getItem("ark_saved_global") ?? "[]").map(String)); } catch { }
     refreshAppliedForCurrent();
 
     const onUpd = () => {
       refreshAppliedForCurrent();
-      try { setSaved(JSON.parse(localStorage.getItem("ark_saved_global") ?? "[]").map(String)); } catch {}
+      try { setSaved(JSON.parse(localStorage.getItem("ark_saved_global") ?? "[]").map(String)); } catch { }
     };
     window.addEventListener("storage", onUpd);
 
@@ -307,7 +307,7 @@ export default function JobsPage() {
             const mapped = normalizeServer(serverList).sort((a, b) => sortByPosted(a, b, sort === "newest"));
             setJobs(mapped);
           }
-        } catch {}
+        } catch { }
         setTimeout(() => ac.abort(), 15000);
       })();
     });
@@ -365,17 +365,17 @@ export default function JobsPage() {
     if (!sel || isApplying) return;
 
     // Validasi CV
-    if (!file) { showToast("err","Silakan pilih file CV (PDF)."); return; }
-    if (file.type !== "application/pdf") { showToast("err","CV harus PDF."); return; }
-    if (file.size > 2 * 1024 * 1024) { showToast("err","Ukuran CV maksimal 2 MB."); return; }
+    if (!file) { showToast("err", "Silakan pilih file CV (PDF)."); return; }
+    if (file.type !== "application/pdf") { showToast("err", "CV harus PDF."); return; }
+    if (file.size > 2 * 1024 * 1024) { showToast("err", "Ukuran CV maksimal 2 MB."); return; }
 
     // pastikan tau user siapa
     let cur = localStorage.getItem("ark_current");
     if (!cur) {
       cur = await getCurrentUserId();
-      if (cur) { try { localStorage.setItem("ark_current", cur); } catch {} }
+      if (cur) { try { localStorage.setItem("ark_current", cur); } catch { } }
     }
-    if (!cur) { showToast("err","Silakan login terlebih dahulu untuk melamar."); return; }
+    if (!cur) { showToast("err", "Silakan login terlebih dahulu untuk melamar."); return; }
 
     const base = (API_BASE || "").replace(/\/+$/, "");
     setIsApplying(true);
@@ -415,7 +415,7 @@ export default function JobsPage() {
       apps[cur] = next;
       localStorage.setItem("ark_apps", JSON.stringify(apps));
     }
-    try { setApplied((s) => [...new Set([...s, jobId])]); } catch {}
+    try { setApplied((s) => [...new Set([...s, jobId])]); } catch { }
 
     setIsApplying(false);
     setDetailOpen(false);
@@ -433,9 +433,8 @@ export default function JobsPage() {
       {toast && (
         <div
           role="status"
-          className={`fixed top-4 left-1/2 -translate-x-1/2 z-[300] rounded-xl px-4 py-2 text-sm shadow ${
-            toast.type === "ok" ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
-          }`}
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-[300] rounded-xl px-4 py-2 text-sm shadow ${toast.type === "ok" ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
+            }`}
         >
           {toast.msg}
         </div>
@@ -465,7 +464,7 @@ export default function JobsPage() {
                   value={filters.q}
                   onChange={(e) => setFilters((s) => ({ ...s, q: e.target.value }))}
                   placeholder={t("search.placeholder")}
-                  className="w-full sm:w-80 rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400"
+                  className="w-full sm:w-80 rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]"
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -473,7 +472,7 @@ export default function JobsPage() {
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value as any)}
-                  className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+                  className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-[#16A34A] outline-none"
                 >
                   <option value="newest">{t("sort.newest")}</option>
                   <option value="oldest">{t("sort.oldest")}</option>
@@ -505,7 +504,7 @@ export default function JobsPage() {
             <FilterSelect label={"Pendidikan"} value={filters.edu} onChange={(v) => setFilters((s) => ({ ...s, edu: v }))} options={["", "SMA/SMK", "D3", "S1", "S2", "S3"]} icon={<LayersIcon className="h-4 w-4" />} />
             <div className="pt-3 flex items-center justify-between">
               <span className="text-sm text-neutral-500">{t("filters.results", { count: items.length })}</span>
-              <button onClick={clearFilters} className="text-sm text-blue-700 hover:underline">{t("filters.clear")}</button>
+              <button onClick={clearFilters} className="text-sm text-[#16A34A] hover:underline font-medium">{t("filters.clear")}</button>
             </div>
           </FilterCard>
         </aside>
@@ -521,7 +520,7 @@ export default function JobsPage() {
                 <article
                   key={job.id}
                   onClick={() => openDetail(job)}
-                  className="group cursor-pointer rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm hover:shadow-md transition"
+                  className="group cursor-pointer rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-[#16A34A]/50 transition-all duration-200"
                 >
                   <div className="flex gap-4">
                     <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 grid place-items-center overflow-hidden text-white text-sm font-bold">
@@ -538,7 +537,7 @@ export default function JobsPage() {
                           <h3 className="truncate text-base md:text-lg font-semibold text-neutral-900">{job.title}</h3>
                           <p className="text-sm text-neutral-600 truncate">{job.company || t("common.company")}</p>
                         </div>
-                        <span className={["rounded-lg border px-2 py-1 text-xs", isApplied ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-neutral-300 text-neutral-700"].join(" ")}>
+                        <span className={["rounded-lg border px-2 py-1 text-xs font-medium", isApplied ? "border-[#16A34A] bg-[#E9F9F1] text-[#065F2A]" : "border-neutral-200 text-neutral-600 group-hover:border-[#16A34A] group-hover:text-[#16A34A] transition-colors"].join(" ")}>
                           {isApplied ? "Sudah dilamar" : t("common.view")}
                         </span>
                       </div>
@@ -559,7 +558,7 @@ export default function JobsPage() {
                         <span className="text-xs text-neutral-500">{t("common.posted", { date: formatPosted(job.posted) })}</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); toggleSave(job.id); }}
-                          className={["rounded-lg border px-2.5 py-1 text-xs transition", saved.includes(String(job.id)) ? "border-amber-500 bg-amber-50 text-amber-700" : "border-neutral-300 text-neutral-700 hover:bg-neutral-50"].join(" ")}
+                          className={["rounded-lg border px-2.5 py-1 text-xs transition font-medium", saved.includes(String(job.id)) ? "border-amber-500 bg-amber-50 text-amber-700" : "border-neutral-300 text-neutral-600 hover:border-[#16A34A] hover:text-[#16A34A] hover:bg-[#E9F9F1]"].join(" ")}
                         >
                           {saved.includes(String(job.id)) ? t("common.saved") : t("common.save")}
                         </button>
@@ -586,7 +585,7 @@ export default function JobsPage() {
             <FilterSelect label={"Pendidikan"} value={filters.edu} onChange={(v) => setFilters((s) => ({ ...s, edu: v }))} options={["", "SMA/SMK", "D3", "S1", "S2", "S3"]} icon={<LayersIcon className="h-4 w-4" />} />
             <div className="pt-2 flex items-center justify-between">
               <span className="text-sm text-neutral-500">{t("filters.results", { count: items.length })}</span>
-              <button onClick={clearFilters} className="text-sm text-blue-700 hover:underline">{t("filters.clear")}</button>
+              <button onClick={clearFilters} className="text-sm text-[#16A34A] hover:underline font-medium">{t("filters.clear")}</button>
             </div>
           </div>
         </Drawer>
@@ -620,10 +619,10 @@ export default function JobsPage() {
             setJobToReport(null);    // Langsung reset state
             // Tunda toast sebentar (misal 100ms)
             setTimeout(() => {
-              showToast("ok","Terima kasih. Laporanmu telah kami terima.");
+              showToast("ok", "Terima kasih. Laporanmu telah kami terima.");
             }, 100); // Penundaan 100 milidetik
           }}
-          
+
           // KIRIM PROPS YANG BENAR (BUKAN defaultData)
           jobId={jobToReport.id}
           jobTitle={jobToReport.title}
@@ -648,10 +647,10 @@ function FilterInput({ label, value, onChange, icon }: { label: string; value: s
   const t = useTranslations("jobs");
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500">{label}</span>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">{icon}</span>
-        <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400" placeholder={t("filters.placeholder", { label: label.toLowerCase() })} />
+      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500 font-semibold">{label}</span>
+      <div className="relative group">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#16A34A] transition-colors">{icon}</span>
+        <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none transition-all focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] group-hover:border-[#16A34A]/50" placeholder={t("filters.placeholder", { label: label.toLowerCase() })} />
       </div>
     </label>
   );
@@ -660,10 +659,10 @@ function FilterSelect({ label, value, onChange, options, icon }: { label: string
   const t = useTranslations("jobs");
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500">{label}</span>
-      <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">{icon}</span>
-        <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400">
+      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500 font-semibold">{label}</span>
+      <div className="relative group">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#16A34A] transition-colors">{icon}</span>
+        <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none transition-all focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] group-hover:border-[#16A34A]/50">
           {options.map((o) => (
             <option key={o || "all"} value={o}>
               {o || t("filters.all", { label })}
@@ -771,7 +770,7 @@ function DetailModal({
                   type="file"
                   accept="application/pdf"
                   onChange={onPick}
-                  className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border file:border-slate-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-semibold hover:file:bg-slate-50"
+                  className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border file:border-neutral-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-semibold hover:file:bg-[#E9F9F1] hover:file:text-[#16A34A] hover:file:border-[#16A34A] transition-all"
                 />
               </div>
               {cvFile ? (
@@ -786,13 +785,13 @@ function DetailModal({
 
           <div className="px-6 pb-6 pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button onClick={onReport} className="rounded-xl border border-red-500 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">Laporkan</button>
-            <button onClick={onClose} className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Tutup</button>
+            <button onClick={onClose} className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:border-[#16A34A] hover:text-[#16A34A] hover:bg-[#E9F9F1] transition-colors">Tutup</button>
             <button
               onClick={onApply}
               disabled={disabled || isApplying}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold text-white ${isApplying ? "bg-slate-400" : "bg-slate-900 hover:bg-slate-800"}`}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all shadow-sm ${isApplying ? "bg-neutral-400" : "bg-[#16A34A] hover:bg-[#15803D] hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"}`}
             >
-              {isApplying ? "Mengirim..." : "Lamar"}
+              {isApplying ? "Mengirim..." : "Lamar Sekarang"}
             </button>
           </div>
         </div>
