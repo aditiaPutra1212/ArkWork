@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { api } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
-import Logo from "@/app/Images/Ungu__1_-removebg-preview.png";
+import Logo from "@/app/Images/arkwork-new.png";
 
 export default function ForgotPasswordPage() {
   const t = useTranslations("forgotPassword"); 
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
       <div className="w-full max-w-[520px]">
         <div className="relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white shadow-[0_10px_50px_rgba(2,6,23,0.08)] ring-1 ring-slate-100/60">
           <div className="px-8 pt-8 text-center">
-            <Image src={Logo} alt="ArkWork Logo" width={96} height={96} className="mx-auto mb-5 h-20 w-20 object-contain drop-shadow-sm" priority />
+            <Image src={Logo} alt="ArkWork Logo" width={190} height={190} className="mx-auto mb-5 object-contain drop-shadow-sm" priority />
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("title")}</h1>
             <p className="mt-1 text-sm text-slate-600">{t("subtitle")}</p>
           </div>
@@ -58,18 +58,18 @@ export default function ForgotPasswordPage() {
                   <span className="mb-1 block text-xs text-slate-600">Email</span>
                   <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm" placeholder="you@example.com" />
                 </label>
-                <button type="submit" disabled={isBusy} className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60">
+                <button type="submit" disabled={isBusy} className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#16A34A] to-[#15803D] px-4 py-2.5 text-sm font-semibold text-white shadow transition-allduration-150 ease-out hover:from-[#15803D] hover:to-[#166534] disabled:opacity-60">
                   {isBusy ? (<><span className="mr-2 inline-block animate-spin">⏳</span>{t("form.sending")}</>) : (t("form.sendLink"))}
                 </button>
                 <p className="mt-6 text-center text-sm text-slate-600">
                   {t("backTo")}{" "}
-                  <Link href="/auth/signin" className="font-medium text-blue-700 hover:underline">{tIn("form.signInBtn")}</Link>
+                  <Link href="/auth/signin" className="font-medium text-green-700 hover:underline">{tIn("form.signInBtn")}</Link>
                 </p>
               </form>
             ) : (
                <p className="mt-6 text-center text-sm text-slate-600">
                   {t("backTo")}{" "}
-                  <Link href="/auth/signin" className="font-medium text-blue-700 hover:underline">{tIn("form.signInBtn")}</Link>
+                  <Link href="/auth/signin" className="font-medium text-green-700 hover:underline">{tIn("form.signInBtn")}</Link>
                 </p>
             )}
           </div>

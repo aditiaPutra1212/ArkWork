@@ -625,9 +625,9 @@ export default function Page() {
             <Image
               src={Logo}
               alt="ArkWork Logo"
-              width={100}
-              height={100}
-              className="mx-auto mb-4 h-24 w-24 sm:h-24 sm:w-24 object-contain"
+              width={170}
+              height={170}
+              className="mb-0 mt-0 pt-0 dispalay-block mx-auto"
               priority
             />
             <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-slate-900">
@@ -744,7 +744,7 @@ export default function Page() {
               <button
                 type="submit"
                 disabled={siBusy}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+                className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#16A34A] to-[#15803D] px-4 py-2.5 text-sm font-semibold text-white shadow transition-allduration-150 ease-out hover:from-[#15803D] hover:to-[#166534] hover:shadow-[0_14px_40px_rgba(22,163,74,0.45)] disabled:opacity-60"
               >
                 {siBusy ? (
                   <>
@@ -761,7 +761,7 @@ export default function Page() {
                 <button
                   type="button"
                   onClick={() => setMode("signup")}
-                  className="font-medium text-blue-700 hover:underline"
+                  className="font-medium text-green-700 hover:underline"
                 >
                   Daftar perusahaan
                 </button>
@@ -780,7 +780,7 @@ export default function Page() {
                       className={cx(
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
                         n <= step
-                          ? "bg-blue-600 text-white"
+                          ? "bg-green-600 text-white"
                           : "bg-slate-200 text-slate-600",
                       )}
                     >
@@ -952,20 +952,20 @@ export default function Page() {
                       type="checkbox"
                       checked={agree}
                       onChange={(e) => setAgree(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                      className="h-4 w-4 rounded border-slate-300 text-green-600"
                     />
                     <span>
                       I agree to the{" "}
                       <Link
                         href="/terms"
-                        className="text-blue-700 hover:underline"
+                        className="text-green-700 hover:underline"
                       >
                         Terms of Service
                       </Link>{" "}
                       and{" "}
                       <Link
                         href="/privacy"
-                        className="text-blue-700 hover:underline"
+                        className="text-green-700 hover:underline"
                       >
                         Privacy Policy
                       </Link>
@@ -976,7 +976,7 @@ export default function Page() {
                   <button
                     type="submit"
                     disabled={busy}
-                    className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+                    className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-green-700 disabled:opacity-60"
                   >
                     {busy ? (
                       <>
@@ -1288,7 +1288,7 @@ function Step2({
         <button
           type="button"
           onClick={onNext}
-          className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
         >
           Selanjutnya
         </button>
@@ -1337,7 +1337,7 @@ function Step3({
                 className={cx(
                   "text-left rounded-2xl border p-5 transition focus:outline-none",
                   active
-                    ? "border-blue-500 ring-2 ring-blue-100"
+                    ? "border-green-500 ring-2 ring-green-100"
                     : "border-slate-200 hover:border-slate-300",
                 )}
               >
@@ -1345,7 +1345,7 @@ function Step3({
                   <h3
                     className={cx(
                       "text-base sm:text-lg font-semibold",
-                      active ? "text-blue-700" : "text-slate-900",
+                      active ? "text-green-700" : "text-slate-900",
                     )}
                   >
                     {p.name}
@@ -1353,7 +1353,7 @@ function Step3({
                   <div
                     className={cx(
                       "text-sm",
-                      active ? "text-blue-600" : "text-slate-500",
+                      active ? "text-green-600" : "text-slate-500",
                     )}
                   >
                     {formatIDR(p.amount)}
@@ -1405,7 +1405,7 @@ function Step3({
         <button
           type="button"
           onClick={onNext}
-          className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
           disabled={busy || !selectedSlug}
         >
           {busy ? "Memproses…" : "Selanjutnya"}
@@ -1481,7 +1481,7 @@ function VerifySummary({
           type="button"
           disabled={busy || !paid}
           onClick={onSubmit}
-          className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+          className="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
           title={!paid ? "Selesaikan pembayaran terlebih dahulu" : undefined}
         >
           {busy ? "Mengirim…" : "Kirim"}

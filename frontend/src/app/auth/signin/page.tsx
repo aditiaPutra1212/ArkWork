@@ -277,7 +277,7 @@ export default function AuthPage() {
         {/* Outer Card */}
         <div className="relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-white shadow-[0_10px_50px_rgba(2,6,23,0.08)] ring-1 ring-slate-100/60">
           {/* Decorative blur blobs */}
-          <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-blue-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-green-400/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-indigo-400/10 blur-3xl" />
 
           {/* Header */}
@@ -285,9 +285,9 @@ export default function AuthPage() {
             <Image
               src={Logo}
               alt="ArkWork Logo"
-              width={100}
-              height={100}
-              className="mx-auto mb-4 h-24 w-24 sm:h-24 sm:w-24 object-contain"
+              width={170}
+              height={170}
+              className="mb-0 mt-0 pt-0 dispalay-block mx-auto"
               priority
             />
             <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
@@ -399,12 +399,12 @@ export default function AuthPage() {
                   <label className="inline-flex items-center gap-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                      className="h-4 w-4 rounded border-slate-300 text-green-600"
                     />
                     {tIn("form.remember")}
                   </label>
                   <Link
-                    className="text-sm font-medium text-blue-700 hover:underline"
+                    className="text-sm font-medium text-green-700 hover:underline"
                     href="/auth/forgot"
                   >
                     {tIn("form.forgot")}
@@ -414,7 +414,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={siBusy || googleBusy} // --- MODIFIED ---
-                  className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#16A34A] to-[#15803D] px-4 py-2.5 text-sm font-semibold text-white shadow transition-allduration-150 ease-out hover:from-[#15803D] hover:to-[#166534] hover:shadow-[0_14px_40px_rgba(22,163,74,0.45)] disabled:opacity-60"
                 >
                   {siBusy ? (
                     <>
@@ -435,7 +435,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => switchMode("signup")}
-                    className="font-medium text-blue-700 hover:underline"
+                    className="font-medium text-green-700 hover:underline"
                   >
                     {tIn("signUp")}
                   </button>
@@ -572,16 +572,16 @@ export default function AuthPage() {
                     type="checkbox"
                     checked={suAgree}
                     onChange={(e) => setSuAgree(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                    className="h-4 w-4 rounded border-slate-300 text-green-600"
                   />
                   {tUp("agree.1")}{" "}
-                  <Link href="/terms" className="text-blue-700 hover:underline">
+                  <Link href="/terms" className="text-green-700 hover:underline">
                     {tUp("agree.terms")}
                   </Link>{" "}
                   {tUp("agree.and")}{" "}
                   <Link
                     href="/privacy"
-                    className="text-blue-700 hover:underline"
+                    className="text-green-700 hover:underline"
                   >
                     {tUp("agree.privacy")}
                   </Link>
@@ -591,7 +591,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={suBusy || googleBusy} // --- MODIFIED ---
-                  className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-green-700 disabled:opacity-60"
                 >
                   {suBusy ? (
                     <>
@@ -612,7 +612,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => switchMode("signin")}
-                    className="font-medium text-blue-700 hover:underline"
+                    className="font-medium text-green-700 hover:underline"
                   >
                     {tUp("signIn")}
                   </button>
