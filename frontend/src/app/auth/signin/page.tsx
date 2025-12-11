@@ -399,12 +399,12 @@ export default function AuthPage() {
                   <label className="inline-flex items-center gap-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-slate-300 text-blue-600"
+                      className="h-4 w-4 rounded border-slate-300 text-green-600"
                     />
                     {tIn("form.remember")}
                   </label>
                   <Link
-                    className="text-sm font-medium text-blue-700 hover:underline"
+                    className="text-sm font-medium text-green-700 hover:underline"
                     href="/auth/forgot"
                   >
                     {tIn("form.forgot")}
@@ -435,7 +435,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => switchMode("signup")}
-                    className="font-medium text-blue-700 hover:underline"
+                    className="font-medium text-green-700 hover:underline"
                   >
                     {tIn("signUp")}
                   </button>
