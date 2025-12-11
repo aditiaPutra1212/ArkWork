@@ -58,18 +58,18 @@ export default function ForgotPasswordPage() {
                   <span className="mb-1 block text-xs text-slate-600">Email</span>
                   <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm" placeholder="you@example.com" />
                 </label>
-                <button type="submit" disabled={isBusy} className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60">
+                <button type="submit" disabled={isBusy} className="inline-flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-green-700 disabled:opacity-60">
                   {isBusy ? (<><span className="mr-2 inline-block animate-spin">⏳</span>{t("form.sending")}</>) : (t("form.sendLink"))}
                 </button>
                 <p className="mt-6 text-center text-sm text-slate-600">
                   {t("backTo")}{" "}
-                  <Link href="/auth/signin" className="font-medium text-blue-700 hover:underline">{tIn("form.signInBtn")}</Link>
+                  <Link href="/auth/signin" className="font-medium text-green-700 hover:underline">{tIn("form.signInBtn")}</Link>
                 </p>
               </form>
             ) : (
                <p className="mt-6 text-center text-sm text-slate-600">
                   {t("backTo")}{" "}
-                  <Link href="/auth/signin" className="font-medium text-blue-700 hover:underline">{tIn("form.signInBtn")}</Link>
+                  <Link href="/auth/signin" className="font-medium text-green-700 hover:underline">{tIn("form.signInBtn")}</Link>
                 </p>
             )}
           </div>
