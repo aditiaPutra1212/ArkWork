@@ -191,7 +191,7 @@
         "1": "Tim di balik",
         "2": "misi ini"
       },
-      "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Rutrum libero lectus nunc posuere egestas. Dibangun oleh tim kecil yang peduli dengan masa depan karier energi."
+      "desc": "Dibangun oleh tim berdedikasi dari veteran sektor energi dan ahli teknologi yang berkomitmen untuk mengubah cara talenta dan perusahaan terhubung dalam industri ini."
     }
   },
   "lang": {
@@ -223,6 +223,7 @@
     "social": {
       "x": "X / Twitter",
       "linkedin": "LinkedIn",
+      "instagram": "Instagram",
       "email": "Email"
     },
     "badge": {

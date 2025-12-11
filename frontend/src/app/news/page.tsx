@@ -109,16 +109,19 @@ export default function NewsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
+    <div className="min-h-screen bg-slate-50 py-8 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 className="mb-6 text-3xl font-bold text-gray-900">{t('news.title')}</h1>
+        <h1 className="mb-6 text-3xl font-bold text-emerald-950 tracking-tight">{t('news.title')}</h1>
 
         {/* Controls */}
-        <div className="mb-6 grid gap-3 rounded-lg bg-white p-4 shadow md:grid-cols-7 md:gap-4 md:p-6">
+        <div className="mb-6 grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-emerald-100 md:grid-cols-7 md:gap-4 md:p-6">
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.scope')}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.scope')}</span>
             <select
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
+              className="w-full rounded-lg border border-emerald-100 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none bg-white"
               value={scope}
               onChange={(e) => setScope(e.target.value as any)}
             >
@@ -129,9 +132,9 @@ export default function NewsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.country')}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.country')}</span>
             <select
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
+              className="w-full rounded-lg border border-emerald-100 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none bg-white"
               value={country}
               onChange={(e) => setCountry(e.target.value)}
               title="Pilih ALL untuk lintas negara"
@@ -151,9 +154,9 @@ export default function NewsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.period')}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.period')}</span>
             <select
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
+              className="w-full rounded-lg border border-emerald-100 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none bg-white"
               value={when}
               onChange={(e) => setWhen(e.target.value as any)}
             >
@@ -165,9 +168,9 @@ export default function NewsPage() {
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.limit')}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.limit')}</span>
             <select
-              className="w-full rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
+              className="w-full rounded-lg border border-emerald-100 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none bg-white"
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value))}
             >
@@ -180,10 +183,10 @@ export default function NewsPage() {
           </div>
 
           <div className="md:col-span-2 flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.keywords')}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.keywords')}</span>
             <input
               placeholder={t('news.filters.keywordsPh')}
-              className="rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
+              className="rounded-lg border border-emerald-100 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none"
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
             />
@@ -193,7 +196,7 @@ export default function NewsPage() {
             <span className="text-[11px] opacity-0 select-none">{t('news.filters.fetchLabel')}</span>
             <button
               onClick={load}
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-60"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200 disabled:opacity-60 transition-colors"
               disabled={loading}
             >
               {loading ? t('news.filters.loading') : t('news.filters.fetchBtn')}
@@ -201,10 +204,10 @@ export default function NewsPage() {
           </div>
 
           <div className="md:col-span-3 flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-600">{t('news.filters.quick')}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.quick')}</span>
             <input
               placeholder={t('news.filters.quickPh')}
-              className="rounded-lg border px-3 py-2 text-sm focus:border-gray-800 focus:outline-none"
+              className="rounded-lg border border-emerald-100 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none"
               value={quick}
               onChange={(e) => setQuick(e.target.value)}
             />
@@ -218,17 +221,17 @@ export default function NewsPage() {
         )}
 
         {/* List */}
-        <section className="rounded-xl bg-white shadow">
-          <div className="flex items-center justify-between border-b px-5 py-4">
+        <section className="rounded-2xl bg-white shadow-sm ring-1 ring-emerald-100">
+          <div className="flex items-center justify-between border-b border-emerald-100 px-5 py-4">
             <div className="flex items-center gap-2">
-              <svg className="h-5 w-5 text-gray-900" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <svg className="h-5 w-5 text-emerald-600" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
                 <path d="M14 3v2h3.59L7 15.59 8.41 17 19 6.41V10h2V3zM5 5h6V3H3v8h2z" />
                 <path d="M19 19H5V8H3v13h18V10h-2z" />
               </svg>
-              <span className="font-semibold">{t('news.list.title')}</span>
+              <span className="font-semibold text-emerald-950">{t('news.list.title')}</span>
             </div>
             {quick && (
-              <button onClick={() => setQuick('')} className="text-sm text-gray-900 hover:underline">
+              <button onClick={() => setQuick('')} className="text-sm text-emerald-600 hover:text-emerald-700 hover:underline">
                 {t('news.list.clearQuick')}
               </button>
             )}
@@ -237,10 +240,10 @@ export default function NewsPage() {
           {loading && (
             <div className="space-y-3 p-5">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse space-y-2 border-b pb-4 last:border-none">
-                  <div className="h-4 w-2/3 rounded bg-gray-200" />
-                  <div className="h-3 w-1/3 rounded bg-gray-200" />
-                  <div className="h-3 w-full rounded bg-gray-100" />
+                <div key={i} className="animate-pulse space-y-2 border-b border-emerald-50 pb-4 last:border-none">
+                  <div className="h-4 w-2/3 rounded bg-emerald-50" />
+                  <div className="h-3 w-1/3 rounded bg-emerald-50" />
+                  <div className="h-3 w-full rounded bg-slate-50" />
                 </div>
               ))}
             </div>
@@ -250,30 +253,30 @@ export default function NewsPage() {
             filtered.map((it, i) => (
               <article
                 key={`${it.link}-${i}`}
-                className="border-b px-5 py-5 last:border-none md:px-6"
+                className="border-b border-emerald-50 px-5 py-5 last:border-none md:px-6 hover:bg-emerald-50/30 transition-colors"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <a href={it.link} target="_blank" rel="noreferrer" className="hover:underline">
-                    <h3 className="text-base font-semibold text-gray-900 md:text-lg">
+                  <a href={it.link} target="_blank" rel="noreferrer" className="hover:underline group">
+                    <h3 className="text-base font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors md:text-lg">
                       {it.title}
                     </h3>
                   </a>
-                  <span className="inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-xs text-gray-700">
+                  <span className="inline-flex shrink-0 items-center rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1 text-xs text-emerald-700 font-medium">
                     {it.source || getDomain(it.link) || t('news.list.source')}
                   </span>
                 </div>
 
-                <p className="mt-2 line-clamp-2 text-sm text-gray-600">
+                <p className="mt-2 line-clamp-2 text-sm text-slate-600">
                   {summarize(it) || '…'}
                 </p>
 
                 <div className="mt-3 flex items-center justify-between text-sm">
-                  <time className="text-gray-500">{fmtDate(it.pubDate || undefined)}</time>
+                  <time className="text-slate-500 font-medium">{fmtDate(it.pubDate || undefined)}</time>
                   <a
                     href={it.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-gray-900 hover:underline"
+                    className="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
                   >
                     {t('news.list.open')}
                     <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
@@ -287,7 +290,7 @@ export default function NewsPage() {
         </section>
 
         {!loading && !error && filtered.length === 0 && (
-          <p className="mt-10 text-center text-gray-500">{t('news.list.empty')}</p>
+          <p className="mt-10 text-center text-slate-500">{t('news.list.empty')}</p>
         )}
       </div>
     </div>

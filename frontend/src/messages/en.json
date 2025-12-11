@@ -191,7 +191,7 @@
         "1": "The team behind",
         "2": "this mission"
       },
-      "desc": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Rutrum libero lectus nunc posuere egestas. Built by a small team of people who care about the future of energy careers."
+      "desc": "Built by a dedicated team of energy sector veterans and tech experts committed to transforming how talent and companies connect in the industry."
     }
   },
   "lang": {
@@ -223,6 +223,7 @@
     "social": {
       "x": "X / Twitter",
       "linkedin": "LinkedIn",
+      "instagram": "Instagram",
       "email": "Email"
     },
     "badge": {
