@@ -414,7 +414,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={siBusy || googleBusy} // --- MODIFIED ---
-                  className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700 disabled:opacity-60"
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-green-700 disabled:opacity-60"
                 >
                   {siBusy ? (
                     <>
