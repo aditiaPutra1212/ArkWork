@@ -744,7 +744,7 @@ export default function Page() {
               <button
                 type="submit"
                 disabled={siBusy}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white shadow hover:bg-green-700 disabled:opacity-60"
+                className="mt-2 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-[#16A34A] to-[#15803D] px-4 py-2.5 text-sm font-semibold text-white shadow transition-allduration-150 ease-out hover:from-[#15803D] hover:to-[#166534] hover:shadow-[0_14px_40px_rgba(22,163,74,0.45)] disabled:opacity-60"
               >
                 {siBusy ? (
                   <>
