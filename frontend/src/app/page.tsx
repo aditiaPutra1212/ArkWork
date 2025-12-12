@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import ArkHero from "@/app/Images/1.jpg";
 import Team1 from "@/app/Images/team1.jpg";
 import Team2 from "@/app/Images/team2.jpg";
+import CtaBg from "@/app/Images/56.jpg";
 
 export default function HomePage() {
   const t = useTranslations();
@@ -399,33 +400,35 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="rounded-3xl bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 p-[1px] shadow-2xl shadow-emerald-900/20"
+            className="rounded-3xl bg-slate-900 p-[1px] shadow-2xl shadow-slate-900/20"
           >
-            <div className="rounded-3xl bg-gradient-to-br from-emerald-900 to-emerald-950 px-6 py-10 md:px-12 md:py-16 text-center relative overflow-hidden">
+            <div className="rounded-3xl bg-slate-900 px-6 py-10 md:px-12 md:py-16 text-center relative overflow-hidden isolate">
+              {/* Background Image */}
+              <div className="absolute inset-0 -z-10">
+                <Image
+                  src={CtaBg}
+                  alt="Background"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  className="object-cover opacity-40"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40" />
+              </div>
+
               {/* Decorative patterns */}
               <div
                 className="absolute inset-0 opacity-10 pointer-events-none"
                 style={{
-                  backgroundImage: "radial-gradient(#10b981 1px, transparent 1px)",
+                  backgroundImage: "radial-gradient(#ffffff 1px, transparent 1px)",
                   backgroundSize: "24px 24px"
                 }}
               />
 
-              {/* Animated glow background */}
-              <motion.div
-                animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.1, 1] }}
-                transition={{ duration: 5, repeat: Infinity }}
-                className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/20 blur-[100px] -z-10 rounded-full translate-x-1/3 -translate-y-1/3"
-              />
-              <motion.div
-                animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.2, 1] }}
-                transition={{ duration: 7, repeat: Infinity, delay: 1 }}
-                className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-500/10 blur-[80px] -z-10 rounded-full -translate-x-1/3 translate-y-1/3"
-              />
+              {/* Animated glow background (Removed for consistency) */}
 
               <div className="mb-6 flex justify-center">
-                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-900/50 px-4 py-1.5 text-xs font-medium text-emerald-100 border border-emerald-700/50 backdrop-blur-sm">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/50 px-4 py-1.5 text-xs font-medium text-slate-200 border border-slate-700/50 backdrop-blur-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                   ArkWork · Energy Talent Hub
                 </span>
               </div>
@@ -434,7 +437,7 @@ export default function HomePage() {
                 {t("home.final.title")}
               </h3>
 
-              <p className="mt-4 text-base md:text-lg text-emerald-100/80 max-w-2xl mx-auto leading-relaxed">
+              <p className="mt-4 text-base md:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed">
                 {t("home.final.desc")}
               </p>
 
@@ -443,13 +446,13 @@ export default function HomePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   href="/auth/signin"
-                  className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-emerald-900 font-bold shadow-lg shadow-emerald-900/20 hover:bg-emerald-50 transition-colors"
+                  className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-slate-900 font-bold shadow-lg shadow-white/10 hover:bg-slate-50 transition-colors"
                 >
                   {t("home.final.cta")}
                 </motion.a>
               </div>
 
-              <p className="mt-6 text-xs text-emerald-400/60 leading-relaxed font-medium">
+              <p className="mt-6 text-xs text-slate-400 leading-relaxed font-medium">
                 {t("home.final.note")}
               </p>
             </div>

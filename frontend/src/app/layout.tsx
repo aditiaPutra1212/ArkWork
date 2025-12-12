@@ -72,7 +72,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
             {/* Pastikan ClientShell tidak remount pakai key dinamis */}
             <ClientShell>
-              <main className="pt-16">{children}</main>
+              <main className="pt-20">{children}</main>
               <Footer />
             </ClientShell>
           </AuthProvider>

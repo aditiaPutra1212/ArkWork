@@ -288,14 +288,14 @@ export default function TendersLikeJobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-emerald-50/30">
       {/* Header */}
-      <header className="border-b border-neutral-200 bg-white">
+      <header className="border-b border-emerald-800 bg-gradient-to-r from-emerald-900 to-emerald-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">{t('tenders.header.title')}</h1>
-              <p className="text-neutral-600">{t('tenders.header.subtitle')}</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white">{t('tenders.header.title')}</h1>
+              <p className="text-emerald-100">{t('tenders.header.subtitle')}</p>
               {loadErr && (
                 <div className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                   {loadErr}
@@ -306,32 +306,32 @@ export default function TendersLikeJobsPage() {
             {/* Search + Sort + Mobile filter */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300">
                   <SearchIcon className="h-4 w-4" />
                 </span>
                 <input
                   value={filters.q}
                   onChange={(e) => setFilters((s) => ({ ...s, q: e.target.value }))}
                   placeholder={t('tenders.search.placeholder')}
-                  className="w-full sm:w-80 rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400"
+                  className="w-full sm:w-80 rounded-xl border border-emerald-600 bg-emerald-800/50 pl-9 pr-3 py-2 text-sm text-white placeholder:text-emerald-300 outline-none focus:border-emerald-400"
                 />
               </div>
 
               <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-600">{t('tenders.sort.label')}</label>
+                <label className="text-sm text-emerald-100">{t('tenders.sort.label')}</label>
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value as any)}
-                  className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+                  className="rounded-xl border border-emerald-600 bg-emerald-800 text-white px-3 py-2 text-sm outline-none focus:border-emerald-400"
                 >
-                  <option value="newest">{t('tenders.sort.newest')}</option>
-                  <option value="oldest">{t('tenders.sort.oldest')}</option>
+                  <option value="newest" className="text-neutral-900">{t('tenders.sort.newest')}</option>
+                  <option value="oldest" className="text-neutral-900">{t('tenders.sort.oldest')}</option>
                 </select>
               </div>
 
               <button
                 onClick={() => setDrawer(true)}
-                className="sm:hidden inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+                className="sm:hidden inline-flex items-center gap-2 rounded-xl border border-emerald-600 bg-emerald-800 text-white px-3 py-2 text-sm"
               >
                 <FilterIcon className="h-4 w-4" /> {t('tenders.filter.mobileBtn')}
               </button>
@@ -346,10 +346,10 @@ export default function TendersLikeJobsPage() {
         <aside className="hidden lg:col-span-3 lg:block">
           <FilterCard>
             {/* Currency switch */}
-            <div className="mb-1 flex items-center justify-between rounded-xl border border-neutral-200 p-2">
+            <div className="mb-1 flex items-center justify-between rounded-xl border border-emerald-100 p-2">
               <div className="text-sm">
-                <div className="font-medium text-neutral-800">Currency</div>
-                <div className="text-xs text-neutral-500">
+                <div className="font-medium text-emerald-900">Currency</div>
+                <div className="text-xs text-emerald-600">
                   {rateErr
                     ? 'Rate unavailable'
                     : displayCurrency === 'IDR'
@@ -360,13 +360,13 @@ export default function TendersLikeJobsPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setDisplayCurrency('IDR')}
-                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'IDR' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
+                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'IDR' ? 'bg-emerald-900 text-white' : 'bg-emerald-50 text-emerald-700'}`}
                 >
                   IDR
                 </button>
                 <button
                   onClick={() => setDisplayCurrency('USD')}
-                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'USD' ? 'bg-neutral-900 text-white' : 'bg-neutral-100'}`}
+                  className={`px-2 py-1 rounded-lg text-xs ${displayCurrency === 'USD' ? 'bg-emerald-900 text-white' : 'bg-emerald-50 text-emerald-700'}`}
                 >
                   USD
                 </button>
@@ -419,10 +419,10 @@ export default function TendersLikeJobsPage() {
             />
 
             <div className="pt-3 flex items-center justify-between">
-              <span className="text-sm text-neutral-500">
+              <span className="text-sm text-emerald-600">
                 {t('tenders.filter.results', { n: items.length })}
               </span>
-              <button onClick={clearFilters} className="text-sm text-blue-700 hover:underline">
+              <button onClick={clearFilters} className="text-sm text-emerald-700 hover:underline">
                 {t('tenders.filter.reset')}
               </button>
             </div>
@@ -438,10 +438,10 @@ export default function TendersLikeJobsPage() {
               <article
                 key={item.id}
                 onClick={() => openDetail(item)}
-                className="group cursor-pointer rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm hover:shadow-md transition"
+                className="group cursor-pointer rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition"
               >
                 <div className="flex gap-4">
-                  <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 grid place-items-center overflow-hidden text-white text-sm font-bold">
+                  <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 grid place-items-center overflow-hidden text-white text-sm font-bold">
                     {initials(item.company || 'AW')}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -452,7 +452,7 @@ export default function TendersLikeJobsPage() {
                         </h3>
                         <p className="text-sm text-neutral-600 truncate">{item.company}</p>
                       </div>
-                      <span className="rounded-lg border border-neutral-300 px-2 py-1 text-xs text-neutral-700">
+                      <span className="rounded-lg border border-emerald-200 px-2 py-1 text-xs text-emerald-700">
                         {t('tenders.card.detail')}
                       </span>
                     </div>
@@ -481,8 +481,8 @@ export default function TendersLikeJobsPage() {
                         className={[
                           'rounded-lg border px-2.5 py-1 text-xs transition',
                           saved.includes(item.id)
-                            ? 'border-amber-500 bg-amber-50 text-amber-700'
-                            : 'border-neutral-300 text-neutral-700 hover:bg-neutral-50',
+                            ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+                            : 'border-emerald-200 text-emerald-600 hover:bg-emerald-50',
                         ].join(' ')}
                       >
                         {saved.includes(item.id) ? t('tenders.card.saved') : t('tenders.card.save')}
@@ -604,8 +604,8 @@ export default function TendersLikeJobsPage() {
 /* ---------------- UI helpers ---------------- */
 function FilterCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 sticky top-24">
-      <div className="mb-2 text-sm font-semibold text-neutral-900">Filter</div>
+    <div className="rounded-2xl border border-emerald-100 bg-white p-4 sticky top-24">
+      <div className="mb-2 text-sm font-semibold text-emerald-900">Filter</div>
       <div className="space-y-3">{children}</div>
     </div>
   );
@@ -625,13 +625,13 @@ function FilterInput({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500">{label}</span>
+      <span className="mb-1 block text-[11px] uppercase tracking-wide text-emerald-600">{label}</span>
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">{icon}</span>
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400">{icon}</span>
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400"
+          className="w-full rounded-xl border border-emerald-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-emerald-500"
           placeholder={placeholder}
         />
       </div>
@@ -655,13 +655,13 @@ function FilterSelect({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500">{label}</span>
+      <span className="mb-1 block text-[11px] uppercase tracking-wide text-emerald-600">{label}</span>
       <div className="relative">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">{icon}</span>
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400">{icon}</span>
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-neutral-400"
+          className="w-full rounded-xl border border-emerald-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-emerald-500"
         >
           {options.map((o) => (
             <option key={o || 'all'} value={o}>
@@ -676,9 +676,9 @@ function FilterSelect({
 
 function Meta({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1">
-      <span className="text-neutral-600">{icon}</span>
-      <span className="truncate">{text}</span>
+    <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-2 py-1">
+      <span className="text-emerald-600">{icon}</span>
+      <span className="truncate text-emerald-900">{text}</span>
     </div>
   );
 }
@@ -760,7 +760,7 @@ function DetailModal({
                         href={href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs text-blue-700 underline"
+                        className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs text-emerald-700 underline"
                       >
                         <PaperIcon className="h-3 w-3" /> {d}
                       </a>
@@ -788,7 +788,7 @@ function DetailModal({
             </button>
             <button
               onClick={onParticipate}
-              className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+              className="rounded-xl bg-emerald-900 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800"
             >
               {t('tenders.detail.participate')}
             </button>

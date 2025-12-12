@@ -50,7 +50,7 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
   const MIN_H = 360;
   const MAX_W_VW = 0.92;  // 92vw
   const MAX_H_VH = 0.8;   // 80vh
-  const [size, setSize] = useState<{w: number; h: number}>(() => {
+  const [size, setSize] = useState<{ w: number; h: number }>(() => {
     const vw = typeof window !== 'undefined' ? window.innerWidth : 1200;
     const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
     return {
@@ -120,12 +120,12 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setMsgs(JSON.parse(raw));
-    } catch {}
+    } catch { }
   }, []);
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
-    } catch {}
+    } catch { }
   }, [msgs]);
 
   /* ---------- auto scroll ---------- */
@@ -177,7 +177,7 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
       try {
         const data = await res.json();
         reply = (res.ok && (data.answer || data.message)) || reply;
-      } catch {}
+      } catch { }
 
       const a: Msg = { id: rid(), role: 'assistant', text: reply, ts: Date.now() };
       setMsgs((m) => [...m, a]);
@@ -201,17 +201,18 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
 
   function resetChat() {
     setMsgs([]);
-    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    try { localStorage.removeItem(STORAGE_KEY); } catch { }
   }
 
   /* ===================== UI ===================== */
   return (
     <>
       {/* Floating Action Button */}
+      {/* Floating Action Button */}
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Buka ArkWork Agent"
-        className="fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full border border-neutral-200 bg-black text-white shadow-lg transition hover:scale-105"
+        className="fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full border border-emerald-400 bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 transition hover:scale-105 hover:bg-emerald-500"
       >
         <svg viewBox="0 0 24 24" className="h-7 w-7">
           <path d="M12 2v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -225,38 +226,38 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
       {/* Panel */}
       {open && (
         <div
-          className="fixed right-5 z-50 overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl"
+          className="fixed right-5 z-50 overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-2xl shadow-emerald-900/10"
           style={{
             bottom: 24,
             width: size.w,
             height: size.h,
-            maxWidth: `min(${Math.floor(MAX_W_VW*100)}vw, 740px)`,
-            maxHeight: `${Math.floor(MAX_H_VH*100)}vh`,
+            maxWidth: `min(${Math.floor(MAX_W_VW * 100)}vw, 740px)`,
+            maxHeight: `${Math.floor(MAX_H_VH * 100)}vh`,
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-neutral-200 bg-gray-50 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-emerald-100 bg-emerald-50/50 px-4 py-3 backdrop-blur-sm">
             <div className="flex items-center gap-3">
-              <div className="grid h-8 w-8 place-items-center rounded-xl bg-black text-xs font-bold text-white">AW</div>
-              <div className="font-semibold text-neutral-900">ArkWork Agent</div>
+              <div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-xs font-bold text-white shadow-sm">AW</div>
+              <div className="font-semibold text-emerald-950">ArkWork Agent</div>
             </div>
 
             <div className="flex items-center gap-1">
               <button
                 onClick={toggleExpand}
-                className="rounded-lg border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-200"
+                className="rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50 transition-colors"
                 title="Expand/Restore"
               >
                 ⤢
               </button>
               <button
                 onClick={resetChat}
-                className="rounded-lg border border-neutral-300 px-2 py-1 text-xs hover:bg-neutral-200"
+                className="rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50 transition-colors"
               >
                 Reset
               </button>
               <button
-                className="rounded-lg p-2 hover:bg-neutral-200"
+                className="rounded-lg p-2 text-emerald-700 hover:bg-emerald-100 transition-colors"
                 onClick={() => setOpen(false)}
                 aria-label="Tutup"
               >
@@ -270,14 +271,14 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
           {/* Messages + Suggestions */}
           <div ref={listRef} className="h-[calc(100%-106px)] space-y-2 overflow-y-auto px-3 py-3">
             {msgs.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-600">
+              <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 p-4 text-sm text-emerald-800">
                 Mulai percakapan. Contoh:
                 <div className="mt-2 flex flex-wrap gap-2">
                   {suggestions.map((s) => (
                     <button
                       key={s}
                       onClick={() => ask(s)}
-                      className="rounded-full border border-neutral-300 px-3 py-1 text-xs hover:bg-neutral-100"
+                      className="rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors"
                     >
                       {s}
                     </button>
@@ -294,15 +295,15 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
                   ].join(' ')}
                 >
                   {m.role === 'assistant' && (
-                    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-black text-xs text-white">AW</div>
+                    <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-emerald-600 text-xs text-white shadow-sm">AW</div>
                   )}
 
                   <div
                     className={[
-                      'max-w-[80%] rounded-2xl px-3 py-2 text-sm',
+                      'max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm',
                       m.role === 'user'
-                        ? 'bg-black text-white'
-                        : 'bg-neutral-100 text-neutral-900',
+                        ? 'bg-emerald-600 text-white rounded-br-none'
+                        : 'bg-white border border-emerald-100 text-slate-800 rounded-bl-none',
                     ].join(' ')}
                   >
                     {m.role === 'assistant' ? (
@@ -315,7 +316,7 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
                           ul: (p) => <ul className="my-1 list-disc space-y-1 pl-5" {...p} />,
                           ol: (p) => <ol className="my-1 list-decimal space-y-1 pl-5" {...p} />,
                           li: (p) => <li className="leading-5" {...p} />,
-                          p:  (p) => <p className="my-1 leading-6" {...p} />,
+                          p: (p) => <p className="my-1 leading-6" {...p} />,
                           code: (p) => <code className="rounded bg-neutral-200 px-1 py-[1px] text-[0.85em]" {...p} />,
                           pre: (p) => (
                             <pre className="my-2 max-w-full overflow-x-auto rounded-lg bg-neutral-900 p-3 text-xs text-neutral-100" {...p} />
@@ -337,8 +338,8 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
 
             {busy && (
               <div className="flex items-end gap-2">
-                <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-black text-xs text-white">AW</div>
-                <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm text-neutral-900">
+                <div className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-emerald-600 text-xs text-white shadow-sm">AW</div>
+                <div className="rounded-2xl rounded-bl-none border border-emerald-100 bg-white px-3 py-2 text-sm text-slate-600 shadow-sm">
                   mengetik<span className="animate-pulse">…</span>
                 </div>
               </div>
@@ -346,17 +347,17 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
           </div>
 
           {/* Input */}
-          <form onSubmit={onSubmit} className="border-t border-neutral-200 bg-gray-50 p-3">
+          <form onSubmit={onSubmit} className="border-t border-emerald-100 bg-emerald-50/30 p-3">
             <div className="flex items-center gap-2">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Tanya berita migas, minta JD, rekomendasi kerja, atau konsultasi…"
-                className="flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-400"
+                className="flex-1 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-emerald-800/40 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all"
               />
               <button
                 disabled={!input.trim() || busy}
-                className="rounded-xl bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-500 disabled:opacity-60 disabled:hover:bg-emerald-600 transition-colors"
               >
                 Kirim
               </button>

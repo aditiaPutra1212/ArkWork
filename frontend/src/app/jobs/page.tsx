@@ -428,7 +428,7 @@ export default function JobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-emerald-50/30">
       {/* Toast */}
       {toast && (
         <div
@@ -441,12 +441,12 @@ export default function JobsPage() {
       )}
 
       {/* Header */}
-      <header className="border-b border-neutral-200 bg-white">
+      <header className="border-b border-emerald-800 bg-gradient-to-r from-emerald-900 to-emerald-800">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900">{t("heading")}</h1>
-              <p className="text-neutral-600">{t("subheading")}</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-white">{t("heading")}</h1>
+              <p className="text-emerald-100">{t("subheading")}</p>
               {loadErr && (
                 <div className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
                   {loadErr}
@@ -457,31 +457,31 @@ export default function JobsPage() {
             {/* Search + Sort + Mobile filter */}
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative">
-                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-300">
                   <SearchIcon className="h-4 w-4" />
                 </span>
                 <input
                   value={filters.q}
                   onChange={(e) => setFilters((s) => ({ ...s, q: e.target.value }))}
                   placeholder={t("search.placeholder")}
-                  className="w-full sm:w-80 rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A]"
+                  className="w-full sm:w-80 rounded-xl border border-emerald-600 bg-emerald-800/50 pl-9 pr-3 py-2 text-sm text-white placeholder:text-emerald-300 outline-none focus:border-emerald-400"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-600">{t("sort.label")}</label>
+                <label className="text-sm text-emerald-100">{t("sort.label")}</label>
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value as any)}
-                  className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-[#16A34A] outline-none"
+                  className="rounded-xl border border-emerald-600 bg-emerald-800 text-white px-3 py-2 text-sm outline-none focus:border-emerald-400"
                 >
-                  <option value="newest">{t("sort.newest")}</option>
-                  <option value="oldest">{t("sort.oldest")}</option>
+                  <option value="newest" className="text-neutral-900">{t("sort.newest")}</option>
+                  <option value="oldest" className="text-neutral-900">{t("sort.oldest")}</option>
                 </select>
               </div>
 
               <button
                 onClick={() => setDrawer(true)}
-                className="sm:hidden inline-flex items-center gap-2 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+                className="sm:hidden inline-flex items-center gap-2 rounded-xl border border-emerald-600 bg-emerald-800 text-white px-3 py-2 text-sm"
               >
                 <FilterIcon className="h-4 w-4" /> {t("filters.title")}
               </button>
@@ -503,8 +503,8 @@ export default function JobsPage() {
             <FilterSelect label={"Pengalaman"} value={filters.exp} onChange={(v) => setFilters((s) => ({ ...s, exp: v }))} options={["", "0-1", "1-3", "3-5", "5+"]} icon={<LayersIcon className="h-4 w-4" />} />
             <FilterSelect label={"Pendidikan"} value={filters.edu} onChange={(v) => setFilters((s) => ({ ...s, edu: v }))} options={["", "SMA/SMK", "D3", "S1", "S2", "S3"]} icon={<LayersIcon className="h-4 w-4" />} />
             <div className="pt-3 flex items-center justify-between">
-              <span className="text-sm text-neutral-500">{t("filters.results", { count: items.length })}</span>
-              <button onClick={clearFilters} className="text-sm text-[#16A34A] hover:underline font-medium">{t("filters.clear")}</button>
+              <span className="text-sm text-emerald-600">{t("filters.results", { count: items.length })}</span>
+              <button onClick={clearFilters} className="text-sm text-emerald-700 hover:underline font-medium">{t("filters.clear")}</button>
             </div>
           </FilterCard>
         </aside>
@@ -520,10 +520,10 @@ export default function JobsPage() {
                 <article
                   key={job.id}
                   onClick={() => openDetail(job)}
-                  className="group cursor-pointer rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-[#16A34A]/50 transition-all duration-200"
+                  className="group cursor-pointer rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-200"
                 >
                   <div className="flex gap-4">
-                    <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 grid place-items-center overflow-hidden text-white text-sm font-bold">
+                    <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 grid place-items-center overflow-hidden text-white text-sm font-bold">
                       {job.logo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img alt={job.company || "logo"} src={job.logo} className="h-full w-full object-cover" />
@@ -537,7 +537,7 @@ export default function JobsPage() {
                           <h3 className="truncate text-base md:text-lg font-semibold text-neutral-900">{job.title}</h3>
                           <p className="text-sm text-neutral-600 truncate">{job.company || t("common.company")}</p>
                         </div>
-                        <span className={["rounded-lg border px-2 py-1 text-xs font-medium", isApplied ? "border-[#16A34A] bg-[#E9F9F1] text-[#065F2A]" : "border-neutral-200 text-neutral-600 group-hover:border-[#16A34A] group-hover:text-[#16A34A] transition-colors"].join(" ")}>
+                        <span className={["rounded-lg border px-2 py-1 text-xs font-medium", isApplied ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-emerald-200 text-emerald-600 group-hover:border-emerald-500 group-hover:text-emerald-700 transition-colors"].join(" ")}>
                           {isApplied ? "Sudah dilamar" : t("common.view")}
                         </span>
                       </div>
@@ -558,7 +558,7 @@ export default function JobsPage() {
                         <span className="text-xs text-neutral-500">{t("common.posted", { date: formatPosted(job.posted) })}</span>
                         <button
                           onClick={(e) => { e.stopPropagation(); toggleSave(job.id); }}
-                          className={["rounded-lg border px-2.5 py-1 text-xs transition font-medium", saved.includes(String(job.id)) ? "border-amber-500 bg-amber-50 text-amber-700" : "border-neutral-300 text-neutral-600 hover:border-[#16A34A] hover:text-[#16A34A] hover:bg-[#E9F9F1]"].join(" ")}
+                          className={["rounded-lg border px-2.5 py-1 text-xs transition font-medium", saved.includes(String(job.id)) ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-emerald-200 text-emerald-600 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50"].join(" ")}
                         >
                           {saved.includes(String(job.id)) ? t("common.saved") : t("common.save")}
                         </button>
@@ -637,8 +637,8 @@ export default function JobsPage() {
 function FilterCard({ children }: { children: React.ReactNode }) {
   const t = useTranslations("jobs");
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 sticky top-24">
-      <div className="mb-2 text-sm font-semibold text-neutral-900">{t("filters.title")}</div>
+    <div className="rounded-2xl border border-emerald-100 bg-white p-4 sticky top-24">
+      <div className="mb-2 text-sm font-semibold text-emerald-900">{t("filters.title")}</div>
       <div className="space-y-3">{children}</div>
     </div>
   );
@@ -647,10 +647,10 @@ function FilterInput({ label, value, onChange, icon }: { label: string; value: s
   const t = useTranslations("jobs");
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500 font-semibold">{label}</span>
+      <span className="mb-1 block text-[11px] uppercase tracking-wide text-emerald-600 font-semibold">{label}</span>
       <div className="relative group">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#16A34A] transition-colors">{icon}</span>
-        <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none transition-all focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] group-hover:border-[#16A34A]/50" placeholder={t("filters.placeholder", { label: label.toLowerCase() })} />
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400 transition-colors">{icon}</span>
+        <input value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-emerald-200 bg-white pl-9 pr-3 py-2 text-sm outline-none transition-all focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 group-hover:border-emerald-300" placeholder={t("filters.placeholder", { label: label.toLowerCase() })} />
       </div>
     </label>
   );
@@ -659,10 +659,10 @@ function FilterSelect({ label, value, onChange, options, icon }: { label: string
   const t = useTranslations("jobs");
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] uppercase tracking-wide text-neutral-500 font-semibold">{label}</span>
+      <span className="mb-1 block text-[11px] uppercase tracking-wide text-emerald-600 font-semibold">{label}</span>
       <div className="relative group">
-        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#16A34A] transition-colors">{icon}</span>
-        <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-neutral-300 bg-white pl-9 pr-3 py-2 text-sm outline-none transition-all focus:border-[#16A34A] focus:ring-1 focus:ring-[#16A34A] group-hover:border-[#16A34A]/50">
+        <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400 transition-colors">{icon}</span>
+        <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded-xl border border-emerald-200 bg-white pl-9 pr-3 py-2 text-sm outline-none transition-all focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 group-hover:border-emerald-300">
           {options.map((o) => (
             <option key={o || "all"} value={o}>
               {o || t("filters.all", { label })}
@@ -675,9 +675,9 @@ function FilterSelect({ label, value, onChange, options, icon }: { label: string
 }
 function Meta({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div className="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1">
-      <span className="text-neutral-600">{icon}</span>
-      <span className="truncate">{text}</span>
+    <div className="inline-flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50/50 px-2 py-1">
+      <span className="text-emerald-600">{icon}</span>
+      <span className="truncate text-emerald-900">{text}</span>
     </div>
   );
 }
@@ -789,7 +789,7 @@ function DetailModal({
             <button
               onClick={onApply}
               disabled={disabled || isApplying}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all shadow-sm ${isApplying ? "bg-neutral-400" : "bg-[#16A34A] hover:bg-[#15803D] hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"}`}
+              className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all shadow-sm ${isApplying ? "bg-neutral-400" : "bg-emerald-900 hover:bg-emerald-800 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"}`}
             >
               {isApplying ? "Mengirim..." : "Lamar Sekarang"}
             </button>
