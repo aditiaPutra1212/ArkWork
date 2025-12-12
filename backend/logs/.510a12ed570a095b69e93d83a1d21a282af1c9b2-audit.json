@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\ArkWork\\backend\\logs\\.510a12ed570a095b69e93d83a1d21a282af1c9b2-audit.json",
+    "files": [
+        {
+            "date": 1765529655246,
+            "name": "D:\\ArkWork\\backend\\logs\\combined-2025-12-12.log",
+            "hash": "2700c77f3ea8de6e419e164783ab17704e43986694ea9143880274469d0770ce"
+        }
+    ],
+    "hashType": "sha256"
+}

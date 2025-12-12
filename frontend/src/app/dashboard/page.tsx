@@ -37,37 +37,37 @@ const LS_JOBS = 'ark_jobs';
 function ArrowRightIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 function UserIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v1h18v-1c0-3-4-6-9-6Z" stroke="currentColor" strokeWidth="2"/>
+      <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v1h18v-1c0-3-4-6-9-6Z" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }
 function BriefcaseIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="2"/>
-      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2"/>
+      <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }
 function DocumentIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="M7 3h6l4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="2"/>
-      <path d="M13 3v4h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M7 3h6l4 4v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" stroke="currentColor" strokeWidth="2" />
+      <path d="M13 3v4h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 function CheckIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <path d="m5 13 4 4 10-10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="m5 13 4 4 10-10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -106,7 +106,7 @@ async function idbHas(store: 'cv_files' | 'avatar_files', key: string): Promise<
     });
     db.close();
     return ok;
-  } catch(e) {
+  } catch (e) {
     console.error(`IndexedDB access error for store ${store}:`, e);
     return false;
   }
@@ -146,7 +146,7 @@ export default function Dashboard() {
 
   const readAcceptedApps = useCallback((email: string): AcceptedItem[] => {
     try {
-       if (typeof window === 'undefined') return [];
+      if (typeof window === 'undefined') return [];
       const appsRaw = localStorage.getItem(LS_APPS);
       const jobsRaw = localStorage.getItem(LS_JOBS);
       const appsByUser: any[] = JSON.parse(appsRaw ?? '{}')?.[email] ?? [];
@@ -156,8 +156,8 @@ export default function Dashboard() {
       return appsByUser
         .filter(isAccepted)
         .map((a) => {
-            const j = jobs.find((jj) => jj.id === a.jobId);
-             return { jobId: a.jobId, title: j?.title ?? 'Unknown Job', date: a.updatedAt || a.createdAt || '' };
+          const j = jobs.find((jj) => jj.id === a.jobId);
+          return { jobId: a.jobId, title: j?.title ?? 'Unknown Job', date: a.updatedAt || a.createdAt || '' };
         })
         .sort((a, b) => +new Date(b.date) - +new Date(a.date))
         .slice(0, 5);
@@ -189,9 +189,9 @@ export default function Dashboard() {
 
     try {
       if (typeof window !== 'undefined') {
-          const allDrafts = JSON.parse(localStorage.getItem(LS_CV_DRAFTS) ?? '{}');
-          setHasCvDraft(Boolean(allDrafts?.[email]));
-          console.log("[refreshProfileStats] CV Draft Check:", Boolean(allDrafts?.[email]));
+        const allDrafts = JSON.parse(localStorage.getItem(LS_CV_DRAFTS) ?? '{}');
+        setHasCvDraft(Boolean(allDrafts?.[email]));
+        console.log("[refreshProfileStats] CV Draft Check:", Boolean(allDrafts?.[email]));
       }
     } catch { setHasCvDraft(false); }
 
@@ -212,7 +212,7 @@ export default function Dashboard() {
   }, [readUsersSafe, readAcceptedApps, t, user?.name]);
 
   // -------- Effect Utama untuk Proteksi Rute & Memuat Data --------
-    useEffect(() => {
+  useEffect(() => {
     console.log(`[Dashboard Effect] Running. Loading: ${loading}, User:`, user);
 
     (async () => {
@@ -270,10 +270,10 @@ export default function Dashboard() {
   if (loading || (!user && hasAttemptedRefresh.current)) {
     console.log("[Dashboard Render] Showing loading skeleton...");
     return (
-      <div className="min-h-screen bg-neutral-50 py-10">
+      <div className="min-h-screen bg-emerald-50/30 py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header Skeleton */}
-          <div className="rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 p-6 shadow-lg animate-pulse">
+          <div className="rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-700 p-6 shadow-lg animate-pulse">
             <div className="space-y-3">
               <div className="h-4 w-32 rounded bg-neutral-700/70" />
               <div className="h-8 w-56 rounded bg-neutral-700/70" />
@@ -282,16 +282,16 @@ export default function Dashboard() {
           </div>
           {/* Grid Skeleton */}
           <div className="mt-8 grid gap-6 md:grid-cols-2">
-             <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm animate-pulse">
-               <div className="mb-4 h-6 w-40 rounded bg-neutral-200" />
-               <div className="space-y-2"><LineSkeleton /><LineSkeleton w="90%" /><LineSkeleton w="70%" /></div>
-               <div className="mt-5 h-9 w-32 rounded-lg bg-neutral-200" />
-             </div>
-             <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm animate-pulse">
-               <div className="mb-4 h-6 w-40 rounded bg-neutral-200" />
-               <div className="space-y-3"><LineSkeleton /><LineSkeleton w="95%" /><LineSkeleton w="80%" /></div>
-               <div className="mt-5 h-9 w-36 rounded-lg bg-neutral-200" />
-             </div>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm animate-pulse">
+              <div className="mb-4 h-6 w-40 rounded bg-neutral-200" />
+              <div className="space-y-2"><LineSkeleton /><LineSkeleton w="90%" /><LineSkeleton w="70%" /></div>
+              <div className="mt-5 h-9 w-32 rounded-lg bg-neutral-200" />
+            </div>
+            <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm animate-pulse">
+              <div className="mb-4 h-6 w-40 rounded bg-neutral-200" />
+              <div className="space-y-3"><LineSkeleton /><LineSkeleton w="95%" /><LineSkeleton w="80%" /></div>
+              <div className="mt-5 h-9 w-36 rounded-lg bg-neutral-200" />
+            </div>
           </div>
         </div>
       </div>
@@ -307,25 +307,25 @@ export default function Dashboard() {
   // Render konten dashboard normal HANYA jika loading selesai dan user ada
   console.log("[Dashboard Render] Rendering dashboard content for user:", user);
   return (
-    <div className="min-h-screen bg-neutral-50 py-10">
+    <div className="min-h-screen bg-emerald-50/30 py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Hero */}
-        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-700 shadow-lg">
+        <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-700 shadow-lg shadow-emerald-900/20">
           <div className="p-6 sm:p-8">
             <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-              <div className="text-neutral-200">
-                <p className="text-sm tracking-wide text-neutral-300">
+              <div className="text-emerald-50">
+                <p className="text-sm tracking-wide text-emerald-200/80">
                   {t('greetingSmall') || 'Welcome back,'}
                 </p>
                 <h1 className="mt-1 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
                   {t('greeting', { name: displayName || user.name || t('fallback.there') })}
                 </h1>
-                <p className="mt-2 max-w-xl text-sm text-neutral-300">
+                <p className="mt-2 max-w-xl text-sm text-emerald-100/80">
                   {t('hero.subtitle') || 'Pantau profil dan kelola CV kamu di satu tempat.'}
                 </p>
               </div>
               <div className="flex w-full gap-3 md:w-auto">
-                <Link href="/jobs" className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-neutral-900 shadow-sm transition hover:bg-neutral-100 md:flex-none">
+                <Link href="/jobs" className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-50 md:flex-none">
                   <BriefcaseIcon className="h-4 w-4" /> {t('cta.findJobs') || 'Cari Lowongan'}
                 </Link>
                 <Link href="/profile" className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-white/30 bg-transparent px-4 py-2 text-sm font-semibold text-white backdrop-blur transition hover:bg-white/10 md:flex-none">
@@ -341,21 +341,21 @@ export default function Dashboard() {
           {/* Profile card */}
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-900">{t('profile.title')}</h3>
-              <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600">{t('profile.badge') || 'Akun'}</span>
+              <h3 className="text-lg font-semibold text-emerald-950">{t('profile.title')}</h3>
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs text-emerald-700 border border-emerald-100">{t('profile.badge') || 'Akun'}</span>
             </div>
             <p className="text-sm text-neutral-600">{t('profile.desc')}</p>
             <div className="mt-4"> {/* Progress */}
               <div className="mb-1 flex items-center justify-between">
-                <span className="text-xs text-neutral-500">{t('profile.completeness') || 'Kelengkapan Profil'}</span>
-                <span className="text-xs font-medium text-neutral-700">{progress}%</span>
+                <span className="text-xs text-slate-500">{t('profile.completeness') || 'Kelengkapan Profil'}</span>
+                <span className="text-xs font-medium text-emerald-700">{progress}%</span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
-                <div className="h-2 rounded-full bg-neutral-900 transition-[width] duration-500 ease-out" style={{ width: `${progress}%` }} />
+              <div className="h-2 w-full overflow-hidden rounded-full bg-emerald-50">
+                <div className="h-2 rounded-full bg-emerald-600 transition-[width] duration-500 ease-out" style={{ width: `${progress}%` }} />
               </div>
             </div>
             <div className="mt-5"> {/* CTA */}
-              <Link href="/profile" className="group inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-neutral-800">
+              <Link href="/profile" className="group inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-500 shadow-emerald-600/20">
                 {t('profile.cta')} <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </Link>
             </div>
@@ -366,13 +366,13 @@ export default function Dashboard() {
                   {profileFilled ? '✔︎' : 'Lengkapi'}
                 </p>
               </div>
-              <div className="rounded-2xl border border-neutral-200 p-3">
-                <p className="text-xs text-neutral-500">{t('profile.stats.skills')}</p>
-                <p className="mt-1 text-lg font-semibold text-neutral-900">{skillsCount}</p>
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 p-3">
+                <p className="text-xs text-slate-500">{t('profile.stats.skills')}</p>
+                <p className="mt-1 text-lg font-semibold text-emerald-900">{skillsCount}</p>
               </div>
-              <div className="rounded-2xl border border-neutral-200 p-3">
-                <p className="text-xs text-neutral-500">CV</p>
-                <p className={`mt-1 text-lg font-semibold ${hasCv || hasCvDraft ? 'text-green-600' : 'text-amber-600'}`}>
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/30 p-3">
+                <p className="text-xs text-slate-500">CV</p>
+                <p className={`mt-1 text-lg font-semibold ${hasCv || hasCvDraft ? 'text-emerald-600' : 'text-amber-600'}`}>
                   {hasCv || hasCvDraft ? 'Siap' : 'Belum'}
                 </p>
               </div>
@@ -380,63 +380,63 @@ export default function Dashboard() {
           </div>
 
           {/* Panel Buat CV */}
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-900">Buat CV (ATS)</h3>
-              <DocumentIcon className="h-5 w-5 text-neutral-400" />
+              <h3 className="text-lg font-semibold text-emerald-950">Buat CV (ATS)</h3>
+              <DocumentIcon className="h-5 w-5 text-emerald-400" />
             </div>
-            <p className="text-sm text-neutral-600">Susun CV format ATS yang rapi dan siap kirim. Kamu bisa lanjutkan dari draft yang tersimpan otomatis.</p>
+            <p className="text-sm text-slate-600">Susun CV format ATS yang rapi dan siap kirim. Kamu bisa lanjutkan dari draft yang tersimpan otomatis.</p>
             <div className="mt-4 flex items-center gap-2 text-sm">
-              <span className="rounded-full bg-neutral-100 px-2.5 py-1 text-neutral-700">
+              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 border border-emerald-100">
                 {hasCvDraft ? 'Draft ditemukan' : 'Belum ada draft'}
               </span>
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link href="/cv" className="group inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-neutral-800">
+              <Link href="/cv" className="group inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-emerald-500 shadow-emerald-600/20">
                 {hasCvDraft ? 'Lanjutkan Draft' : 'Buat CV Sekarang'} <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </Link>
             </div>
           </div>
 
           {/* Panel Lamaran Diterima */}
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm md:col-span-2">
+          <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm md:col-span-2">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-900">Lamaran Diterima</h3>
-              <CheckIcon className="h-5 w-5 text-green-600" />
+              <h3 className="text-lg font-semibold text-emerald-950">Lamaran Diterima</h3>
+              <CheckIcon className="h-5 w-5 text-emerald-600" />
             </div>
             {accepted.length === 0 ? (
-                 <div className="rounded-xl border border-dashed border-neutral-200 p-5 text-center">
-                    <p className="text-sm text-neutral-600">Belum ada lamaran yang ditandai sebagai <span className="font-medium">diterima</span>.</p>
-                    <Link href="/applications" className="mt-3 inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-800">
-                       Lihat Semua Lamaran <ArrowRightIcon className="h-4 w-4" />
-                    </Link>
-                 </div>
-             ) : (
-                <>
-                   <ul className="space-y-3">
-                     {accepted.map((a, i) => {
-                       const d = new Date(a.date);
-                       const when = isNaN(d.getTime()) ? a.date : dateFmt.format(d);
-                       return (
-                         <li key={`${a.jobId}-${i}`} className="flex items-start justify-between gap-3 rounded-xl border border-neutral-200 p-3">
-                           <div className="min-w-0">
-                             <p className="truncate text-sm font-medium text-neutral-900">{a.title}</p>
-                             <p className="mt-0.5 text-xs text-neutral-500">Diterima: {when}</p>
-                           </div>
-                           <Link href={`/jobs/${a.jobId}`} className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 px-2 py-1 text-xs text-neutral-700 hover:bg-neutral-50">
-                             Detail Pekerjaan <ArrowRightIcon className="h-3.5 w-3.5" />
-                           </Link>
-                         </li>
-                       );
-                     })}
-                   </ul>
-                   <div className="mt-5">
-                     <Link href="/applications" className="group inline-flex items-center gap-2 rounded-xl bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-200">
-                       Lihat Semua Lamaran <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
-                     </Link>
-                   </div>
-                 </>
-             )}
+              <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 p-5 text-center">
+                <p className="text-sm text-slate-600">Belum ada lamaran yang ditandai sebagai <span className="font-medium text-emerald-700">diterima</span>.</p>
+                <Link href="/applications" className="mt-3 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 shadow-sm shadow-emerald-600/20">
+                  Lihat Semua Lamaran <ArrowRightIcon className="h-4 w-4" />
+                </Link>
+              </div>
+            ) : (
+              <>
+                <ul className="space-y-3">
+                  {accepted.map((a, i) => {
+                    const d = new Date(a.date);
+                    const when = isNaN(d.getTime()) ? a.date : dateFmt.format(d);
+                    return (
+                      <li key={`${a.jobId}-${i}`} className="flex items-start justify-between gap-3 rounded-xl border border-emerald-100 bg-emerald-50/20 p-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-emerald-900">{a.title}</p>
+                          <p className="mt-0.5 text-xs text-emerald-600/80">Diterima: {when}</p>
+                        </div>
+                        <Link href={`/jobs/${a.jobId}`} className="inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50">
+                          Detail Pekerjaan <ArrowRightIcon className="h-3.5 w-3.5" />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div className="mt-5">
+                  <Link href="/applications" className="group inline-flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-100 border border-emerald-100">
+                    Lihat Semua Lamaran <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </div>
