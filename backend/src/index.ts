@@ -37,6 +37,7 @@ import googleRouter from './routes/google';
 import applicationsRouter from './routes/applications';
 import employerApplicationsRouter from './routes/employer-applications';
 import adminJobsRouter from './routes/admin-jobs';
+import profileRouter from './routes/profile';
 
 // DEV helper routes
 import authDev from './routes/auth-dev';
@@ -237,6 +238,7 @@ app.use('/api/tenders', tendersRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api', jobsRouter);
 app.use('/api', applicationsRouter);
+app.use('/api/profile', profileRouter);
 
 // Protected Examples
 app.get('/api/profile', authRequired, (req, res) =>

@@ -79,13 +79,32 @@ export function readAdminAuth(req: Request): { uid: string; role: 'admin' } {
 /* ===== guards (express middleware) ===== */
 
 export function authRequired(req: Request, res: Response, next: NextFunction) {
+  // 1. Cek Login via Passport.js (Google Login)
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const user = req.user as any;
+    // Standarisasi ke req.auth agar Controller konsisten membaca 'userId'
+    (req as any).auth = { 
+        userId: user.id, 
+        role: user.role || 'user',
+        eid: null 
+    };
+    return next();
+  }
+
+  // 2. Cek Login via JWT Cookie (Email/Password biasa)
   try {
-    (req as any).auth = readUserAuth(req);
+    const payload = readUserAuth(req);
+    // Standarisasi mapping 'uid' dari JWT menjadi 'userId' untuk Controller
+    (req as any).auth = { 
+        userId: payload.uid, 
+        role: payload.role, 
+        eid: payload.eid 
+    };
     return next();
   } catch (err) {
-    // don't leak details to client, but log for debugging
+    // Jika keduanya gagal, berarti User benar-benar belum login
     console.warn('[authRequired] auth failed:', (err as any).message || err);
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ message: 'Unauthorized: Silakan login terlebih dahulu.' });
   }
 }
 
