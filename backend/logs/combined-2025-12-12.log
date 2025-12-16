@@ -1,0 +1,38 @@
+[2025-12-12 16:19:58] INFO: ========================================
+[2025-12-12 16:19:58] INFO: 🚀 Backend listening on http://localhost:4000
+[2025-12-12 16:19:58] INFO: NODE_ENV           : development
+[2025-12-12 16:19:58] INFO: FRONTEND_ORIGIN(s) : http://localhost:3000, http://127.0.0.1:3000, http://localhost:3001, http://127.0.0.1:3001, http://localhost:5173, http://127.0.0.1:5173, https://arkwork.vercel.app, https://arkwork-staging.vercel.app
+[2025-12-12 16:19:58] INFO: ✅ Billing CRON     : loaded
+[2025-12-12 16:19:58] INFO: ✅ Redis Session    : connected & active
+[2025-12-12 16:19:58] INFO: ✅ Rate Limiting    : enabled (Targeted)
+[2025-12-12 16:19:58] INFO: ✅ Security Headers : enabled (Helmet)
+[2025-12-12 16:19:58] INFO: ✅ Logging System   : enabled (Winston)
+[2025-12-12 16:19:58] INFO: ========================================
+[2025-12-12 16:21:17] ERROR: Global Error: 
+Invalid `prisma.user.findFirst()` invocation in
+D:\ArkWork\backend\src\routes\google.ts:46:34
+
+  43 console.log(`[GoogleStrategy] Processing login for email: ${lowerEmail}, Google ID: ${providerId}`);
+  44 
+  45 // Find existing user by Google ID first
+→ 46 let user = await prisma.user.findFirst(
+The column `User.oauthProvider` does not exist in the current database.
+[2025-12-12 16:24:31] ERROR: Global Error: 
+Invalid `prisma.user.findFirst()` invocation in
+D:\ArkWork\backend\src\routes\google.ts:46:34
+
+  43 console.log(`[GoogleStrategy] Processing login for email: ${lowerEmail}, Google ID: ${providerId}`);
+  44 
+  45 // Find existing user by Google ID first
+→ 46 let user = await prisma.user.findFirst(
+The column `User.oauthProvider` does not exist in the current database.
+[2025-12-12 16:38:15] INFO: ========================================
+[2025-12-12 16:38:15] INFO: 🚀 Backend listening on http://localhost:4000
+[2025-12-12 16:38:15] INFO: NODE_ENV           : development
+[2025-12-12 16:38:15] INFO: FRONTEND_ORIGIN(s) : http://localhost:3000, http://127.0.0.1:3000, http://localhost:3001, http://127.0.0.1:3001, http://localhost:5173, http://127.0.0.1:5173, https://arkwork.vercel.app, https://arkwork-staging.vercel.app
+[2025-12-12 16:38:15] INFO: ✅ Billing CRON     : loaded
+[2025-12-12 16:38:15] INFO: ✅ Redis Session    : connected & active
+[2025-12-12 16:38:15] INFO: ✅ Rate Limiting    : enabled (Targeted)
+[2025-12-12 16:38:15] INFO: ✅ Security Headers : enabled (Helmet)
+[2025-12-12 16:38:15] INFO: ✅ Logging System   : enabled (Winston)
+[2025-12-12 16:38:15] INFO: ========================================
