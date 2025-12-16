@@ -23,7 +23,6 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID || '',
   clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-  // Use BACKEND_URL from env for consistency
   callbackURL: `${process.env.BACKEND_URL || 'http://localhost:4000'}/auth/google/callback`
 },
 async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: any) => void) => {

@@ -386,7 +386,6 @@ export default function ProfilePage() {
                 type="tel"
               />
             </div>
-
           </div>
         </div>
       </div>

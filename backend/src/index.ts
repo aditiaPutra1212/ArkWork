@@ -256,7 +256,6 @@ app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
 /* Global Error Handler (Pakai Logger!) */
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  // --- GUNAKAN LOGGER DI SINI ---
   logger.error(`Global Error: ${err.message}`, { stack: err.stack });
 
   if (err instanceof Error && err.message.startsWith('Not allowed by CORS')) {

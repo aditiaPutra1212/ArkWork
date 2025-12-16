@@ -120,6 +120,7 @@ export function employerRequired(req: Request, res: Response, next: NextFunction
   }
 }
 
+
 export function adminRequired(req: Request, res: Response, next: NextFunction) {
   try {
     const p = readAdminAuth(req);
