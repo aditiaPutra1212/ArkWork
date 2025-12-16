@@ -83,6 +83,7 @@ router.post('/avatar', authRequired, upload.single('avatar'), async (req, res) =
         console.error("Upload Error:", error);
         res.status(500).json({ error: 'Gagal mengunggah avatar.' });
     }
+    
 });
 
 export default router;
