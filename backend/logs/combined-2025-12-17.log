@@ -1,0 +1,11 @@
+[2025-12-17 07:05:26] INFO: ========================================
+[2025-12-17 07:05:26] INFO: 🚀 Backend listening on http://localhost:4000
+[2025-12-17 07:05:26] INFO: NODE_ENV           : development
+[2025-12-17 07:05:26] INFO: FRONTEND_ORIGIN(s) : http://localhost:3000, http://127.0.0.1:3000, http://localhost:3001, http://127.0.0.1:3001, http://localhost:5173, http://127.0.0.1:5173, https://arkwork.vercel.app, https://arkwork-staging.vercel.app
+[2025-12-17 07:05:26] INFO: ✅ Billing CRON     : loaded
+[2025-12-17 07:05:26] INFO: ✅ Redis Session    : connected & active
+[2025-12-17 07:05:26] INFO: ✅ Rate Limiting    : enabled (Targeted)
+[2025-12-17 07:05:26] INFO: ✅ Security Headers : enabled (Helmet)
+[2025-12-17 07:05:26] INFO: ✅ Logging System   : enabled (Winston)
+[2025-12-17 07:05:26] INFO: ========================================
+[2025-12-17 07:05:26] ERROR: Redis Client Error

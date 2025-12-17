@@ -1,0 +1,20 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/media/rizky/New Volume/ArkWork/backend/logs/.78c8de962c25efc2b245aa8fe3aa150621bd714f-audit.json",
+    "files": [
+        {
+            "date": 1765929922991,
+            "name": "/media/rizky/New Volume/ArkWork/backend/logs/error-2025-12-17.log",
+            "hash": "ca53f4e56e0c107934776797d692127fa5b74679b4b9930147454c80978d7c3b"
+        },
+        {
+            "date": 1766000099996,
+            "name": "/media/rizky/New Volume/ArkWork/backend/logs/error-2025-12-18.log",
+            "hash": "5f44192340b1da81af92c1a070741335c6f4c695e883cf834bf080df397aebe9"
+        }
+    ],
+    "hashType": "sha256"
+}
