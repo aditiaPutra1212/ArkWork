@@ -400,20 +400,11 @@ export default function HomePage() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="rounded-3xl bg-slate-900 p-[1px] shadow-2xl shadow-slate-900/20"
+            className="rounded-3xl bg-emerald-600 p-[1px] shadow-2xl shadow-emerald-900/20"
           >
-            <div className="rounded-3xl bg-slate-900 px-6 py-10 md:px-12 md:py-16 text-center relative overflow-hidden isolate">
-              {/* Background Image */}
-              <div className="absolute inset-0 -z-10">
-                <Image
-                  src={CtaBg}
-                  alt="Background"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 1200px"
-                  className="object-cover opacity-40"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 to-black/40" />
-              </div>
+            <div className="rounded-3xl bg-emerald-600 px-6 py-10 md:px-12 md:py-16 text-center relative overflow-hidden isolate">
+              {/* Background Gradient (Green Only) */}
+              <div className="absolute inset-0 -z-10 bg-gradient-to-br from-emerald-500 to-emerald-700" />
 
               {/* Decorative patterns */}
               <div
@@ -427,7 +418,7 @@ export default function HomePage() {
               {/* Animated glow background (Removed for consistency) */}
 
               <div className="mb-6 flex justify-center">
-                <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/50 px-4 py-1.5 text-xs font-medium text-slate-200 border border-slate-700/50 backdrop-blur-sm">
+                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-800/20 px-4 py-1.5 text-xs font-medium text-emerald-50 border border-emerald-400/20 backdrop-blur-sm">
                   <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
                   ArkWork · Energy Talent Hub
                 </span>
@@ -437,7 +428,7 @@ export default function HomePage() {
                 {t("home.final.title")}
               </h3>
 
-              <p className="mt-4 text-base md:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed">
+              <p className="mt-4 text-base md:text-lg text-emerald-50 max-w-2xl mx-auto leading-relaxed">
                 {t("home.final.desc")}
               </p>
 
@@ -446,13 +437,13 @@ export default function HomePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   href="/auth/signin"
-                  className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-slate-900 font-bold shadow-lg shadow-white/10 hover:bg-slate-50 transition-colors"
+                  className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-4 text-emerald-900 font-bold shadow-lg shadow-black/5 hover:bg-emerald-50 transition-colors"
                 >
                   {t("home.final.cta")}
                 </motion.a>
               </div>
 
-              <p className="mt-6 text-xs text-slate-400 leading-relaxed font-medium">
+              <p className="mt-6 text-xs text-emerald-200 leading-relaxed font-medium">
                 {t("home.final.note")}
               </p>
             </div>
