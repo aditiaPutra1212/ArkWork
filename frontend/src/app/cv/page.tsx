@@ -71,21 +71,21 @@ const LS_PROFILE_KEY = 'ark_users';
 
 /** Oil & Gas skill suggestions */
 const OG_HARD_SKILLS = [
-    'Reservoir Engineering','Drilling Engineer','Completion Engineer','Well Intervention / Workover',
-    'Production Engineer','Process Engineer (Upstream)','Process Engineer (Downstream)','Piping Engineer',
-    'Pipeline Engineer','Mechanical (Static)','Mechanical (Rotating)','Electrical Engineer',
-    'Instrumentation & Control','Automation / DCS / PLC','HSE / HSEQ','QA/QC','Construction',
-    'Pre-commissioning / Commissioning','Operations','Maintenance','Reliability','Subsea',
-    'Offshore','Onshore','Flow Assurance','SURF','FPSO','LNG','Gas Processing','Refinery',
-    'Petrochemical','Corrosion / Cathodic Protection','Welding / NDT','Fabrication','Marine',
-    'Procurement','Contracts','Supply Chain / Logistics','Planning / Scheduling (Primavera P6)',
-    'Cost Control','Document Control','Project Management'
+    'Reservoir Engineering', 'Drilling Engineer', 'Completion Engineer', 'Well Intervention / Workover',
+    'Production Engineer', 'Process Engineer (Upstream)', 'Process Engineer (Downstream)', 'Piping Engineer',
+    'Pipeline Engineer', 'Mechanical (Static)', 'Mechanical (Rotating)', 'Electrical Engineer',
+    'Instrumentation & Control', 'Automation / DCS / PLC', 'HSE / HSEQ', 'QA/QC', 'Construction',
+    'Pre-commissioning / Commissioning', 'Operations', 'Maintenance', 'Reliability', 'Subsea',
+    'Offshore', 'Onshore', 'Flow Assurance', 'SURF', 'FPSO', 'LNG', 'Gas Processing', 'Refinery',
+    'Petrochemical', 'Corrosion / Cathodic Protection', 'Welding / NDT', 'Fabrication', 'Marine',
+    'Procurement', 'Contracts', 'Supply Chain / Logistics', 'Planning / Scheduling (Primavera P6)',
+    'Cost Control', 'Document Control', 'Project Management'
 ];
 
 const OG_SOFT_SKILLS = [
-    'Safety Mindset (HSE)','Teamwork (Offshore/Onshore)','Communication','Leadership',
-    'Problem Solving','Decision Making','Risk Assessment','Time Management',
-    'Adaptability (Remote/Shift)','Stakeholder Management'
+    'Safety Mindset (HSE)', 'Teamwork (Offshore/Onshore)', 'Communication', 'Leadership',
+    'Problem Solving', 'Decision Making', 'Risk Assessment', 'Time Management',
+    'Adaptability (Remote/Shift)', 'Stakeholder Management'
 ];
 
 /* =========================================================
@@ -217,9 +217,9 @@ function rangeToText(
    Experience Editor
 ========================================================= */
 function ExperienceEditor({
-                              items,
-                              onChange,
-                          }: {
+    items,
+    onChange,
+}: {
     items: ExpItem[];
     onChange: (v: ExpItem[]) => void;
 }) {
@@ -379,9 +379,9 @@ function ExperienceEditor({
    Education Editor
 ========================================================= */
 function EducationEditor({
-                             items,
-                             onChange,
-                         }: {
+    items,
+    onChange,
+}: {
     items: EduItem[];
     onChange: (v: EduItem[]) => void;
 }) {
@@ -580,9 +580,9 @@ function EduPreview({ items }: { items: EduItem[] }) {
    Modal Preview + Download PDF
 ========================================================= */
 function AtsCvModal({
-                        onClose,
-                        data,
-                    }: {
+    onClose,
+    data,
+}: {
     onClose: () => void;
     data: CvDraft;
 }) {
@@ -838,9 +838,20 @@ function CreateCvPageInner() {
             <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6">
                 {/* Header */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h1 className={`text-2xl font-semibold tracking-tight ${GREEN.textTitle}`}>
-                        Buat CV (ATS)
-                    </h1>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => router.back()}
+                            className={`flex h-10 w-10 items-center justify-center rounded-xl border ${GREEN.btnOutline} bg-white shadow-sm transition hover:-translate-y-0.5`}
+                            aria-label="Kembali"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M19 12H5m7-7-7 7 7 7" />
+                            </svg>
+                        </button>
+                        <h1 className={`text-2xl font-semibold tracking-tight ${GREEN.textTitle}`}>
+                            Buat CV (ATS)
+                        </h1>
+                    </div>
                 </div>
 
                 {/* Toast */}
@@ -995,12 +1006,12 @@ function CreateCvPageInner() {
 type Opt = { id: string; name: string };
 
 function WilayahSelect({
-                           value,
-                           onChange,
-                           labelProv = 'Provinsi',
-                           labelKab = 'Kabupaten/Kota',
-                           labelKec = 'Kecamatan',
-                       }: {
+    value,
+    onChange,
+    labelProv = 'Provinsi',
+    labelKab = 'Kabupaten/Kota',
+    labelKec = 'Kecamatan',
+}: {
     value: string;
     onChange: (v: string) => void;
     labelProv?: string;
@@ -1054,8 +1065,8 @@ function WilayahSelect({
     }, [prov, kab, kec]);
 
     const SelectBox = ({
-                           value, setValue, options, placeholder, disabled
-                       }: {
+        value, setValue, options, placeholder, disabled
+    }: {
         value: Opt | null;
         setValue: (o: Opt | null) => void;
         options: Opt[];
