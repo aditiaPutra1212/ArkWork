@@ -2,6 +2,7 @@
 
 import Nav from '@/components/nav';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 /* ------------------- Helpers ------------------- */
 const API =
@@ -110,6 +111,7 @@ function AreaChart({
 }
 
 export default function EmployerHome() {
+  const t = useTranslations('emp.overview');
   const [companyName, setCompanyName] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -135,9 +137,9 @@ export default function EmployerHome() {
 
   // headline stats (dummy)
   const stats = [
-    { label: 'Active Jobs', value: 3 },
-    { label: 'Total Applicants', value: 47 },
-    { label: 'Interviews Scheduled', value: 6 },
+    { label: t('activeJobs'), value: 3 },
+    { label: t('totalApplicants'), value: 47 },
+    { label: t('interviews'), value: 6 },
   ];
 
   // time series dummy (7 titik = 7 hari/minggu)
@@ -161,15 +163,15 @@ export default function EmployerHome() {
           <header className="mb-6">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-semibold text-emerald-950">Employer Overview</h1>
+                <h1 className="text-2xl font-semibold text-emerald-950">{t('title')}</h1>
                 <p className="text-sm text-slate-600">
-                  Ringkasan akun perusahaan dan performa lowongan.
+                  {t('subtitle')}
                 </p>
               </div>
 
               {/* Badge nama perusahaan */}
               <div className="inline-flex max-w-xs items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 px-3 py-2 shadow-sm">
-                <span className="text-xs text-slate-500">Company</span>
+                <span className="text-xs text-slate-500">{t('company')}</span>
                 <span className="truncate text-sm font-medium text-slate-900">
                   {loading ? '...' : companyName || '—'}
                 </span>
@@ -178,7 +180,7 @@ export default function EmployerHome() {
 
             {!companyName && !loading && (
               <p className="mt-2 text-xs text-amber-600">
-                Nama perusahaan belum terbaca—pastikan sudah login sebagai employer.
+                {t('noCompany')}
               </p>
             )}
           </header>
@@ -200,8 +202,8 @@ export default function EmployerHome() {
           <section className="mt-8">
             <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-emerald-950">Performance (Last 7)</h3>
-                <span className="text-xs text-slate-500">Auto-updated</span>
+                <h3 className="text-base font-semibold text-emerald-950">{t('performance')}</h3>
+                <span className="text-xs text-slate-500">{t('autoUpdated')}</span>
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -210,7 +212,7 @@ export default function EmployerHome() {
                 </div>
 
                 <div className="rounded-xl border border-emerald-100 bg-white p-3">
-                  <p className="text-xs text-slate-500">Applications</p>
+                  <p className="text-xs text-slate-500">{t('apps')}</p>
                   <p className="mt-1 text-xl font-semibold text-blue-600">
                     {series.apps.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
                   </p>
@@ -220,7 +222,7 @@ export default function EmployerHome() {
                 </div>
 
                 <div className="rounded-xl border border-emerald-100 bg-white p-3">
-                  <p className="text-xs text-slate-500">Job Views</p>
+                  <p className="text-xs text-slate-500">{t('views')}</p>
                   <p className="mt-1 text-xl font-semibold text-amber-600">
                     {series.views.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
                   </p>
@@ -230,7 +232,7 @@ export default function EmployerHome() {
                 </div>
 
                 <div className="rounded-xl border border-emerald-100 bg-white p-3">
-                  <p className="text-xs text-slate-500">Jobs Posted</p>
+                  <p className="text-xs text-slate-500">{t('posted')}</p>
                   <p className="mt-1 text-xl font-semibold text-emerald-600">
                     {series.jobs.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
                   </p>
@@ -241,7 +243,7 @@ export default function EmployerHome() {
               </div>
 
               <p className="mt-3 text-[11px] text-slate-500">
-                *Angka di atas contoh. Hubungkan ke endpoint metrik Anda untuk data real-time.
+                {t('note')}
               </p>
             </div>
           </section>

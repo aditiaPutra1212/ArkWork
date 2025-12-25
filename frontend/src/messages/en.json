@@ -74,7 +74,183 @@
     "manageJobs": "Manage Jobs",
     "applications": "Applications",
     "billing": "Billing",
-    "settings": "Settings"
+    "settings": "Settings",
+    "overview": {
+      "title": "Employer Overview",
+      "subtitle": "Overview of company account and job performance.",
+      "company": "Company",
+      "noCompany": "Company name not loaded—ensure you are logged in as an employer.",
+      "activeJobs": "Active Jobs",
+      "totalApplicants": "Total Applicants",
+      "interviews": "Interviews Scheduled",
+      "performance": "Performance (Last 7)",
+      "autoUpdated": "Auto-updated",
+      "apps": "Applications",
+      "views": "Job Views",
+      "posted": "Jobs Posted",
+      "note": "*Figures above are examples. Connect to your metrics endpoint for real-time data."
+    },
+    "appList": {
+      "title": "Applications",
+      "subtitle": "All applicants for your company's jobs.",
+      "table": {
+        "candidate": "Candidate",
+        "email": "Email",
+        "job": "Job",
+        "status": "Status",
+        "date": "Date",
+        "cv": "CV",
+        "actions": "Actions",
+        "loading": "Loading…",
+        "error": "Error: {msg}",
+        "login": "– You need to log in as an employer.",
+        "loginLink": "Login",
+        "empty": "No applicants yet.",
+        "cvLink": "CV"
+      },
+      "actions": {
+        "accept": "Accept",
+        "reject": "Reject",
+        "saving": "Saving…",
+        "confirmAccept": "Accept applicant \"{name}\" for position {job}?",
+        "confirmReject": "Reject applicant \"{name}\" for position {job}?"
+      },
+      "tip": "Tip: add query ?jobId=<JOB_ID> to view applicants for a specific job."
+    },
+    "jobList": {
+      "title": "Jobs",
+      "postBtn": "Post a Job",
+      "deleteAllBtn": "Delete All",
+      "table": {
+        "position": "Position",
+        "company": "Company",
+        "location": "Location",
+        "type": "Type",
+        "status": "Status",
+        "posted": "Posted",
+        "loading": "Loading data…",
+        "empty": "No jobs yet. Click Post a Job."
+      },
+      "actions": {
+        "edit": "Edit",
+        "close": "Close",
+        "open": "Open",
+        "delete": "Delete",
+        "confirmDelete": "Delete job?\n\"{title}\" – {company}",
+        "confirmDeleteAll": "This will delete all jobs (soft delete). Continue?"
+      },
+      "alerts": {
+        "statusUpdated": "Status successfully updated.",
+        "deleted": "Job successfully deleted.",
+        "allDeleted": "All jobs successfully deleted.",
+        "close": "Close"
+      }
+    },
+    "jobForm": {
+      "titleNew": "Post a Job",
+      "titleEdit": "Edit Job",
+      "subtitle": "Fill in job details. Company name is automatic from employer profile.",
+      "company": "Company",
+      "noCompany": "Company name not loaded—ensure you are logged in as an employer.",
+      "fields": {
+        "title": "Job Title",
+        "province": "Province",
+        "city": "City/Regency",
+        "location": "Location (combined)",
+        "employment": "Employment",
+        "currency": "Currency",
+        "remote": "Remote-friendly",
+        "salaryMin": "Salary Min",
+        "salaryMax": "Salary Max",
+        "exp": "Min Experience (years)",
+        "education": "Education",
+        "deadline": "Deadline",
+        "tags": "Tags (comma separated)",
+        "desc": "Description",
+        "reqs": "Requirements",
+        "draft": "Save as draft (server)"
+      },
+      "placeholders": {
+        "title": "Frontend Engineer",
+        "location": "City, Province",
+        "salaryMin": "10,000,000",
+        "salaryMax": "20,000,000",
+        "exp": "0",
+        "tags": "react, nextjs, tailwind",
+        "desc": "Describe the role…",
+        "reqs": "- 3+ years…"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "submit": "Publish Job",
+        "saving": "Saving…"
+      },
+      "success": {
+        "title": "Success!",
+        "msg": "Job successfully saved.",
+        "back": "Back to List"
+      },
+      "error": {
+        "title": "Failed",
+        "msg": "An error occurred while saving."
+      }
+    },
+    "companyProfile": {
+      "title": "Company Profile",
+      "subtitle": "Update your company information.",
+      "fields": {
+        "name": "Company Name",
+        "website": "Website",
+        "size": "Company Size",
+        "address": "Address",
+        "about": "About"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "save": "Save Changes"
+      },
+      "alert": "Saved (demo only)"
+    },
+    "profile": {
+      "title": "Company Profile",
+      "subtitle": "Complete your company information to look more professional to candidates.",
+      "logo": {
+        "title": "Company Logo",
+        "upload": "Upload Logo",
+        "drag": "Drag & drop file here or click to select",
+        "hint": "PNG/JPG, 1:1 ratio, max ~2MB.",
+        "noLogo": "No logo"
+      },
+      "mainInfo": {
+        "title": "Main Information",
+        "name": "Company Name",
+        "email": "Company Email (admin)",
+        "website": "Website (optional)",
+        "about": "About Company"
+      },
+      "address": {
+        "title": "Office Address",
+        "addr": "Address",
+        "city": "City / Regency"
+      },
+      "social": {
+        "title": "Social Media",
+        "webPublic": "Website (Public)"
+      },
+      "buttons": {
+        "back": "Back",
+        "draft": "Save Draft",
+        "save": "Save Profile",
+        "saving": "Saving…"
+      },
+      "alerts": {
+        "draftSaved": "Draft saved locally (example).",
+        "success": "Profile successfully saved.",
+        "error": "Failed to save profile. Please check your inputs.",
+        "logoSuccess": "Logo successfully uploaded.",
+        "logoError": "Failed to save logo."
+      }
+    }
   },
   "cta": {
     "energy": "Explore Energy Updates"

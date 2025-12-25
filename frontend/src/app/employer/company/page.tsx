@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Nav from '@/components/nav';
+import { useTranslations } from 'next-intl';
 
 
 export default function CompanyProfilePage() {
+  const t = useTranslations('emp.companyProfile');
   const [form, setForm] = useState({
     name: 'PT Contoh Sejahtera',
     website: 'https://contoh.co.id',
@@ -19,7 +21,7 @@ export default function CompanyProfilePage() {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    alert('Saved (demo only)');
+    alert(t('alert'));
   }
 
   return (
@@ -30,12 +32,12 @@ export default function CompanyProfilePage() {
         <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
 
         <div className="mx-auto max-w-3xl px-4 py-8">
-          <h1 className="text-2xl font-semibold text-emerald-950">Company Profile</h1>
-          <p className="mb-6 text-sm text-slate-600">Perbarui informasi perusahaan Anda.</p>
+          <h1 className="text-2xl font-semibold text-emerald-950">{t('title')}</h1>
+          <p className="mb-6 text-sm text-slate-600">{t('subtitle')}</p>
 
           <form onSubmit={onSubmit} className="space-y-4 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Company Name</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.name')}</span>
               <input
                 value={form.name}
                 onChange={(e) => set('name', e.target.value)}
@@ -45,7 +47,7 @@ export default function CompanyProfilePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1 block text-xs text-slate-600">Website</span>
+                <span className="mb-1 block text-xs text-slate-600">{t('fields.website')}</span>
                 <input
                   value={form.website}
                   onChange={(e) => set('website', e.target.value)}
@@ -53,7 +55,7 @@ export default function CompanyProfilePage() {
                 />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs text-slate-600">Company Size</span>
+                <span className="mb-1 block text-xs text-slate-600">{t('fields.size')}</span>
                 <select
                   value={form.size}
                   onChange={(e) => set('size', e.target.value)}
@@ -69,7 +71,7 @@ export default function CompanyProfilePage() {
             </div>
 
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Address</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.address')}</span>
               <input
                 value={form.address}
                 onChange={(e) => set('address', e.target.value)}
@@ -78,7 +80,7 @@ export default function CompanyProfilePage() {
             </label>
 
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">About</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.about')}</span>
               <textarea
                 value={form.about}
                 onChange={(e) => set('about', e.target.value)}
@@ -93,13 +95,13 @@ export default function CompanyProfilePage() {
                 onClick={() => history.back()}
                 className="rounded-xl border border-emerald-200 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
               >
-                Cancel
+                {t('buttons.cancel')}
               </button>
               <button
                 type="submit"
                 className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200 transition-all"
               >
-                Save Changes
+                {t('buttons.save')}
               </button>
             </div>
           </form>

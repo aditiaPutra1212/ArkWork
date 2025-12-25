@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 
 /* ---------------- Env ---------------- */
 const API =
@@ -42,6 +43,7 @@ const fmtThousands = (v: string) =>
 
 /* ======================================================================== */
 export default function NewJobPage() {
+  const t = useTranslations('emp.jobForm');
   const router = useRouter();
   const qs = useSearchParams();
   const editId = qs.get('id');
@@ -236,7 +238,7 @@ export default function NewJobPage() {
         setSuccessMsg(`Tersimpan lokal. Gagal menyimpan ke server: ${msg}`);
         return;
       }
-      setSuccessMsg('Job berhasil dipublikasikan.');
+      setSuccessMsg(t('success.msg'));
     } catch (err: any) {
       setSuccessMsg(
         err?.message === 'Failed to fetch'
@@ -255,35 +257,35 @@ export default function NewJobPage() {
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
       <div className="mx-auto max-w-3xl px-4 py-8">
         <h1 className="text-2xl font-semibold text-emerald-950">
-          {editId ? 'Edit Job' : 'Post a Job'}
+          {editId ? t('titleEdit') : t('titleNew')}
         </h1>
         <p className="mt-1 text-sm text-slate-600">
-          Isi detail lowongan. Nama perusahaan otomatis dari profil employer.
+          {t('subtitle')}
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-5 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
           {/* Company badge + Job title */}
           <div className="grid gap-4 sm:grid-cols-[1fr,2fr] items-end">
             <div>
-              <div className="text-xs text-slate-600 mb-1">Company</div>
+              <div className="text-xs text-slate-600 mb-1">{t('company')}</div>
               <div className="inline-flex max-w-full items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 px-3 py-2 text-sm">
                 <span className="truncate font-medium">{companyName || '—'}</span>
               </div>
               {!companyName && (
                 <div className="mt-1 text-xs text-amber-600">
-                  Nama perusahaan belum terbaca—pastikan sudah login sebagai employer.
+                  {t('noCompany')}
                 </div>
               )}
             </div>
 
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Job Title</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.title')}</span>
               <input
                 value={form.title}
                 onChange={(e) => set('title', e.target.value)}
                 required
                 className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none"
-                placeholder="Frontend Engineer"
+                placeholder={t('placeholders.title')}
               />
             </label>
           </div>
@@ -291,7 +293,7 @@ export default function NewJobPage() {
           {/* Lokasi via Emsifa */}
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Provinsi</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.province')}</span>
               <select value={prov} onChange={(e) => setProv(e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option value="">-- pilih --</option>
                 {provinces.map((p) => (
@@ -300,7 +302,7 @@ export default function NewJobPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Kab/Kota</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.city')}</span>
               <select value={kab} onChange={(e) => setKab(e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" disabled={!prov}>
                 <option value="">-- pilih --</option>
                 {cities.map((c) => (
@@ -309,15 +311,15 @@ export default function NewJobPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Location (gabungan)</span>
-              <input value={form.location} readOnly className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-3 py-2 text-sm" placeholder="Kab/Kota, Provinsi" />
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.location')}</span>
+              <input value={form.location} readOnly className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-3 py-2 text-sm" placeholder={t('placeholders.location')} />
             </label>
           </div>
 
           {/* Employment + Currency + Remote */}
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Employment</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.employment')}</span>
               <select value={form.employment} onChange={(e) => set('employment', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option>Full-time</option>
                 <option>Part-time</option>
@@ -326,7 +328,7 @@ export default function NewJobPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Currency</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.currency')}</span>
               <select value={form.currency} onChange={(e) => set('currency', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option>IDR</option>
                 <option>USD</option>
@@ -334,30 +336,30 @@ export default function NewJobPage() {
             </label>
             <label className="mt-6 inline-flex items-center gap-2 text-sm text-slate-700">
               <input type="checkbox" checked={form.remote} onChange={(e) => set('remote', e.target.checked)} className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" />
-              Remote-friendly
+              {t('fields.remote')}
             </label>
           </div>
 
           {/* Salary */}
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Salary Min</span>
-              <input value={form.salaryMin} onChange={onSalaryMinChange} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="10,000,000" />
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.salaryMin')}</span>
+              <input value={form.salaryMin} onChange={onSalaryMinChange} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder={t('placeholders.salaryMin')} />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Salary Max</span>
-              <input value={form.salaryMax} onChange={onSalaryMaxChange} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="20,000,000" />
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.salaryMax')}</span>
+              <input value={form.salaryMax} onChange={onSalaryMaxChange} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder={t('placeholders.salaryMax')} />
             </label>
           </div>
 
           {/* Experience + Education + Deadline */}
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Min Experience (years)</span>
-              <input value={form.experienceMinYears} onChange={(e) => set('experienceMinYears', cleanNum(e.target.value))} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="0" />
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.exp')}</span>
+              <input value={form.experienceMinYears} onChange={(e) => set('experienceMinYears', cleanNum(e.target.value))} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder={t('placeholders.exp')} />
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Education</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.education')}</span>
               <select value={form.education} onChange={(e) => set('education', e.target.value as any)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option value="">Any</option>
                 <option value="SMA/SMK">SMA/SMK</option>
@@ -368,38 +370,38 @@ export default function NewJobPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">Deadline</span>
+              <span className="mb-1 block text-xs text-slate-600">{t('fields.deadline')}</span>
               <input type="date" value={form.deadline} onChange={(e) => set('deadline', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" />
             </label>
           </div>
 
           {/* Tags, Description, Requirements */}
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-600">Tags (comma separated)</span>
-            <input value={form.tags} onChange={(e) => set('tags', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="react, nextjs, tailwind" />
+            <span className="mb-1 block text-xs text-slate-600">{t('fields.tags')}</span>
+            <input value={form.tags} onChange={(e) => set('tags', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder={t('placeholders.tags')} />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-600">Description</span>
-            <textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={5} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="Describe the role…" />
+            <span className="mb-1 block text-xs text-slate-600">{t('fields.desc')}</span>
+            <textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={5} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder={t('placeholders.desc')} />
           </label>
 
           <label className="block">
-            <span className="mb-1 block text-xs text-slate-600">Requirements</span>
-            <textarea value={form.requirements} onChange={(e) => set('requirements', e.target.value)} rows={5} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="- 3+ years…" />
+            <span className="mb-1 block text-xs text-slate-600">{t('fields.reqs')}</span>
+            <textarea value={form.requirements} onChange={(e) => set('requirements', e.target.value)} rows={5} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder={t('placeholders.reqs')} />
           </label>
 
           <label className="inline-flex items-center gap-2 text-sm text-slate-700">
             <input type="checkbox" checked={form.isDraft} onChange={(e) => set('isDraft', e.target.checked)} className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" />
-            Save as draft (server)
+            {t('fields.draft')}
           </label>
 
           <div className="flex items-center justify-end gap-3">
             <button type="button" onClick={() => history.back()} className="rounded-xl border border-emerald-200 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-              Cancel
+              {t('buttons.cancel')}
             </button>
             <button type="submit" disabled={busy} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 shadow-sm shadow-emerald-200 transition-all">
-              {busy ? 'Publishing…' : 'Publish Job'}
+              {busy ? t('buttons.saving') : t('buttons.submit')}
             </button>
           </div>
         </form>
@@ -429,14 +431,14 @@ export default function NewJobPage() {
       {successMsg && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="text-center text-lg font-semibold text-slate-900">Berhasil</h2>
+            <h2 className="text-center text-lg font-semibold text-slate-900">{t('success.title')}</h2>
             <p className="mt-2 whitespace-pre-line text-center text-sm text-slate-600">{successMsg}</p>
             <div className="mt-5">
               <button
                 onClick={() => { setSuccessMsg(null); router.push('/jobs'); }}
                 className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
-                Oke
+                {t('success.back')}
               </button>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Nav from "@/components/nav";
+import { useTranslations } from 'next-intl';
 
 
 /* ---------------- Config ---------------- */
@@ -93,6 +94,7 @@ function mapDTO(x: JobDTO): LocalJob {
 
 /* ---------------- Page ---------------- */
 export default function EmployerJobsPage() {
+  const t = useTranslations('emp.jobList');
   const [jobs, setJobs] = useState<LocalJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [alertMsg, setAlertMsg] = useState<string | null>(null);
@@ -124,7 +126,8 @@ export default function EmployerJobsPage() {
         body: JSON.stringify({ status: nextStatus }),
       });
       await load();
-      setAlertMsg("Status berhasil diperbarui.");
+      await load();
+      setAlertMsg(t('alerts.statusUpdated'));
     } catch (e: any) {
       setErrorMsg(e?.message || "Gagal mengubah status");
     }
@@ -134,7 +137,7 @@ export default function EmployerJobsPage() {
     const ok =
       typeof window !== "undefined"
         ? window.confirm(
-          `Hapus lowongan?\n"${title || "Tanpa judul"}" – ${company || "-"}`,
+          t('actions.confirmDelete', { title: title || "Tanpa judul", company: company || "-" })
         )
         : true;
     if (!ok) return;
@@ -142,7 +145,8 @@ export default function EmployerJobsPage() {
     try {
       await fetchJSON(API.DELETE(id), { method: "DELETE" });
       await load();
-      setAlertMsg("Job berhasil dihapus.");
+      await load();
+      setAlertMsg(t('alerts.deleted'));
     } catch (e: any) {
       setErrorMsg(e?.message || "Gagal menghapus job");
     }
@@ -152,7 +156,7 @@ export default function EmployerJobsPage() {
     const ok =
       typeof window !== "undefined"
         ? window.confirm(
-          "Ini akan menghapus semua lowongan (soft delete). Lanjutkan?",
+          t('actions.confirmDeleteAll')
         )
         : true;
     if (!ok) return;
@@ -163,7 +167,8 @@ export default function EmployerJobsPage() {
         ids.map((id) => fetchJSON(API.DELETE(id), { method: "DELETE" })),
       );
       await load();
-      setAlertMsg("Semua job berhasil dihapus.");
+      await load();
+      setAlertMsg(t('alerts.allDeleted'));
     } catch (e: any) {
       setErrorMsg(e?.message || "Gagal menghapus semua job");
     }
@@ -188,20 +193,20 @@ export default function EmployerJobsPage() {
 
         <div className="mx-auto max-w-6xl px-4 py-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold text-emerald-950">Jobs</h1>
+            <h1 className="text-2xl font-semibold text-emerald-950">{t('title')}</h1>
             <div className="flex gap-2">
               <Link
                 href="/employer/jobs/new"
                 className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200"
               >
-                Post a Job
+                {t('postBtn')}
               </Link>
               <button
                 onClick={removeAll}
                 className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50"
                 disabled={loading || jobs.length === 0}
               >
-                Hapus Semua
+                {t('deleteAllBtn')}
               </button>
             </div>
           </div>
@@ -215,7 +220,7 @@ export default function EmployerJobsPage() {
                   onClick={() => setAlertMsg(null)}
                   className="text-sm underline underline-offset-2"
                 >
-                  Tutup
+                  {t('alerts.close')}
                 </button>
               </div>
             </div>
@@ -238,12 +243,12 @@ export default function EmployerJobsPage() {
             <table className="w-full text-sm">
               <thead className="bg-emerald-50/50 text-emerald-900 border-b border-emerald-100">
                 <tr>
-                  <th className="px-4 py-3 text-left">Posisi</th>
-                  <th className="px-4 py-3 text-left">Perusahaan</th>
-                  <th className="px-4 py-3 text-left">Lokasi</th>
-                  <th className="px-4 py-3 text-left">Tipe</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Diposting</th>
+                  <th className="px-4 py-3 text-left">{t('table.position')}</th>
+                  <th className="px-4 py-3 text-left">{t('table.company')}</th>
+                  <th className="px-4 py-3 text-left">{t('table.location')}</th>
+                  <th className="px-4 py-3 text-left">{t('table.type')}</th>
+                  <th className="px-4 py-3 text-left">{t('table.status')}</th>
+                  <th className="px-4 py-3 text-left">{t('table.posted')}</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -255,7 +260,7 @@ export default function EmployerJobsPage() {
                       colSpan={7}
                       className="px-4 py-8 text-center text-emerald-800"
                     >
-                      Memuat data…
+                      {t('table.loading')}
                     </td>
                   </tr>
                 )}
@@ -266,7 +271,7 @@ export default function EmployerJobsPage() {
                       colSpan={7}
                       className="px-4 py-8 text-center text-emerald-800"
                     >
-                      Belum ada lowongan. Klik Post a Job.
+                      {t('table.empty')}
                     </td>
                   </tr>
                 )}
@@ -325,7 +330,7 @@ export default function EmployerJobsPage() {
                             href={`/employer/jobs/new?id=${j.id}`}
                             className="rounded-lg border border-emerald-200 px-3 py-1.5 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors"
                           >
-                            Edit
+                            {t('actions.edit')}
                           </Link>
 
                           <button
@@ -333,7 +338,7 @@ export default function EmployerJobsPage() {
                             className="rounded-lg border border-emerald-200 px-3 py-1.5 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 disabled:opacity-50 transition-colors"
                             disabled={loading}
                           >
-                            {j.status === "active" ? "Tutup" : "Buka"}
+                            {j.status === "active" ? t('actions.close') : t('actions.open')}
                           </button>
 
                           <button
@@ -341,7 +346,7 @@ export default function EmployerJobsPage() {
                             className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-rose-700 hover:bg-rose-100 disabled:opacity-50"
                             disabled={loading}
                           >
-                            Hapus
+                            {t('actions.delete')}
                           </button>
                         </div>
                       </td>

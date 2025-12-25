@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { api, apiForm, API_BASE } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from 'next-intl';
 
 /* ====================== Types ====================== */
 type MeResp = {
@@ -51,6 +52,7 @@ function toAbs(u?: string | null) {
 
 /* ====================== Page ====================== */
 export default function ProfileEmployerPage() {
+  const t = useTranslations('emp.profile');
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
@@ -161,13 +163,13 @@ export default function ProfileEmployerPage() {
             window.dispatchEvent(new Event('ark:avatar-updated'));
           }
         } catch { }
-        showOK('Logo berhasil diunggah.');
+        showOK(t('alerts.logoSuccess'));
       } else {
-        showERR('Gagal menyimpan logo.');
+        showERR(t('alerts.logoError'));
       }
     } catch (err) {
       console.error('upload logo error:', err);
-      showERR('Gagal mengunggah logo. Coba lagi.');
+      showERR(t('alerts.logoError'));
     }
   }
 
@@ -208,10 +210,10 @@ export default function ProfileEmployerPage() {
         } as any,
       });
 
-      showOK('Profil berhasil disimpan.');
+      showOK(t('alerts.success'));
     } catch (err) {
       console.error('save profile error:', err);
-      showERR('Gagal menyimpan profil. Periksa kembali isian Anda.');
+      showERR(t('alerts.error'));
     } finally {
       setSaving(false);
     }
@@ -235,11 +237,10 @@ export default function ProfileEmployerPage() {
     <div className="min-h-screen bg-gradient-to-b from-emerald-50/50 via-white to-emerald-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <header className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
         <h1 className="mb-2 text-3xl font-bold tracking-tight text-emerald-950 dark:text-slate-50">
-          Profil Perusahaan
+          {t('title')}
         </h1>
         <p className="mb-8 max-w-2xl text-base text-slate-600 dark:text-slate-300">
-          Lengkapi informasi perusahaan Anda agar terlihat lebih profesional
-          bagi calon kandidat.
+          {t('subtitle')}
         </p>
       </header>
 
@@ -247,7 +248,7 @@ export default function ProfileEmployerPage() {
         {/* Tanpa panel "Lowongan yang Diposting" */}
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-8">
           <section className="space-y-8">
-            <Card title="Logo Perusahaan">
+            <Card title={t('logo.title')}>
               <div className="flex items-center gap-6">
                 <div className="relative overflow-hidden rounded-2xl ring-1 ring-emerald-100 dark:ring-slate-700">
                   <div className="h-24 w-24 bg-emerald-50/50 dark:bg-slate-800 grid place-items-center">
@@ -255,7 +256,7 @@ export default function ProfileEmployerPage() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={toAbs(logoUrl)} alt="Logo" className="h-full w-full object-cover" />
                     ) : (
-                      <span className="text-xs text-slate-500">No logo</span>
+                      <span className="text-xs text-slate-500">{t('logo.noLogo')}</span>
                     )}
                   </div>
                 </div>
@@ -267,9 +268,9 @@ export default function ProfileEmployerPage() {
                     onDragOver={(e) => e.preventDefault()}
                     className="group block cursor-pointer rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 px-4 py-4 text-center text-sm text-emerald-700 transition hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300"
                   >
-                    <div className="mb-1 font-medium">Unggah Logo</div>
+                    <div className="mb-1 font-medium">{t('logo.upload')}</div>
                     <div className="text-xs text-slate-500">
-                      Seret & lepas berkas ke sini atau klik untuk memilih
+                      {t('logo.drag')}
                     </div>
                   </label>
                   <input
@@ -283,14 +284,14 @@ export default function ProfileEmployerPage() {
                       if (f) void handleSelectFile(f);
                     }}
                   />
-                  <p className="mt-2 text-xs text-slate-500">PNG/JPG, rasio 1:1, max ~2MB.</p>
+                  <p className="mt-2 text-xs text-slate-500">{t('logo.hint')}</p>
                 </div>
               </div>
             </Card>
 
-            <Card title="Informasi Utama">
+            <Card title={t('mainInfo.title')}>
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="Nama Perusahaan">
+                <Field label={t('mainInfo.name')}>
                   <input
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
@@ -298,7 +299,7 @@ export default function ProfileEmployerPage() {
                     placeholder="e.g. ArkWork Indonesia, Inc."
                   />
                 </Field>
-                <Field label="Email Perusahaan (admin)">
+                <Field label={t('mainInfo.email')}>
                   <input
                     value={companyEmail}
                     readOnly
@@ -306,7 +307,7 @@ export default function ProfileEmployerPage() {
                     placeholder="hr@company.com"
                   />
                 </Field>
-                <Field label="Website (opsional)">
+                <Field label={t('mainInfo.website')}>
                   <input
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
@@ -314,7 +315,7 @@ export default function ProfileEmployerPage() {
                     placeholder="company.com"
                   />
                 </Field>
-                <Field className="sm:col-span-2" label="Tentang Perusahaan">
+                <Field className="sm:col-span-2" label={t('mainInfo.about')}>
                   <textarea
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
@@ -325,9 +326,9 @@ export default function ProfileEmployerPage() {
               </div>
             </Card>
 
-            <Card title="Alamat Kantor">
+            <Card title={t('address.title')}>
               <div className="grid gap-5 sm:grid-cols-2">
-                <Field label="Alamat">
+                <Field label={t('address.addr')}>
                   <textarea
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
@@ -335,7 +336,7 @@ export default function ProfileEmployerPage() {
                     placeholder="Jalan, nomor, dll."
                   />
                 </Field>
-                <Field label="Kota / Kabupaten">
+                <Field label={t('address.city')}>
                   <input
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
@@ -346,7 +347,7 @@ export default function ProfileEmployerPage() {
               </div>
             </Card>
 
-            <Card title="Sosial Media">
+            <Card title={t('social.title')}>
               <div className="grid gap-5 sm:grid-cols-2">
                 <Field label="LinkedIn">
                   <input
@@ -372,7 +373,7 @@ export default function ProfileEmployerPage() {
                     placeholder="x.com/..."
                   />
                 </Field>
-                <Field label="Website (Publik)">
+                <Field label={t('social.webPublic')}>
                   <input
                     value={social.websitePublic}
                     onChange={(e) => setSocial({ ...social, websitePublic: e.target.value })}
@@ -402,15 +403,15 @@ export default function ProfileEmployerPage() {
             {/* Actions */}
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
               <Link href="/auth/signup" className="rounded-xl border border-emerald-200 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors text-center">
-                Kembali
+                {t('buttons.back')}
               </Link>
               <div className="flex gap-3">
                 <button
                   type="button"
                   className="rounded-xl border border-emerald-200 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
-                  onClick={() => showOK('Draft disimpan secara lokal (contoh).')}
+                  onClick={() => showOK(t('alerts.draftSaved'))}
                 >
-                  Simpan Draft
+                  {t('buttons.draft')}
                 </button>
                 <ButtonPrimary type="submit" loading={saving}>
                   <svg
@@ -423,7 +424,7 @@ export default function ProfileEmployerPage() {
                     <path d="M19 21H5a2 2 0 0 1-2-2V7l4-4h9l4 4v12a2 2 0 0 1-2 2Z" />
                     <path d="M9 21v-8h6v8M9 3v4h6V3" />
                   </svg>
-                  {saving ? 'Menyimpan…' : 'Simpan Profil'}
+                  {saving ? t('buttons.saving') : t('buttons.save')}
                 </ButtonPrimary>
               </div>
             </div>

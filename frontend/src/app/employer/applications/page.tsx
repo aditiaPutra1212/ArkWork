@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Nav from '@/components/nav';
+import { useTranslations } from 'next-intl';
 
 
 const API =
@@ -38,6 +39,7 @@ const EMPTY_COUNTERS: Counters = {
 const ALLOWED: readonly StatusAllowed[] = ['submitted', 'rejected', 'hired'] as const;
 
 export default function EmployerApplicationsPage() {
+  const t = useTranslations('emp.appList');
   const [rows, setRows] = useState<AppRow[]>([]);
   const [counters, setCounters] = useState<Counters>(EMPTY_COUNTERS);
   const [err, setErr] = useState<string | null>(null);
@@ -152,12 +154,12 @@ export default function EmployerApplicationsPage() {
   };
 
   const onAccept = (row: AppRow) => {
-    if (!confirm(`Terima pelamar "${row.candidateName}" untuk posisi ${row.jobTitle}?`)) return;
+    if (!confirm(t('actions.confirmAccept', { name: row.candidateName, job: row.jobTitle }))) return;
     updateStatus(row.id, 'hired');
   };
 
   const onReject = (row: AppRow) => {
-    if (!confirm(`Tolak pelamar "${row.candidateName}" untuk posisi ${row.jobTitle}?`)) return;
+    if (!confirm(t('actions.confirmReject', { name: row.candidateName, job: row.jobTitle }))) return;
     updateStatus(row.id, 'rejected');
   };
 
@@ -169,9 +171,9 @@ export default function EmployerApplicationsPage() {
         <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
 
         <div className="mx-auto max-w-6xl px-4 py-8">
-          <h1 className="mb-2 text-2xl font-semibold text-emerald-950">Applications</h1>
+          <h1 className="mb-2 text-2xl font-semibold text-emerald-950">{t('title')}</h1>
           <p className="mb-6 text-sm text-slate-600">
-            Semua pelamar dari lowongan perusahaan Anda.
+            {t('subtitle')}
           </p>
 
           {/* Ringkasan status – hanya 3 kartu */}
@@ -192,20 +194,20 @@ export default function EmployerApplicationsPage() {
             <table className="w-full text-left text-sm">
               <thead className="border-b border-emerald-100 bg-emerald-50/50 text-emerald-900">
                 <tr>
-                  <th className="px-4 py-3">Candidate</th>
-                  <th className="px-4 py-3">Email</th>
-                  <th className="px-4 py-3">Job</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">CV</th>
-                  <th className="px-4 py-3">Actions</th>
+                  <th className="px-4 py-3">{t('table.candidate')}</th>
+                  <th className="px-4 py-3">{t('table.email')}</th>
+                  <th className="px-4 py-3">{t('table.job')}</th>
+                  <th className="px-4 py-3">{t('table.status')}</th>
+                  <th className="px-4 py-3">{t('table.date')}</th>
+                  <th className="px-4 py-3">{t('table.cv')}</th>
+                  <th className="px-4 py-3">{t('table.actions')}</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-slate-600">
-                      Loading…
+                      {t('table.loading')}
                     </td>
                   </tr>
                 )}
@@ -213,12 +215,12 @@ export default function EmployerApplicationsPage() {
                 {!loading && err && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center">
-                      <span className="text-rose-600">Error: {err}</span>{' '}
+                      <span className="text-rose-600">{t('table.error', { msg: err })}</span>{' '}
                       {/^HTTP 401/.test(err) && (
                         <span className="text-slate-600">
-                          – Kamu perlu login sebagai employer.{' '}
+                          {t('table.login')}{' '}
                           <a href="/employer/login" className="text-blue-700 underline">
-                            Login
+                            {t('table.loginLink')}
                           </a>
                         </span>
                       )}
@@ -229,7 +231,7 @@ export default function EmployerApplicationsPage() {
                 {!loading && !err && rows.length === 0 && (
                   <tr>
                     <td colSpan={7} className="px-4 py-8 text-center text-slate-600">
-                      Belum ada pelamar.
+                      {t('table.empty')}
                     </td>
                   </tr>
                 )}
@@ -263,7 +265,7 @@ export default function EmployerApplicationsPage() {
                               rel="noopener noreferrer"
                               className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
                             >
-                              {r.cv.name || 'CV'}
+                              {r.cv.name || t('table.cvLink')}
                             </a>
                           ) : (
                             <span className="text-slate-400">—</span>
@@ -278,7 +280,7 @@ export default function EmployerApplicationsPage() {
                                 } disabled:opacity-60`}
                               title="Terima (ubah status ke HIRED)"
                             >
-                              {saving ? 'Menyimpan…' : 'Terima'}
+                              {saving ? t('actions.saving') : t('actions.accept')}
                             </button>
                             <button
                               onClick={() => onReject(r)}
@@ -287,7 +289,7 @@ export default function EmployerApplicationsPage() {
                                 } disabled:opacity-60`}
                               title="Tolak (ubah status ke REJECTED)"
                             >
-                              Tolak
+                              {t('actions.reject')}
                             </button>
 
                             {/* Quick change – hanya 3 status */}
@@ -314,7 +316,7 @@ export default function EmployerApplicationsPage() {
           </div>
 
           <p className="mt-3 text-xs text-slate-500">
-            Tip: tambahkan query <code>?jobId=&lt;JOB_ID&gt;</code> untuk melihat pelamar 1 job tertentu.
+            {t('tip')}
           </p>
         </div>
       </main>

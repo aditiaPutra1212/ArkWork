@@ -74,7 +74,183 @@
     "manageJobs": "Kelola Lowongan",
     "applications": "Lamaran Masuk",
     "billing": "Tagihan",
-    "settings": "Pengaturan"
+    "settings": "Pengaturan",
+    "overview": {
+      "title": "Ringkasan Perusahaan",
+      "subtitle": "Ringkasan akun perusahaan dan performa lowongan.",
+      "company": "Perusahaan",
+      "noCompany": "Nama perusahaan belum terbaca—pastikan sudah login sebagai employer.",
+      "activeJobs": "Lowongan Aktif",
+      "totalApplicants": "Total Pelamar",
+      "interviews": "Wawancara Terjadwal",
+      "performance": "Performa (7 Hari Terakhir)",
+      "autoUpdated": "Diperbarui otomatis",
+      "apps": "Lamaran",
+      "views": "Dilihat",
+      "posted": "Lowongan Dipasang",
+      "note": "*Angka di atas contoh. Hubungkan ke endpoint metrik Anda untuk data real-time."
+    },
+    "appList": {
+      "title": "Lamaran",
+      "subtitle": "Semua pelamar dari lowongan perusahaan Anda.",
+      "table": {
+        "candidate": "Kandidat",
+        "email": "Email",
+        "job": "Lowongan",
+        "status": "Status",
+        "date": "Tanggal",
+        "cv": "CV",
+        "actions": "Aksi",
+        "loading": "Memuat…",
+        "error": "Error: {msg}",
+        "login": "– Kamu perlu login sebagai employer.",
+        "loginLink": "Masuk",
+        "empty": "Belum ada pelamar.",
+        "cvLink": "CV"
+      },
+      "actions": {
+        "accept": "Terima",
+        "reject": "Tolak",
+        "saving": "Menyimpan…",
+        "confirmAccept": "Terima pelamar \"{name}\" untuk posisi {job}?",
+        "confirmReject": "Tolak pelamar \"{name}\" untuk posisi {job}?"
+      },
+      "tip": "Tip: tambahkan query ?jobId=<JOB_ID> untuk melihat pelamar 1 job tertentu."
+    },
+    "jobList": {
+      "title": "Lowongan",
+      "postBtn": "Pasang Lowongan",
+      "deleteAllBtn": "Hapus Semua",
+      "table": {
+        "position": "Posisi",
+        "company": "Perusahaan",
+        "location": "Lokasi",
+        "type": "Tipe",
+        "status": "Status",
+        "posted": "Diposting",
+        "loading": "Memuat data…",
+        "empty": "Belum ada lowongan. Klik Pasang Lowongan."
+      },
+      "actions": {
+        "edit": "Edit",
+        "close": "Tutup",
+        "open": "Buka",
+        "delete": "Hapus",
+        "confirmDelete": "Hapus lowongan?\n\"{title}\" – {company}",
+        "confirmDeleteAll": "Ini akan menghapus semua lowongan (soft delete). Lanjutkan?"
+      },
+      "alerts": {
+        "statusUpdated": "Status berhasil diperbarui.",
+        "deleted": "Job berhasil dihapus.",
+        "allDeleted": "Semua job berhasil dihapus.",
+        "close": "Tutup"
+      }
+    },
+    "jobForm": {
+      "titleNew": "Pasang Lowongan",
+      "titleEdit": "Edit Lowongan",
+      "subtitle": "Isi detail lowongan. Nama perusahaan otomatis dari profil employer.",
+      "company": "Perusahaan",
+      "noCompany": "Nama perusahaan belum terbaca—pastikan sudah login sebagai employer.",
+      "fields": {
+        "title": "Judul Lowongan",
+        "province": "Provinsi",
+        "city": "Kab/Kota",
+        "location": "Lokasi (gabungan)",
+        "employment": "Jenis Pekerjaan",
+        "currency": "Mata Uang",
+        "remote": "Bisa Remote",
+        "salaryMin": "Gaji Min",
+        "salaryMax": "Gaji Max",
+        "exp": "Min Pengalaman (tahun)",
+        "education": "Pendidikan",
+        "deadline": "Batas Waktu",
+        "tags": "Tag (pisahkan dengan koma)",
+        "desc": "Deskripsi",
+        "reqs": "Persyaratan",
+        "draft": "Simpan sebagai draft (server)"
+      },
+      "placeholders": {
+        "title": "Frontend Engineer",
+        "location": "Kab/Kota, Provinsi",
+        "salaryMin": "10,000,000",
+        "salaryMax": "20,000,000",
+        "exp": "0",
+        "tags": "react, nextjs, tailwind",
+        "desc": "Deskripsikan peran ini…",
+        "reqs": "- 3+ tahun…"
+      },
+      "buttons": {
+        "cancel": "Batal",
+        "submit": "Terbitkan Lowongan",
+        "saving": "Menyimpan…"
+      },
+      "success": {
+        "title": "Berhasil!",
+        "msg": "Lowongan berhasil disimpan.",
+        "back": "Kembali ke List"
+      },
+      "error": {
+        "title": "Gagal",
+        "msg": "Terjadi kesalahan saat menyimpan."
+      }
+    },
+    "companyProfile": {
+      "title": "Profil Perusahaan",
+      "subtitle": "Perbarui informasi perusahaan Anda.",
+      "fields": {
+        "name": "Nama Perusahaan",
+        "website": "Website",
+        "size": "Ukuran Perusahaan",
+        "address": "Alamat",
+        "about": "Tentang"
+      },
+      "buttons": {
+        "cancel": "Batal",
+        "save": "Simpan Perubahan"
+      },
+      "alert": "Tersimpan (demo saja)"
+    },
+    "profile": {
+      "title": "Profil Perusahaan",
+      "subtitle": "Lengkapi informasi perusahaan Anda agar terlihat lebih profesional bagi calon kandidat.",
+      "logo": {
+        "title": "Logo Perusahaan",
+        "upload": "Unggah Logo",
+        "drag": "Seret & lepas berkas ke sini atau klik untuk memilih",
+        "hint": "PNG/JPG, rasio 1:1, max ~2MB.",
+        "noLogo": "Tidak ada logo"
+      },
+      "mainInfo": {
+        "title": "Informasi Utama",
+        "name": "Nama Perusahaan",
+        "email": "Email Perusahaan (admin)",
+        "website": "Website (opsional)",
+        "about": "Tentang Perusahaan"
+      },
+      "address": {
+        "title": "Alamat Kantor",
+        "addr": "Alamat",
+        "city": "Kota / Kabupaten"
+      },
+      "social": {
+        "title": "Sosial Media",
+        "webPublic": "Website (Publik)"
+      },
+      "buttons": {
+        "back": "Kembali",
+        "draft": "Simpan Draft",
+        "save": "Simpan Profil",
+        "saving": "Menyimpan…"
+      },
+      "alerts": {
+        "draftSaved": "Draft disimpan secara lokal (contoh).",
+        "success": "Profil berhasil disimpan.",
+        "error": "Gagal menyimpan profil. Periksa kembali isian Anda.",
+        "logoSuccess": "Logo berhasil diunggah.",
+        "logoError": "Gagal menyimpan logo."
+      }
+    }
   },
   "cta": {
     "energy": "Jelajahi Update Energi"
