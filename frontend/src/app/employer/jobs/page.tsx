@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import Nav from "@/components/nav";
-import Footer from "@/components/Footer";
+
 
 /* ---------------- Config ---------------- */
 const API_BASE =
@@ -72,9 +72,9 @@ function mapDTO(x: JobDTO): LocalJob {
   const emp = (x.employment || "full_time").toLowerCase();
   const employment =
     emp === "full_time" ||
-    emp === "part_time" ||
-    emp === "contract" ||
-    emp === "internship"
+      emp === "part_time" ||
+      emp === "contract" ||
+      emp === "internship"
       ? emp
       : "full_time";
 
@@ -134,8 +134,8 @@ export default function EmployerJobsPage() {
     const ok =
       typeof window !== "undefined"
         ? window.confirm(
-            `Hapus lowongan?\n"${title || "Tanpa judul"}" – ${company || "-"}`,
-          )
+          `Hapus lowongan?\n"${title || "Tanpa judul"}" – ${company || "-"}`,
+        )
         : true;
     if (!ok) return;
 
@@ -152,8 +152,8 @@ export default function EmployerJobsPage() {
     const ok =
       typeof window !== "undefined"
         ? window.confirm(
-            "Ini akan menghapus semua lowongan (soft delete). Lanjutkan?",
-          )
+          "Ini akan menghapus semua lowongan (soft delete). Lanjutkan?",
+        )
         : true;
     if (!ok) return;
 
@@ -182,14 +182,17 @@ export default function EmployerJobsPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-[60vh] bg-slate-50">
+      <main className="min-h-[60vh] bg-slate-50 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
+
         <div className="mx-auto max-w-6xl px-4 py-8">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold text-slate-900">Jobs</h1>
+            <h1 className="text-2xl font-semibold text-emerald-950">Jobs</h1>
             <div className="flex gap-2">
               <Link
                 href="/employer/jobs/new"
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 shadow-sm shadow-emerald-200"
               >
                 Post a Job
               </Link>
@@ -231,9 +234,9 @@ export default function EmployerJobsPage() {
             </div>
           )}
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-slate-600">
+              <thead className="bg-emerald-50/50 text-emerald-900 border-b border-emerald-100">
                 <tr>
                   <th className="px-4 py-3 text-left">Posisi</th>
                   <th className="px-4 py-3 text-left">Perusahaan</th>
@@ -250,7 +253,7 @@ export default function EmployerJobsPage() {
                   <tr>
                     <td
                       colSpan={7}
-                      className="px-4 py-8 text-center text-slate-600"
+                      className="px-4 py-8 text-center text-emerald-800"
                     >
                       Memuat data…
                     </td>
@@ -261,7 +264,7 @@ export default function EmployerJobsPage() {
                   <tr>
                     <td
                       colSpan={7}
-                      className="px-4 py-8 text-center text-slate-600"
+                      className="px-4 py-8 text-center text-emerald-800"
                     >
                       Belum ada lowongan. Klik Post a Job.
                     </td>
@@ -270,10 +273,10 @@ export default function EmployerJobsPage() {
 
                 {!loading &&
                   sorted.map((j) => (
-                    <tr key={j.id} className="border-b last:border-0">
+                    <tr key={j.id} className="border-b border-emerald-50 last:border-0 hover:bg-emerald-50/30 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="grid h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-blue-500 to-amber-400 text-white font-bold place-items-center overflow-hidden">
+                          <div className="grid h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-400 text-white font-bold place-items-center overflow-hidden">
                             {j.logo ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -285,7 +288,7 @@ export default function EmployerJobsPage() {
                               initials(j.company)
                             )}
                           </div>
-                          <div className="font-medium text-slate-900">
+                          <div className="font-medium text-emerald-950">
                             {j.title}
                           </div>
                         </div>
@@ -301,11 +304,10 @@ export default function EmployerJobsPage() {
 
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                            j.status === "active"
-                              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                              : "bg-slate-100 text-slate-700 ring-slate-200"
-                          } ring-1 ring-inset`}
+                          className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${j.status === "active"
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                            : "bg-slate-100 text-slate-700 ring-slate-200"
+                            } ring-1 ring-inset`}
                         >
                           {j.status === "active" ? "Active" : "Closed"}
                         </span>
@@ -321,14 +323,14 @@ export default function EmployerJobsPage() {
                         <div className="flex gap-2">
                           <Link
                             href={`/employer/jobs/new?id=${j.id}`}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50"
+                            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 transition-colors"
                           >
                             Edit
                           </Link>
 
                           <button
                             onClick={() => toggleStatus(j.id)}
-                            className="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50"
+                            className="rounded-lg border border-emerald-200 px-3 py-1.5 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-300 disabled:opacity-50 transition-colors"
                             disabled={loading}
                           >
                             {j.status === "active" ? "Tutup" : "Buka"}
@@ -350,7 +352,6 @@ export default function EmployerJobsPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

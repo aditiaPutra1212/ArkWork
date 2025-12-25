@@ -160,7 +160,7 @@ export default function ProfileEmployerPage() {
             );
             window.dispatchEvent(new Event('ark:avatar-updated'));
           }
-        } catch {}
+        } catch { }
         showOK('Logo berhasil diunggah.');
       } else {
         showERR('Gagal menyimpan logo.');
@@ -219,22 +219,22 @@ export default function ProfileEmployerPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      <div className="min-h-screen bg-gradient-to-b from-emerald-50/50 via-white to-emerald-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
-          <div className="h-6 w-56 rounded bg-slate-200 animate-pulse dark:bg-slate-800" />
-          <div className="mt-2 h-4 w-96 rounded bg-slate-200 animate-pulse dark:bg-slate-800" />
+          <div className="h-6 w-56 rounded bg-emerald-100/50 animate-pulse dark:bg-slate-800" />
+          <div className="mt-2 h-4 w-96 rounded bg-emerald-100/50 animate-pulse dark:bg-slate-800" />
         </div>
         <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="h-40 rounded-2xl border border-slate-200 bg-white shadow-sm animate-pulse dark:border-slate-800 dark:bg-slate-900" />
+          <div className="h-40 rounded-2xl border border-emerald-100 bg-white shadow-sm animate-pulse dark:border-slate-800 dark:bg-slate-900" />
         </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50/50 via-white to-emerald-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       <header className="mx-auto max-w-6xl px-4 pt-10 sm:px-6 lg:px-8">
-        <h1 className="mb-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+        <h1 className="mb-2 text-3xl font-bold tracking-tight text-emerald-950 dark:text-slate-50">
           Profil Perusahaan
         </h1>
         <p className="mb-8 max-w-2xl text-base text-slate-600 dark:text-slate-300">
@@ -249,8 +249,8 @@ export default function ProfileEmployerPage() {
           <section className="space-y-8">
             <Card title="Logo Perusahaan">
               <div className="flex items-center gap-6">
-                <div className="relative overflow-hidden rounded-2xl ring-1 ring-slate-200 dark:ring-slate-700">
-                  <div className="h-24 w-24 bg-slate-50 dark:bg-slate-800 grid place-items-center">
+                <div className="relative overflow-hidden rounded-2xl ring-1 ring-emerald-100 dark:ring-slate-700">
+                  <div className="h-24 w-24 bg-emerald-50/50 dark:bg-slate-800 grid place-items-center">
                     {logoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={toAbs(logoUrl)} alt="Logo" className="h-full w-full object-cover" />
@@ -265,7 +265,7 @@ export default function ProfileEmployerPage() {
                     htmlFor="logo-input"
                     onDrop={onDrop}
                     onDragOver={(e) => e.preventDefault()}
-                    className="group block cursor-pointer rounded-xl border border-dashed border-slate-300 bg-slate-50/70 px-4 py-4 text-center text-sm text-slate-600 transition hover:bg-white hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300"
+                    className="group block cursor-pointer rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 px-4 py-4 text-center text-sm text-emerald-700 transition hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-300"
                   >
                     <div className="mb-1 font-medium">Unggah Logo</div>
                     <div className="text-xs text-slate-500">
@@ -294,7 +294,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="e.g. ArkWork Indonesia, Inc."
                   />
                 </Field>
@@ -302,7 +302,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={companyEmail}
                     readOnly
-                    className="ui-input bg-slate-50 dark:bg-slate-800/40"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm bg-emerald-50/30 text-emerald-800 focus:outline-none cursor-not-allowed"
                     placeholder="hr@company.com"
                   />
                 </Field>
@@ -310,7 +310,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="company.com"
                   />
                 </Field>
@@ -318,7 +318,7 @@ export default function ProfileEmployerPage() {
                   <textarea
                     value={about}
                     onChange={(e) => setAbout(e.target.value)}
-                    className="ui-input min-h-[120px]"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all min-h-[120px]"
                     placeholder="Visi, misi, budaya kerja, dsb."
                   />
                 </Field>
@@ -331,7 +331,7 @@ export default function ProfileEmployerPage() {
                   <textarea
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    className="ui-input min-h-[80px]"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all min-h-[80px]"
                     placeholder="Jalan, nomor, dll."
                   />
                 </Field>
@@ -339,7 +339,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="Jakarta Selatan"
                   />
                 </Field>
@@ -352,7 +352,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={social.linkedin}
                     onChange={(e) => setSocial({ ...social, linkedin: e.target.value })}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="linkedin.com/company/..."
                   />
                 </Field>
@@ -360,7 +360,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={social.instagram}
                     onChange={(e) => setSocial({ ...social, instagram: e.target.value })}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="instagram.com/..."
                   />
                 </Field>
@@ -368,7 +368,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={social.twitter}
                     onChange={(e) => setSocial({ ...social, twitter: e.target.value })}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="x.com/..."
                   />
                 </Field>
@@ -376,7 +376,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={social.websitePublic}
                     onChange={(e) => setSocial({ ...social, websitePublic: e.target.value })}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="https://company.com"
                   />
                 </Field>
@@ -384,7 +384,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={social.facebook}
                     onChange={(e) => setSocial({ ...social, facebook: e.target.value })}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="facebook.com/..."
                   />
                 </Field>
@@ -392,7 +392,7 @@ export default function ProfileEmployerPage() {
                   <input
                     value={social.youtube}
                     onChange={(e) => setSocial({ ...social, youtube: e.target.value })}
-                    className="ui-input"
+                    className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none transition-all"
                     placeholder="youtube.com/@..."
                   />
                 </Field>
@@ -401,13 +401,13 @@ export default function ProfileEmployerPage() {
 
             {/* Actions */}
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-              <Link href="/auth/signup" className="btn-secondary">
+              <Link href="/auth/signup" className="rounded-xl border border-emerald-200 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors text-center">
                 Kembali
               </Link>
               <div className="flex gap-3">
                 <button
                   type="button"
-                  className="btn-secondary"
+                  className="rounded-xl border border-emerald-200 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
                   onClick={() => showOK('Draft disimpan secara lokal (contoh).')}
                 >
                   Simpan Draft
@@ -447,11 +447,11 @@ export default function ProfileEmployerPage() {
 /* ====================== Small Comps ====================== */
 function Card({ title, action, children }: { title?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-slate-800/60 dark:bg-slate-900/60">
+    <div className="rounded-2xl border border-emerald-100/70 bg-white/80 p-6 shadow-sm shadow-emerald-100/20 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-slate-800/60 dark:bg-slate-900/60">
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between">
           {title && (
-            <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50">
+            <h2 className="text-lg font-semibold tracking-tight text-emerald-950 dark:text-slate-50">
               {title}
             </h2>
           )}
@@ -483,9 +483,9 @@ function ButtonPrimary({
       {...rest}
       disabled={loading || rest.disabled}
       className={[
-        'inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm',
-        'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400',
+        'inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-emerald-200 transition-all',
+        'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400',
         'disabled:opacity-70 disabled:cursor-not-allowed',
       ].join(' ')}
     >
@@ -515,19 +515,19 @@ function AlertModal({
   const Icon =
     type === 'ok'
       ? () => (
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-emerald-600">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-              <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        )
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-emerald-100 text-emerald-600">
+          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+            <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </div>
+      )
       : () => (
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-rose-100 text-rose-600">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
-              <path d="M12 9v4M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </div>
-        );
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-rose-100 text-rose-600">
+          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none">
+            <path d="M12 9v4M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+      );
 
   // close on ESC
   useEffect(() => {

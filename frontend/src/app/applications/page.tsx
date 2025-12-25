@@ -333,9 +333,7 @@ export default function Applications() {
         </div>
 
         {/* Footer note */}
-        <p className="mt-6 text-center text-xs text-neutral-500">
-          Data lamaran disimpan lokal untuk demo bila server tidak tersedia.
-        </p>
+
       </div>
     </div>
   );

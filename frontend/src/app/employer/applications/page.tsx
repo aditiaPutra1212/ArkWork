@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Nav from '@/components/nav';
-import Footer from '@/components/Footer';
+
 
 const API =
   process.env.NEXT_PUBLIC_API_BASE ||
@@ -164,9 +164,12 @@ export default function EmployerApplicationsPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-[60vh] bg-slate-50">
+      <main className="min-h-[60vh] bg-slate-50 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
+
         <div className="mx-auto max-w-6xl px-4 py-8">
-          <h1 className="mb-2 text-2xl font-semibold text-slate-900">Applications</h1>
+          <h1 className="mb-2 text-2xl font-semibold text-emerald-950">Applications</h1>
           <p className="mb-6 text-sm text-slate-600">
             Semua pelamar dari lowongan perusahaan Anda.
           </p>
@@ -178,16 +181,16 @@ export default function EmployerApplicationsPage() {
               { label: 'REJECTED', val: counters.rejected },
               { label: 'HIRED', val: counters.hired },
             ].map((it) => (
-              <div key={it.label} className="rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="text-xs font-medium text-slate-500">{it.label}</div>
-                <div className="mt-1 text-2xl font-semibold text-slate-900">{it.val}</div>
+              <div key={it.label} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm hover:shadow-emerald-100/50 transition-shadow">
+                <div className="text-xs font-medium text-emerald-600/80">{it.label}</div>
+                <div className="mt-1 text-2xl font-semibold text-emerald-950">{it.val}</div>
               </div>
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
             <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">
+              <thead className="border-b border-emerald-100 bg-emerald-50/50 text-emerald-900">
                 <tr>
                   <th className="px-4 py-3">Candidate</th>
                   <th className="px-4 py-3">Email</th>
@@ -242,23 +245,23 @@ export default function EmployerApplicationsPage() {
                       : 'submitted');
 
                     return (
-                      <tr key={r.id} className="border-b last:border-0">
-                        <td className="px-4 py-3 font-medium text-slate-900">{r.candidateName}</td>
-                        <td className="px-4 py-3 text-slate-700">{r.candidateEmail || '-'}</td>
-                        <td className="px-4 py-3 text-slate-700">{r.jobTitle}</td>
+                      <tr key={r.id} className="border-b border-emerald-50 last:border-0 hover:bg-emerald-50/30 transition-colors">
+                        <td className="px-4 py-3 font-medium text-emerald-950">{r.candidateName}</td>
+                        <td className="px-4 py-3 text-emerald-800">{r.candidateEmail || '-'}</td>
+                        <td className="px-4 py-3 text-emerald-800">{r.jobTitle}</td>
                         <td className="px-4 py-3">
-                          <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                          <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700 border border-emerald-100">
                             {r.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-slate-700">{pretty(r.createdAt)}</td>
+                        <td className="px-4 py-3 text-emerald-800">{pretty(r.createdAt)}</td>
                         <td className="px-4 py-3">
                           {r.cv ? (
                             <a
                               href={cvHref(r.cv.url)}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-700 underline"
+                              className="text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
                             >
                               {r.cv.name || 'CV'}
                             </a>
@@ -271,9 +274,8 @@ export default function EmployerApplicationsPage() {
                             <button
                               onClick={() => onAccept(r)}
                               disabled={saving}
-                              className={`rounded-full px-3 py-1 text-xs font-medium text-white ${
-                                saving ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'
-                              } disabled:opacity-60`}
+                              className={`rounded-full px-3 py-1 text-xs font-medium text-white ${saving ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'
+                                } disabled:opacity-60`}
                               title="Terima (ubah status ke HIRED)"
                             >
                               {saving ? 'Menyimpan…' : 'Terima'}
@@ -281,9 +283,8 @@ export default function EmployerApplicationsPage() {
                             <button
                               onClick={() => onReject(r)}
                               disabled={saving}
-                              className={`rounded-full px-3 py-1 text-xs font-medium text-white ${
-                                saving ? 'bg-rose-400' : 'bg-rose-600 hover:bg-rose-700'
-                              } disabled:opacity-60`}
+                              className={`rounded-full px-3 py-1 text-xs font-medium text-white ${saving ? 'bg-rose-400' : 'bg-rose-600 hover:bg-rose-700'
+                                } disabled:opacity-60`}
                               title="Tolak (ubah status ke REJECTED)"
                             >
                               Tolak
@@ -294,7 +295,7 @@ export default function EmployerApplicationsPage() {
                               value={selectValue}
                               disabled={saving}
                               onChange={(e) => updateStatus(r.id, e.target.value as StatusAllowed)}
-                              className="rounded-full border border-slate-300 bg-white px-2 py-1 text-xs text-slate-700"
+                              className="rounded-full border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-800 focus:border-emerald-500 focus:outline-none"
                               title="Ubah status cepat"
                             >
                               {ALLOWED.map((s) => (
@@ -317,7 +318,6 @@ export default function EmployerApplicationsPage() {
           </p>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

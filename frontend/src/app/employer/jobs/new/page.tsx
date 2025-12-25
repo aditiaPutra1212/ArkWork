@@ -139,7 +139,7 @@ export default function NewJobPage() {
         );
         const j = (await r.json()) as Province[];
         setProvinces(j);
-      } catch {}
+      } catch { }
     })();
   }, []);
 
@@ -160,7 +160,7 @@ export default function NewJobPage() {
         setKab('');
         const pName = provinces.find((p) => p.id === prov)?.name || '';
         set('location', pName);
-      } catch {}
+      } catch { }
     })();
   }, [prov, provinces]);
 
@@ -250,21 +250,23 @@ export default function NewJobPage() {
 
   /* ===================== 5) UI ===================== */
   return (
-    <main className="min-h-[60vh] bg-slate-50">
+    <main className="min-h-[60vh] bg-slate-50 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
       <div className="mx-auto max-w-3xl px-4 py-8">
-        <h1 className="text-2xl font-semibold text-slate-900">
+        <h1 className="text-2xl font-semibold text-emerald-950">
           {editId ? 'Edit Job' : 'Post a Job'}
         </h1>
         <p className="mt-1 text-sm text-slate-600">
           Isi detail lowongan. Nama perusahaan otomatis dari profil employer.
         </p>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <form onSubmit={onSubmit} className="mt-6 space-y-5 rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
           {/* Company badge + Job title */}
           <div className="grid gap-4 sm:grid-cols-[1fr,2fr] items-end">
             <div>
               <div className="text-xs text-slate-600 mb-1">Company</div>
-              <div className="inline-flex max-w-full items-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-sm">
+              <div className="inline-flex max-w-full items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 px-3 py-2 text-sm">
                 <span className="truncate font-medium">{companyName || '—'}</span>
               </div>
               {!companyName && (
@@ -280,7 +282,7 @@ export default function NewJobPage() {
                 value={form.title}
                 onChange={(e) => set('title', e.target.value)}
                 required
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none"
                 placeholder="Frontend Engineer"
               />
             </label>
@@ -290,7 +292,7 @@ export default function NewJobPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Provinsi</span>
-              <select value={prov} onChange={(e) => setProv(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <select value={prov} onChange={(e) => setProv(e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option value="">-- pilih --</option>
                 {provinces.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
@@ -299,7 +301,7 @@ export default function NewJobPage() {
             </label>
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Kab/Kota</span>
-              <select value={kab} onChange={(e) => setKab(e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" disabled={!prov}>
+              <select value={kab} onChange={(e) => setKab(e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" disabled={!prov}>
                 <option value="">-- pilih --</option>
                 {cities.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -308,7 +310,7 @@ export default function NewJobPage() {
             </label>
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Location (gabungan)</span>
-              <input value={form.location} readOnly className="w-full rounded-xl border border-slate-300 bg-slate-100 px-3 py-2 text-sm" placeholder="Kab/Kota, Provinsi" />
+              <input value={form.location} readOnly className="w-full rounded-xl border border-emerald-200 bg-emerald-50/30 px-3 py-2 text-sm" placeholder="Kab/Kota, Provinsi" />
             </label>
           </div>
 
@@ -316,7 +318,7 @@ export default function NewJobPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Employment</span>
-              <select value={form.employment} onChange={(e) => set('employment', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <select value={form.employment} onChange={(e) => set('employment', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option>Full-time</option>
                 <option>Part-time</option>
                 <option>Contract</option>
@@ -325,13 +327,13 @@ export default function NewJobPage() {
             </label>
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Currency</span>
-              <select value={form.currency} onChange={(e) => set('currency', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <select value={form.currency} onChange={(e) => set('currency', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option>IDR</option>
                 <option>USD</option>
               </select>
             </label>
             <label className="mt-6 inline-flex items-center gap-2 text-sm text-slate-700">
-              <input type="checkbox" checked={form.remote} onChange={(e) => set('remote', e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+              <input type="checkbox" checked={form.remote} onChange={(e) => set('remote', e.target.checked)} className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" />
               Remote-friendly
             </label>
           </div>
@@ -340,11 +342,11 @@ export default function NewJobPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Salary Min</span>
-              <input value={form.salaryMin} onChange={onSalaryMinChange} inputMode="numeric" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="10,000,000" />
+              <input value={form.salaryMin} onChange={onSalaryMinChange} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="10,000,000" />
             </label>
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Salary Max</span>
-              <input value={form.salaryMax} onChange={onSalaryMaxChange} inputMode="numeric" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="20,000,000" />
+              <input value={form.salaryMax} onChange={onSalaryMaxChange} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="20,000,000" />
             </label>
           </div>
 
@@ -352,11 +354,11 @@ export default function NewJobPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Min Experience (years)</span>
-              <input value={form.experienceMinYears} onChange={(e) => set('experienceMinYears', cleanNum(e.target.value))} inputMode="numeric" className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="0" />
+              <input value={form.experienceMinYears} onChange={(e) => set('experienceMinYears', cleanNum(e.target.value))} inputMode="numeric" className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="0" />
             </label>
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Education</span>
-              <select value={form.education} onChange={(e) => set('education', e.target.value as any)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <select value={form.education} onChange={(e) => set('education', e.target.value as any)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option value="">Any</option>
                 <option value="SMA/SMK">SMA/SMK</option>
                 <option value="D3">D3</option>
@@ -367,36 +369,36 @@ export default function NewJobPage() {
             </label>
             <label className="block">
               <span className="mb-1 block text-xs text-slate-600">Deadline</span>
-              <input type="date" value={form.deadline} onChange={(e) => set('deadline', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+              <input type="date" value={form.deadline} onChange={(e) => set('deadline', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" />
             </label>
           </div>
 
           {/* Tags, Description, Requirements */}
           <label className="block">
             <span className="mb-1 block text-xs text-slate-600">Tags (comma separated)</span>
-            <input value={form.tags} onChange={(e) => set('tags', e.target.value)} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="react, nextjs, tailwind" />
+            <input value={form.tags} onChange={(e) => set('tags', e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="react, nextjs, tailwind" />
           </label>
 
           <label className="block">
             <span className="mb-1 block text-xs text-slate-600">Description</span>
-            <textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={5} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Describe the role…" />
+            <textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={5} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="Describe the role…" />
           </label>
 
           <label className="block">
             <span className="mb-1 block text-xs text-slate-600">Requirements</span>
-            <textarea value={form.requirements} onChange={(e) => set('requirements', e.target.value)} rows={5} className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="- 3+ years…" />
+            <textarea value={form.requirements} onChange={(e) => set('requirements', e.target.value)} rows={5} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" placeholder="- 3+ years…" />
           </label>
 
           <label className="inline-flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" checked={form.isDraft} onChange={(e) => set('isDraft', e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+            <input type="checkbox" checked={form.isDraft} onChange={(e) => set('isDraft', e.target.checked)} className="h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" />
             Save as draft (server)
           </label>
 
           <div className="flex items-center justify-end gap-3">
-            <button type="button" onClick={() => history.back()} className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+            <button type="button" onClick={() => history.back()} className="rounded-xl border border-emerald-200 px-4 py-2 text-sm text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
               Cancel
             </button>
-            <button type="submit" disabled={busy} className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60">
+            <button type="submit" disabled={busy} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-60 shadow-sm shadow-emerald-200 transition-all">
               {busy ? 'Publishing…' : 'Publish Job'}
             </button>
           </div>
@@ -406,11 +408,10 @@ export default function NewJobPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
-          <div className={`pointer-events-auto w-full max-w-md rounded-2xl border p-4 shadow-2xl backdrop-blur ${
-            toast.type === 'ok'
+          <div className={`pointer-events-auto w-full max-w-md rounded-2xl border p-4 shadow-2xl backdrop-blur ${toast.type === 'ok'
               ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
               : 'border-rose-200 bg-rose-50 text-rose-900'
-          }`}>
+            }`}>
             <div className="flex items-start gap-3">
               <div className="grid h-6 w-6 place-items-center rounded-full bg-black/10">
                 {toast.type === 'ok' ? '✓' : '!'}
@@ -433,7 +434,7 @@ export default function NewJobPage() {
             <div className="mt-5">
               <button
                 onClick={() => { setSuccessMsg(null); router.push('/jobs'); }}
-                className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
                 Oke
               </button>
