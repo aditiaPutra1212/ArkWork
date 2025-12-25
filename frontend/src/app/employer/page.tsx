@@ -63,9 +63,8 @@ function AreaChart({
     .map((p, i) => (i === 0 ? `M ${p[0]} ${p[1]}` : `L ${p[0]} ${p[1]}`))
     .join(' ');
 
-  const area = `${path} L ${padding + (data.length - 1) * step} ${height - padding} L ${padding} ${
-    height - padding
-  } Z`;
+  const area = `${path} L ${padding + (data.length - 1) * step} ${height - padding} L ${padding} ${height - padding
+    } Z`;
 
   return (
     <div className="w-full overflow-hidden">
@@ -154,19 +153,22 @@ export default function EmployerHome() {
   return (
     <>
       <Nav />
-      <main className="min-h-[60vh] bg-slate-50">
+      <main className="min-h-[60vh] bg-slate-50 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
+
         <div className="mx-auto max-w-6xl px-4 py-8">
           <header className="mb-6">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-semibold text-slate-900">Employer Overview</h1>
+                <h1 className="text-2xl font-semibold text-emerald-950">Employer Overview</h1>
                 <p className="text-sm text-slate-600">
                   Ringkasan akun perusahaan dan performa lowongan.
                 </p>
               </div>
 
               {/* Badge nama perusahaan */}
-              <div className="inline-flex max-w-xs items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+              <div className="inline-flex max-w-xs items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 px-3 py-2 shadow-sm">
                 <span className="text-xs text-slate-500">Company</span>
                 <span className="truncate text-sm font-medium text-slate-900">
                   {loading ? '...' : companyName || '—'}
@@ -186,7 +188,7 @@ export default function EmployerHome() {
             {stats.map((s) => (
               <div
                 key={s.label}
-                className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+                className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm hover:shadow-emerald-100/50 transition-shadow"
               >
                 <p className="text-sm text-slate-500">{s.label}</p>
                 <p className="mt-1 text-2xl font-semibold text-slate-900">{s.value}</p>
@@ -196,9 +198,9 @@ export default function EmployerHome() {
 
           {/* Performance Chart */}
           <section className="mt-8">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-slate-900">Performance (Last 7)</h3>
+                <h3 className="text-base font-semibold text-emerald-950">Performance (Last 7)</h3>
                 <span className="text-xs text-slate-500">Auto-updated</span>
               </div>
 
@@ -207,7 +209,7 @@ export default function EmployerHome() {
                   <AreaChart data={series.apps} />
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="rounded-xl border border-emerald-100 bg-white p-3">
                   <p className="text-xs text-slate-500">Applications</p>
                   <p className="mt-1 text-xl font-semibold text-blue-600">
                     {series.apps.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
@@ -217,7 +219,7 @@ export default function EmployerHome() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="rounded-xl border border-emerald-100 bg-white p-3">
                   <p className="text-xs text-slate-500">Job Views</p>
                   <p className="mt-1 text-xl font-semibold text-amber-600">
                     {series.views.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
@@ -227,7 +229,7 @@ export default function EmployerHome() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                <div className="rounded-xl border border-emerald-100 bg-white p-3">
                   <p className="text-xs text-slate-500">Jobs Posted</p>
                   <p className="mt-1 text-xl font-semibold text-emerald-600">
                     {series.jobs.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}

@@ -19,6 +19,11 @@
             "date": 1766104397294,
             "name": "/media/rizky/New Volume/ArkWork/backend/logs/error-2025-12-19.log",
             "hash": "e565db353b16c5ab695cc4c01d4a8c4e49f528eb094dae73901f8ddc5549ba65"
+        },
+        {
+            "date": 1766661136644,
+            "name": "/media/rizky/New Volume/ArkWork/backend/logs/error-2025-12-25.log",
+            "hash": "038298b00250d9c7564b9cf3c7ccf022e8709c9f30e7c313d4099dc1b2e0b57d"
         }
     ],
     "hashType": "sha256"
