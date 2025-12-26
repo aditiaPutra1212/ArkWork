@@ -1,0 +1,32 @@
+[2025-12-26 00:45:16] INFO: ========================================
+[2025-12-26 00:45:16] INFO: 🚀 Backend listening on http://localhost:4000
+[2025-12-26 00:45:16] INFO: NODE_ENV           : development
+[2025-12-26 00:45:17] INFO: FRONTEND_ORIGIN(s) : http://localhost:3000, http://127.0.0.1:3000, http://localhost:3001, http://127.0.0.1:3001, http://localhost:5173, http://127.0.0.1:5173, https://arkwork.vercel.app, https://arkwork-staging.vercel.app
+[2025-12-26 00:45:17] INFO: ✅ Billing CRON     : loaded
+[2025-12-26 00:45:17] INFO: ✅ Redis Session    : connected & active
+[2025-12-26 00:45:17] INFO: ✅ Rate Limiting    : enabled (Targeted)
+[2025-12-26 00:45:18] INFO: ✅ Security Headers : enabled (Helmet)
+[2025-12-26 00:45:18] INFO: ✅ Logging System   : enabled (Winston)
+[2025-12-26 00:45:18] INFO: ========================================
+[2025-12-26 10:30:49] ERROR: Get Profile Error
+[2025-12-26 10:30:49] ERROR: Get Profile Error
+[2025-12-26 11:23:07] INFO: ========================================
+[2025-12-26 11:23:07] INFO: 🚀 Backend listening on http://localhost:4000
+[2025-12-26 11:23:07] INFO: NODE_ENV           : development
+[2025-12-26 11:23:07] INFO: FRONTEND_ORIGIN(s) : http://localhost:3000, http://127.0.0.1:3000, http://localhost:3001, http://127.0.0.1:3001, http://localhost:5173, http://127.0.0.1:5173, https://arkwork.vercel.app, https://arkwork-staging.vercel.app
+[2025-12-26 11:23:07] INFO: ✅ Billing CRON     : loaded
+[2025-12-26 11:23:07] INFO: ✅ Redis Session    : connected & active
+[2025-12-26 11:23:07] INFO: ✅ Rate Limiting    : enabled (Targeted)
+[2025-12-26 11:23:07] INFO: ✅ Security Headers : enabled (Helmet)
+[2025-12-26 11:23:07] INFO: ✅ Logging System   : enabled (Winston)
+[2025-12-26 11:23:07] INFO: ========================================
+[2025-12-26 11:30:28] INFO: ========================================
+[2025-12-26 11:30:28] INFO: 🚀 Backend listening on http://localhost:4000
+[2025-12-26 11:30:28] INFO: NODE_ENV           : development
+[2025-12-26 11:30:28] INFO: FRONTEND_ORIGIN(s) : http://localhost:3000, http://127.0.0.1:3000, http://localhost:3001, http://127.0.0.1:3001, http://localhost:5173, http://127.0.0.1:5173, https://arkwork.vercel.app, https://arkwork-staging.vercel.app
+[2025-12-26 11:30:28] INFO: ✅ Billing CRON     : loaded
+[2025-12-26 11:30:28] INFO: ✅ Redis Session    : connected & active
+[2025-12-26 11:30:28] INFO: ✅ Rate Limiting    : enabled (Targeted)
+[2025-12-26 11:30:28] INFO: ✅ Security Headers : enabled (Helmet)
+[2025-12-26 11:30:28] INFO: ✅ Logging System   : enabled (Winston)
+[2025-12-26 11:30:28] INFO: ========================================

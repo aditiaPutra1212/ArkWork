@@ -115,7 +115,12 @@
         "confirmAccept": "Terima pelamar \"{name}\" untuk posisi {job}?",
         "confirmReject": "Tolak pelamar \"{name}\" untuk posisi {job}?"
       },
-      "tip": "Tip: tambahkan query ?jobId=<JOB_ID> untuk melihat pelamar 1 job tertentu."
+      "tip": "Tip: tambahkan query ?jobId=<JOB_ID> untuk melihat pelamar 1 job tertentu.",
+      "status": {
+        "submitted": "DIAJUKAN",
+        "rejected": "DITOLAK",
+        "hired": "DITERIMA"
+      }
     },
     "jobList": {
       "title": "Lowongan",

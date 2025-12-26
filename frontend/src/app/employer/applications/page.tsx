@@ -179,9 +179,9 @@ export default function EmployerApplicationsPage() {
           {/* Ringkasan status – hanya 3 kartu */}
           <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { label: 'SUBMITTED', val: counters.submitted },
-              { label: 'REJECTED', val: counters.rejected },
-              { label: 'HIRED', val: counters.hired },
+              { label: t('status.submitted'), val: counters.submitted },
+              { label: t('status.rejected'), val: counters.rejected },
+              { label: t('status.hired'), val: counters.hired },
             ].map((it) => (
               <div key={it.label} className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm hover:shadow-emerald-100/50 transition-shadow">
                 <div className="text-xs font-medium text-emerald-600/80">{it.label}</div>
@@ -253,7 +253,7 @@ export default function EmployerApplicationsPage() {
                         <td className="px-4 py-3 text-emerald-800">{r.jobTitle}</td>
                         <td className="px-4 py-3">
                           <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs text-emerald-700 border border-emerald-100">
-                            {r.status}
+                            {ALLOWED.includes(r.status as any) ? t(`status.${r.status}`) : r.status}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-emerald-800">{pretty(r.createdAt)}</td>
@@ -302,7 +302,7 @@ export default function EmployerApplicationsPage() {
                             >
                               {ALLOWED.map((s) => (
                                 <option key={s} value={s}>
-                                  {s}
+                                  {t(`status.${s}`)}
                                 </option>
                               ))}
                             </select>

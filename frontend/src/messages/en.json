@@ -113,9 +113,17 @@
         "reject": "Reject",
         "saving": "Saving…",
         "confirmAccept": "Accept applicant \"{name}\" for position {job}?",
-        "confirmReject": "Reject applicant \"{name}\" for position {job}?"
+        "confirmReject": "Reject applicant \"{name}\" for position {job}?",
+        "tooltipAccept": "Accept (change status to HIRED)",
+        "tooltipReject": "Reject (change status to REJECTED)",
+        "tooltipQuick": "Quick status change"
       },
-      "tip": "Tip: add query ?jobId=<JOB_ID> to view applicants for a specific job."
+      "tip": "Tip: add query ?jobId=<JOB_ID> to view applicants for a specific job.",
+      "status": {
+        "submitted": "SUBMITTED",
+        "rejected": "REJECTED",
+        "hired": "HIRED"
+      }
     },
     "jobList": {
       "title": "Jobs",
