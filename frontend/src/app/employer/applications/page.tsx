@@ -278,7 +278,7 @@ export default function EmployerApplicationsPage() {
                               disabled={saving}
                               className={`rounded-full px-3 py-1 text-xs font-medium text-white ${saving ? 'bg-green-400' : 'bg-green-600 hover:bg-green-700'
                                 } disabled:opacity-60`}
-                              title="Terima (ubah status ke HIRED)"
+                              title={t('actions.tooltipAccept')}
                             >
                               {saving ? t('actions.saving') : t('actions.accept')}
                             </button>
@@ -287,7 +287,7 @@ export default function EmployerApplicationsPage() {
                               disabled={saving}
                               className={`rounded-full px-3 py-1 text-xs font-medium text-white ${saving ? 'bg-rose-400' : 'bg-rose-600 hover:bg-rose-700'
                                 } disabled:opacity-60`}
-                              title="Tolak (ubah status ke REJECTED)"
+                              title={t('actions.tooltipReject')}
                             >
                               {t('actions.reject')}
                             </button>
@@ -298,7 +298,7 @@ export default function EmployerApplicationsPage() {
                               disabled={saving}
                               onChange={(e) => updateStatus(r.id, e.target.value as StatusAllowed)}
                               className="rounded-full border border-emerald-200 bg-white px-2 py-1 text-xs text-emerald-800 focus:border-emerald-500 focus:outline-none"
-                              title="Ubah status cepat"
+                              title={t('actions.tooltipQuick')}
                             >
                               {ALLOWED.map((s) => (
                                 <option key={s} value={s}>
