@@ -112,8 +112,10 @@
         "accept": "Terima",
         "reject": "Tolak",
         "saving": "Menyimpan…",
-        "confirmAccept": "Terima pelamar \"{name}\" untuk posisi {job}?",
-        "confirmReject": "Tolak pelamar \"{name}\" untuk posisi {job}?"
+        "confirmReject": "Tolak pelamar \"{name}\" untuk posisi {job}?",
+        "tooltipAccept": "Terima (ubah status ke DITERIMA)",
+        "tooltipReject": "Tolak (ubah status ke DITOLAK)",
+        "tooltipQuick": "Ubah status cepat"
       },
       "tip": "Tip: tambahkan query ?jobId=<JOB_ID> untuk melihat pelamar 1 job tertentu.",
       "status": {
