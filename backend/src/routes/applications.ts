@@ -1,3 +1,5 @@
+// backend/src/routes/applications.ts
+
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 import { authRequired } from '../middleware/role';
@@ -13,9 +15,16 @@ const router = Router();
  */
 router.get('/users/applications', authRequired, async (req: Request, res: Response) => {
   try {
-    const auth = (req as any).auth as { uid?: string };
-    const userId = auth?.uid;
-    if (!userId) return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
+    // 👇 PERBAIKAN DI SINI: Gunakan userId, bukan uid
+    const auth = (req as any).auth; 
+    const userId = auth?.userId; 
+
+    // Debugging (Opsional, hapus nanti)
+    // console.log('[DEBUG Applications] Auth Data:', auth);
+
+    if (!userId) {
+        return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED (User ID missing)' });
+    }
 
     const apps = await prisma.jobApplication.findMany({
       where: { applicantId: userId },
@@ -63,10 +72,8 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
  * POST /api/applications
  * Endpoint melamar kerja + Upload CV Aman
  */
-
 router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Request, res: Response) => {
   
-  // Helper: Hapus file jika validasi gagal (agar server tidak penuh sampah)
   const cleanupFile = () => {
     if (req.file) {
       try { fs.unlinkSync(req.file.path); } catch {}
@@ -76,15 +83,15 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
   try {
     const jobId = String(req.body?.jobId || '').trim();
     
-    // 1. Validasi Job ID
     if (!jobId) {
       cleanupFile();
       return res.status(400).json({ ok: false, error: 'jobId required' });
     }
 
-    // 2. Validasi User
-    const user = (req as any).auth as { uid: string };
-    const userId = user?.uid;
+    // 👇 PERBAIKAN DI SINI JUGA: Gunakan userId
+    const user = (req as any).auth;
+    const userId = user?.userId;
+
     if (!userId) {
       cleanupFile();
       return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
@@ -101,11 +108,10 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
       return res.status(404).json({ ok: false, error: 'Job not found, closed, or hidden.' });
     }
 
-    // 4. Siapkan Data CV (Jika ada file yang lolos upload)
+    // 4. Siapkan Data CV
     let cvData: null | { url: string; name: string; type: string; size: number } = null;
     
     if (req.file) {
-      // req.file.filename sudah diacak otomatis oleh middleware upload.ts
       cvData = {
         url: `/uploads/${req.file.filename}`, 
         name: req.file.originalname,
@@ -114,7 +120,7 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
       };
     }
 
-    // 5. Simpan ke Database (Upsert: Create or Update)
+    // 5. Simpan ke Database
     type AppWithJob = Prisma.JobApplicationGetPayload<{
       include: { job: { select: { id: true; title: true } } };
     }>;
@@ -132,7 +138,6 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
         } : {}),
       },
       update: {
-        // Jika upload file baru, update data CV. Jika tidak, biarkan yang lama.
         ...(cvData ? {
           cvUrl: cvData.url,
           cvFileName: cvData.name,
@@ -162,15 +167,12 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
     });
 
   } catch (e: any) {
-    // ⚠️ Error Handling Khusus Multer (Dari Middleware Upload)
     if (e.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({ ok: false, error: 'Ukuran CV terlalu besar (Max 5MB).' });
     }
-    // Error jika format bukan PDF/Doc
     if (e.message?.includes('Hanya file dokumen')) {
       return res.status(400).json({ ok: false, error: e.message });
     }
-
     if (e?.code === 'P2002') {
       return res.status(409).json({ ok: false, error: 'Anda sudah melamar pekerjaan ini.' });
     }

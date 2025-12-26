@@ -1,6 +1,8 @@
+// backend/src/routes/user-applications.ts
 import { Router } from 'express';
 import { prisma } from '../lib/prisma';
-import { withUserSession } from '../middleware/user-session';
+// UBAH IMPORT: Gunakan requireAuth yang sudah support Google & JWT
+import { requireAuth } from '../middleware/requireAuth'; 
 
 const router = Router();
 
@@ -8,9 +10,16 @@ const router = Router();
  * GET /api/users/applications
  * Return list lamaran milik user saat ini
  */
-router.get('/users/applications', withUserSession, async (req, res) => {
+// GANTI middleware 'withUserSession' menjadi 'requireAuth'
+router.get('/users/applications', requireAuth, async (req, res) => {
   try {
-    const userId = (req as any).userId as string;
+    // requireAuth yang baru sudah menyediakan req.user.id atau req.userId
+    // Kita pakai fallback agar aman
+    const userId = (req as any).userId || (req as any).user?.id;
+
+    if (!userId) {
+        return res.status(401).json({ ok: false, error: 'User ID not found in session' });
+    }
 
     const apps = await prisma.jobApplication.findMany({
       where: { applicantId: userId },
@@ -33,6 +42,7 @@ router.get('/users/applications', withUserSession, async (req, res) => {
 
     res.json({ ok: true, rows });
   } catch (e: any) {
+    console.error('Error fetching applications:', e);
     res.status(500).json({ ok: false, error: e?.message || 'Internal error' });
   }
 });

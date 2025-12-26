@@ -1,4 +1,5 @@
 // src/routes/employer.ts
+
 import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { parse as parseCookie } from 'cookie';
@@ -7,12 +8,7 @@ import fs from 'node:fs';
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
-
-// ⬇️ gunakan service billing agar email terkirim
-import {
-  startTrial,                 // startTrial({ employerId, planId, trialDays }) -> { trialEndsAt: Date }
-  activatePremium,            // activatePremium({ employerId, planId, interval, baseFrom? }) -> { premiumUntil: Date }
-} from '../services/billing';
+import { startTrial, activatePremium } from '../services/billing';
 
 export const employerRouter = Router();
 
@@ -25,15 +21,15 @@ declare module 'express-serve-static-core' {
   }
 }
 
-/* ================== AUTH ================== */
+/* ================== AUTH UTILS ================== */
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 const EMP_SESSION_COOKIE = 'emp_session';
 const EMP_TOKEN_COOKIE = 'emp_token';
 
 type EmployerJWTPayload = {
-  uid: string; // employer admin user id
+  uid: string;
   role: 'employer';
-  eid: string; // employerId
+  eid: string;
   iat?: number;
   exp?: number;
 };
@@ -108,7 +104,7 @@ export async function attachEmployerId(req: Request, _res: Response, next: NextF
   next();
 }
 
-/* ================== Small utils ================== */
+/* ================== HELPER UTILS ================== */
 function slugify(s: string) {
   return (s || '')
     .trim()
@@ -117,6 +113,7 @@ function slugify(s: string) {
     .replace(/(^-|-$)/g, '')
     .slice(0, 60);
 }
+
 async function uniqueSlug(base: string) {
   let s = slugify(base) || 'company';
   let i = 1;
@@ -126,7 +123,9 @@ async function uniqueSlug(base: string) {
   return s;
 }
 
-/* ================== /auth/me & /me ================== */
+/* ================== ENDPOINTS ================== */
+
+// Get Current Employer (Me)
 async function handleMe(req: Request, res: Response) {
   const auth = await resolveEmployerAuth(req);
   if (!auth?.employerId) {
@@ -177,7 +176,7 @@ async function handleMe(req: Request, res: Response) {
 employerRouter.get('/auth/me', handleMe);
 employerRouter.get('/me', handleMe);
 
-/* ================== STEP 1: buat akun employer + admin owner ================== */
+// Step 1: Create Account
 employerRouter.post('/step1', async (req, res) => {
   try {
     const {
@@ -231,7 +230,7 @@ employerRouter.post('/step1', async (req, res) => {
   }
 });
 
-/* ================== STEP 2: update profil ================== */
+// Step 2: Update Profile (During Onboarding)
 employerRouter.post('/step2', async (req, res) => {
   try {
     const { employerId, ...profile } = req.body || {};
@@ -274,14 +273,51 @@ employerRouter.post('/step2', async (req, res) => {
   }
 });
 
-/* ================== STEP 3: pilih paket (trial/gratis/berbayar) ================== */
-/**
- * Body: { employerId, planSlug }
- * Result:
- *  - { ok: true, mode: 'trial', trialEndsAt }
- *  - { ok: true, mode: 'free_active', premiumUntil }
- *  - { ok: true, mode: 'needs_payment' }
- */
+// =========================================================
+// [FIXED] Route Update Basic Profile (Dashboard)
+// =========================================================
+employerRouter.post('/update-basic', async (req, res) => {
+  try {
+    const { employerId, displayName, website, size, about, hqCity } = req.body || {};
+    
+    if (!employerId) {
+      return res.status(400).json({ ok: false, message: 'Employer ID required' });
+    }
+
+    // 1. Update tabel Employer
+    await prisma.employer.update({
+      where: { id: employerId },
+      data: {
+        displayName: displayName,
+        website: website
+      }
+    });
+
+    // 2. Update tabel EmployerProfile
+    await prisma.employerProfile.upsert({
+      where: { employerId },
+      create: {
+        employerId,
+        size: size,
+        about: about,
+        hqCity: hqCity
+      },
+      update: {
+        size: size,
+        about: about,
+        hqCity: hqCity
+      }
+    });
+
+    return res.json({ ok: true, message: 'Profile updated successfully' });
+
+  } catch (error) {
+    console.error('Update Basic Error:', error);
+    return res.status(500).json({ ok: false, message: 'Failed to update profile' });
+  }
+});
+
+// Step 3: Select Plan
 employerRouter.post('/step3', async (req, res) => {
   try {
     const { employerId, planSlug } = req.body as { employerId: string; planSlug: string };
@@ -293,7 +329,7 @@ employerRouter.post('/step3', async (req, res) => {
     const plan = await prisma.plan.findUnique({ where: { slug: planSlug } });
     if (!plan || !plan.active) return res.status(400).json({ error: 'Plan not available' });
 
-    // === TRIAL → gunakan service (email terkirim di dalamnya)
+    // Trial
     if ((plan.trialDays ?? 0) > 0) {
       const { trialEndsAt } = await startTrial({
         employerId,
@@ -311,7 +347,7 @@ employerRouter.post('/step3', async (req, res) => {
 
     const amount = Number(plan.amount ?? 0);
 
-    // === GRATIS → aktifkan premium via service (email terkirim di dalamnya)
+    // Free Tier
     if (amount === 0) {
       const { premiumUntil } = await activatePremium({
         employerId,
@@ -327,7 +363,7 @@ employerRouter.post('/step3', async (req, res) => {
       return res.json({ ok: true, mode: 'free_active', premiumUntil: premiumUntil.toISOString() });
     }
 
-    // === BERBAYAR & tanpa trial → perlu checkout (email akan dikirim via webhook Midtrans setelah sukses)
+    // Paid Tier
     await prisma.employer.update({
       where: { id: employerId },
       data: { currentPlanId: plan.id, onboardingStep: 'VERIFY' },
@@ -340,7 +376,7 @@ employerRouter.post('/step3', async (req, res) => {
   }
 });
 
-/* ================== STEP 5: submit verifikasi ================== */
+// Step 5: Submit Verification
 employerRouter.post('/step5', async (req, res) => {
   try {
     const { employerId, note } = req.body || {};
@@ -361,7 +397,7 @@ employerRouter.post('/step5', async (req, res) => {
   }
 });
 
-/* ================== Upload logo ================== */
+/* ================== UPLOAD CONFIG ================== */
 const uploadsRoot = path.join(process.cwd(), 'public', 'uploads');
 fs.mkdirSync(uploadsRoot, { recursive: true });
 
@@ -398,6 +434,7 @@ const upload = multer({
 
 type MulterReq = Request & { file?: Express.Multer.File };
 
+// Route: Upload Logo
 employerRouter.post('/profile/logo', upload.single('file'), async (req, res) => {
   const mreq = req as MulterReq;
   const auth = await resolveEmployerAuth(req);
@@ -410,6 +447,7 @@ employerRouter.post('/profile/logo', upload.single('file'), async (req, res) => 
   if (!employerId) return res.status(400).json({ message: 'employerId required' });
   if (!mreq.file) return res.status(400).json({ message: 'file required' });
 
+  // Ensure file is in correct folder if uploaded as 'unknown'
   const dir = path.join(uploadsRoot, 'employers', employerId);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -427,6 +465,75 @@ employerRouter.post('/profile/logo', upload.single('file'), async (req, res) => 
   });
 
   return res.json({ ok: true, url: publicUrl });
+});
+
+// Route: Get Profile Data
+// [UPDATED] Menambahkan Base URL agar gambar tidak hilang saat refresh
+employerRouter.get('/profile', async (req, res) => {
+  try {
+    let targetId = (req.query.employerId as string)?.trim();
+
+    if (!targetId) {
+      const auth = await resolveEmployerAuth(req);
+      targetId = auth?.employerId || '';
+    }
+
+    if (!targetId) {
+      return res.status(400).json({ ok: false, message: 'Employer ID required' });
+    }
+
+    const employer = await prisma.employer.findUnique({
+      where: { id: targetId },
+      include: {
+        profile: true,
+        admins: {
+          where: { isOwner: true },
+          select: { email: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!employer) {
+      return res.status(404).json({ ok: false, message: 'Employer not found' });
+    }
+
+    // --- FIX URL HELPER ---
+    // Mendapatkan alamat server saat ini (misal http://localhost:4000)
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+    const fixUrl = (url: string | null | undefined) => {
+      if (!url) return null;
+      if (url.startsWith('http')) return url; // Kalau sudah lengkap, biarkan
+      return `${baseUrl}${url}`; // Kalau cuma /uploads/..., tambahkan domain
+    };
+    // ----------------------
+
+    const data = {
+      id: employer.id,
+      slug: employer.slug,
+      displayName: employer.displayName,
+      legalName: employer.legalName,
+      website: employer.website,
+      email: employer.admins[0]?.email,
+      industry: employer.profile?.industry,
+      size: employer.profile?.size,
+      about: employer.profile?.about,
+      hqCity: employer.profile?.hqCity,
+      hqCountry: employer.profile?.hqCountry,
+      
+      // Gunakan fixUrl di sini:
+      logoUrl: fixUrl(employer.profile?.logoUrl),
+      bannerUrl: fixUrl(employer.profile?.bannerUrl),
+      
+      foundedYear: employer.profile?.foundedYear,
+    };
+
+    return res.json({ ok: true, data });
+  } catch (e) {
+    console.error('Get Profile Error:', e);
+    return res.status(500).json({ ok: false, message: 'Internal server error' });
+  }
 });
 
 export default employerRouter;
