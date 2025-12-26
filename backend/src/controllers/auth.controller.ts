@@ -3,6 +3,7 @@ import { prisma } from '../lib/prisma';
 import { sendPasswordResetEmail } from '../lib/mailer';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 /* HELPER: Membuat Hash SHA-256
    Token asli dikirim ke email, token hash disimpan di DB.
@@ -148,5 +149,71 @@ export const resetPassword = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('[AUTH][RESET] Error:', error);
     return res.status(500).json({ message: 'Gagal mereset password.' });
+  }
+};
+
+/* 4. SIGNIN (Login Manual) */
+export const signin = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  try {
+    // 1. Cari User berdasarkan email
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    // Cek user ada & punya password (bukan user login Google only)
+    if (!user || !user.passwordHash) {
+      return res.status(401).json({ message: 'Email atau password salah.' });
+    }
+
+    // 2. Cek Password
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      return res.status(401).json({ message: 'Email atau password salah.' });
+    }
+
+    // 3. Buat JWT Token
+    const secret = process.env.JWT_SECRET || 'dev-secret';
+    
+    // PENTING: Karena User table Anda khusus kandidat, role kita set manual 'user'
+    const token = jwt.sign(
+      { 
+        uid: user.id, 
+        email: user.email, 
+        role: 'user' // Default role untuk tabel User
+      }, 
+      secret, 
+      { expiresIn: '7d' }
+    );
+
+    // 4. Set Cookie (PENTING untuk requireAuth)
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    res.cookie('user_token', token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 hari
+    });
+
+    // 5. Kirim Response JSON
+    // Mapping: photoUrl (DB) -> avatar (Frontend)
+    return res.json({
+      ok: true,
+      message: 'Login berhasil',
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: 'user',        // Hardcode 'user' agar frontend tahu ini kandidat
+        avatar: user.photoUrl // Mapping dari schema Prisma Anda
+      }
+    });
+
+  } catch (error) {
+    console.error('[AUTH][SIGNIN] Error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
