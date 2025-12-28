@@ -2,28 +2,22 @@
 
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
-import { authRequired } from '../middleware/role';
-import { Prisma } from '@prisma/client';
+// Import ApplicationStatus
+import { Prisma, ApplicationStatus } from '@prisma/client'; 
 import fs from 'node:fs';
-import { uploadCV } from '../middleware/upload';
+import { authRequired } from '../middleware/role';
+import { uploadCV } from '../middleware/upload'; 
 
 const router = Router();
 
-/**
- * GET /api/users/applications
- * List aplikasi user login
- */
+// GET /api/users/applications
 router.get('/users/applications', authRequired, async (req: Request, res: Response) => {
   try {
-    // 👇 PERBAIKAN DI SINI: Gunakan userId, bukan uid
     const auth = (req as any).auth; 
-    const userId = auth?.userId; 
-
-    // Debugging (Opsional, hapus nanti)
-    // console.log('[DEBUG Applications] Auth Data:', auth);
+    const userId = auth?.userId || auth?.sub; 
 
     if (!userId) {
-        return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED (User ID missing)' });
+      return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
     }
 
     const apps = await prisma.jobApplication.findMany({
@@ -62,21 +56,19 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
     }));
 
     return res.json({ ok: true, rows });
+
   } catch (e: any) {
-    console.error('[GET /api/users/applications] error:', e);
+    console.error(e);
     return res.status(500).json({ ok: false, error: 'SERVER_ERROR' });
   }
 });
 
-/**
- * POST /api/applications
- * Endpoint melamar kerja + Upload CV Aman
- */
+// POST /api/applications
 router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Request, res: Response) => {
   
   const cleanupFile = () => {
     if (req.file) {
-      try { fs.unlinkSync(req.file.path); } catch {}
+      try { fs.unlinkSync(req.file.path); } catch (err) { }
     }
   };
 
@@ -85,32 +77,28 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
     
     if (!jobId) {
       cleanupFile();
-      return res.status(400).json({ ok: false, error: 'jobId required' });
+      return res.status(400).json({ ok: false, error: 'Job ID diperlukan.' });
     }
 
-    // 👇 PERBAIKAN DI SINI JUGA: Gunakan userId
-    const user = (req as any).auth;
-    const userId = user?.userId;
+    const auth = (req as any).auth;
+    const userId = auth?.userId || auth?.sub;
 
     if (!userId) {
       cleanupFile();
-      return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
+      return res.status(401).json({ ok: false, error: 'Anda harus login.' });
     }
 
-    // 3. Cek Status Job di Database
     const job = await prisma.job.findUnique({
       where: { id: jobId },
-      select: { id: true, isActive: true, isHidden: true, title: true },
+      select: { id: true, isActive: true, isHidden: true },
     });
 
     if (!job || !job.isActive || job.isHidden) {
       cleanupFile();
-      return res.status(404).json({ ok: false, error: 'Job not found, closed, or hidden.' });
+      return res.status(404).json({ ok: false, error: 'Lowongan tidak valid.' });
     }
 
-    // 4. Siapkan Data CV
     let cvData: null | { url: string; name: string; type: string; size: number } = null;
-    
     if (req.file) {
       cvData = {
         url: `/uploads/${req.file.filename}`, 
@@ -120,16 +108,16 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
       };
     }
 
-    // 5. Simpan ke Database
-    type AppWithJob = Prisma.JobApplicationGetPayload<{
-      include: { job: { select: { id: true; title: true } } };
-    }>;
-
-    const result: AppWithJob = await prisma.jobApplication.upsert({
-      where: { jobId_applicantId: { jobId, applicantId: userId } },
+    // --- BAGIAN YANG DIPERBAIKI ---
+    const result = await prisma.jobApplication.upsert({
+      where: { 
+        jobId_applicantId: { jobId, applicantId: userId } 
+      },
       create: {
         jobId,
         applicantId: userId,
+        // Ganti PENDING ke submitted (sesuai skema database kamu)
+        status: ApplicationStatus.submitted, 
         ...(cvData ? {
           cvUrl: cvData.url,
           cvFileName: cvData.name,
@@ -145,12 +133,18 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
           cvFileSize: cvData.size,
         } : {}),
         updatedAt: new Date(),
+        // Ganti PENDING ke submitted juga disini
+        status: ApplicationStatus.submitted, 
       },
-      include: { job: { select: { id: true, title: true } } },
+      include: { 
+        job: { select: { id: true, title: true } } 
+      },
     });
+    // -----------------------------
 
     return res.json({
       ok: true,
+      message: 'Lamaran berhasil dikirim.',
       data: {
         id: result.id,
         jobId: result.job.id,
@@ -158,27 +152,16 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
         status: result.status,
         createdAt: result.createdAt,
         cv: result.cvUrl ? {
-          url: result.cvUrl,
-          name: result.cvFileName,
-          type: result.cvFileType,
-          size: result.cvFileSize
+            url: result.cvUrl, name: result.cvFileName
         } : null,
       },
     });
 
   } catch (e: any) {
-    if (e.code === 'LIMIT_FILE_SIZE') {
-      return res.status(413).json({ ok: false, error: 'Ukuran CV terlalu besar (Max 5MB).' });
-    }
-    if (e.message?.includes('Hanya file dokumen')) {
-      return res.status(400).json({ ok: false, error: e.message });
-    }
-    if (e?.code === 'P2002') {
-      return res.status(409).json({ ok: false, error: 'Anda sudah melamar pekerjaan ini.' });
-    }
-
-    console.error('[POST /api/applications] error:', e);
-    return res.status(500).json({ ok: false, error: 'SERVER_ERROR' });
+    if (e.code === 'LIMIT_FILE_SIZE') return res.status(413).json({ ok: false, error: 'File terlalu besar.' });
+    console.error(e);
+    cleanupFile();
+    return res.status(500).json({ ok: false, error: 'Gagal memproses lamaran.' });
   }
 });
 

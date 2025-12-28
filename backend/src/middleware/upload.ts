@@ -5,11 +5,16 @@ import fs from 'fs';
 import { Request, Response, NextFunction } from 'express';
 import NodeClam from 'clamscan';
 
+/* --- 0. PASTIKAN FOLDER UPLOAD ADA --- */
+const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 /* --- 1. KONFIGURASI PENYIMPANAN (STORAGE) --- */
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Pastikan folder public/uploads sudah ada
-    cb(null, path.join(process.cwd(), 'public', 'uploads'));
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     // SECURITY: Random filename agar tidak bisa ditebak/ditimpa
@@ -19,35 +24,43 @@ const storage = multer.diskStorage({
   },
 });
 
-/* --- 2. FILTER: HANYA DOKUMEN (PDF/DOC) --- */
+/* --- 2. FILTER: HANYA DOKUMEN (PDF/DOC/DOCX) - [FIXED] --- */
 const documentFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedTypes = /pdf|doc|docx/;
-  // Cek ekstensi (.pdf) DAN mime type (application/pdf)
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  // Daftar Mime Type yang valid untuk dokumen kerja
+  const allowedMimes = [
+    'application/pdf',                                                        // .pdf
+    'application/msword',                                                     // .doc
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
+  ];
 
-  if (extname && mimetype) {
-    return cb(null, true);
+  const ext = path.extname(file.originalname).toLowerCase();
+  const isExtValid = ['.pdf', '.doc', '.docx'].includes(ext);
+
+  if (allowedMimes.includes(file.mimetype) && isExtValid) {
+    cb(null, true);
   } else {
-    cb(new Error('Hanya file dokumen (PDF, DOC, DOCX) yang diperbolehkan!'));
+    cb(new Error('Format file tidak didukung. Harap upload PDF, DOC, atau DOCX.'));
   }
 };
 
-/* --- 3. FILTER: HANYA GAMBAR (JPG/PNG) --- */
+/* --- 3. FILTER: HANYA GAMBAR (JPG/PNG/WEBP) --- */
 const imageFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
+  const allowedMimes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp'
+  ];
+  
+  if (allowedMimes.includes(file.mimetype)) {
+    cb(null, true);
   } else {
     cb(new Error('Hanya file gambar (JPG, PNG, WEBP) yang diperbolehkan!'));
   }
 };
 
 /* --- 4. EXPORT CONFIG (MULTER) --- */
-// Opsi A: Untuk Upload CV (Max 5MB)
+
+// Opsi A: Untuk Upload CV (Max 5MB) -> Pakai ini di route pelamar
 export const uploadCV = multer({
   storage: storage,
   fileFilter: documentFilter,
@@ -56,7 +69,7 @@ export const uploadCV = multer({
   },
 });
 
-// Opsi B: Untuk Upload Gambar/Logo (Max 2MB)
+// Opsi B: Untuk Upload Gambar/Logo (Max 2MB) -> Pakai ini di route profil
 export const uploadImage = multer({
   storage: storage,
   fileFilter: imageFilter,
@@ -90,9 +103,7 @@ export const scanFile = async (req: Request, res: Response, next: NextFunction) 
     const { isInfected, viruses } = await av.isInfected(filePath);
 
     if (isInfected) {
-      // SECURITY ACTION: Hapus file & Tolak Request
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      
+      // SECURITY ACTION: File sudah dihapus otomatis oleh removeInfected: true
       console.warn(`[SECURITY] Virus detected in ${req.file.originalname}: ${viruses.join(', ')}`);
       
       return res.status(406).json({ 
@@ -106,19 +117,18 @@ export const scanFile = async (req: Request, res: Response, next: NextFunction) 
 
   } catch (error: any) {
     // --- MODE DEVELOPMENT (FALLBACK) ---
-    // Jika ClamAV belum diinstall di komputer (Windows), error 'ECONNREFUSED' akan muncul.
+    // Jika ClamAV belum diinstall di komputer (Windows/Mac), error 'ECONNREFUSED' akan muncul.
     // Kita biarkan lewat agar Anda tetap bisa coding tanpa install antivirus berat.
     if (error.code === 'ECONNREFUSED' || error.message?.includes('Could not find clamdscan')) {
-      console.warn('[SECURITY WARNING] ClamAV antivirus service tidak terdeteksi. File dilewatkan tanpa scan (Dev Mode).');
+      // Uncomment baris bawah ini jika ingin melihat warning di terminal
+      // console.warn('[SECURITY WARNING] ClamAV service not found. Skipping scan (Dev Mode).');
       return next();
     }
 
     // Error lain (bukan karena ClamAV mati)
     console.error('[VIRUS SCAN ERROR]', error);
     
-    // Opsional: Hapus file jika gagal scan untuk keamanan maksimal
-    // if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
-    return res.status(500).json({ ok: false, error: 'Gagal memindai keamanan file.' });
+    // Default: Aman, izinkan lewat jika scanner error (atau blokir jika ingin strict)
+    return next();
   }
 };

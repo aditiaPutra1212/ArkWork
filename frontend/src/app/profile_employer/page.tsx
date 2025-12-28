@@ -17,6 +17,7 @@ type MeResp = {
     displayName?: string | null;
     legalName?: string | null;
     website?: string | null;
+    logoUrl?: string | null;
   } | null;
 };
 
@@ -103,21 +104,31 @@ export default function ProfileEmployerPage() {
         setCompanyEmail(me.admin?.email || user?.email || '');
         setCompanyName((emp?.displayName || emp?.legalName || '').trim());
         setWebsite(emp?.website || '');
+        // Set initial logo from auth/me (fast)
+        if (emp?.logoUrl) setLogoUrl(emp.logoUrl);
 
         if (eid) {
-          const prof = await api<ProfileResp>(
+          // Backend returns { ok: true, data: { ... } }
+          const res = await api<{ ok: boolean; data: ProfileResp }>(
             `/api/employers/profile?employerId=${encodeURIComponent(eid)}`
           );
           if (!alive) return;
-          setAbout(prof?.about || '');
-          setCity(prof?.hqCity || '');
-          setLogoUrl(prof?.logoUrl || undefined);
-          setSocial((prev) => ({
-            ...prev,
-            instagram: prof?.instagram || '',
-            linkedin: prof?.linkedin || '',
-            twitter: prof?.twitter || '',
-          }));
+
+          const prof = res.data; // Unwrap data
+
+          if (prof) {
+            setAbout(prof.about || '');
+            setCity(prof.hqCity || '');
+            // Prioritize profile logo if valid
+            if (prof.logoUrl) setLogoUrl(prof.logoUrl);
+
+            setSocial((prev) => ({
+              ...prev,
+              instagram: prof.instagram || '',
+              linkedin: prof.linkedin || '',
+              twitter: prof.twitter || '',
+            }));
+          }
         }
       } catch (e) {
         console.error('[profile] load failed:', e);

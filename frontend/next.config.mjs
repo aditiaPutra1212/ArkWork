@@ -4,50 +4,73 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 /** @type {import('next').NextConfig} */
+// Pastikan tidak ada slash di akhir URL
 const apiBase = (process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000').replace(/\/+$/, '');
 
 const nextConfig = {
   reactStrictMode: true,
+
+  // 1. Konfigurasi Image agar Next.js boleh memuat gambar dari Backend
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/uploads/**',
+      },
+      { protocol: 'https', hostname: '**' },
+      { protocol: 'http', hostname: '**' },
+    ],
+  },
+
+  // 2. Konfigurasi Rewrite (Jembatan Frontend -> Backend)
   async rewrites() {
     console.log(`[Next.js Proxy] Rewriting API calls to: ${apiBase}`);
     return [
-      // --- Aturan Spesifik DULU ---
-      // Aturan KHUSUS untuk endpoint signin agar tidak bentrok dengan halaman /auth/signin
+      // --- [PENTING] JEMBATAN FILE UPLOADS/GAMBAR ---
+      // Ini yang memperbaiki gambar pecah (404)
       {
-        source: '/api/auth/signin', // Path yang dipanggil frontend
-        destination: `${apiBase}/auth/signin` // Path tujuan di backend
+        source: '/uploads/:path*', 
+        destination: `${apiBase}/uploads/:path*` 
       },
-      // ++ ATURAN BARU UNTUK VERIFIKASI ++
+
+      // --- Aturan Auth Spesifik ---
       {
-        source: '/api/auth/verify', // Path yang dipanggil frontend verify page
-        destination: `${apiBase}/auth/verify` // Path tujuan di backend
+        source: '/api/auth/signin',
+        destination: `${apiBase}/auth/signin`
       },
-      // --- Aturan lupa password ---
+      {
+        source: '/api/auth/verify',
+        destination: `${apiBase}/auth/verify`
+      },
       {
         source: '/api/auth/forgot',
-        destination: `${apiBase}/auth/forgot` // Mengarah ke backend /auth/forgot
+        destination: `${apiBase}/auth/forgot`
       },
       {
         source: '/api/auth/reset-password',
-        destination: `${apiBase}/auth/reset-password` // Mengarah ke backend /auth/reset-password
+        destination: `${apiBase}/auth/reset-password`
       },
       {
         source: '/api/auth/verify-token/:token',
         destination: `${apiBase}/auth/verify-token/:token` 
       },
       
-      // --- Aturan Umum /api SETELAHNYA ---
+      // --- Aturan Umum API ---
+      // Menangkap semua request /api/... dan melempar ke backend
       {
-        source: '/api/:path*', // Menangkap semua /api/* lainnya
+        source: '/api/:path*',
         destination: `${apiBase}/api/:path*`
       },
-      // --- Aturan /auth/* lainnya (yang tidak bentrok dengan halaman frontend) ---
+
+      // --- Aturan Auth Lainnya ---
       {
         source: '/auth/me',
         destination: `${apiBase}/auth/me`
       },
       {
-        source: '/auth/signup', // Endpoint signup API (dipanggil oleh frontend signup form)
+        source: '/auth/signup',
         destination: `${apiBase}/auth/signup`
       },
       {
@@ -55,17 +78,10 @@ const nextConfig = {
         destination: `${apiBase}/auth/signout`
       },
       {
-        source: '/auth/google/:path*', // Untuk /auth/google (redirect) dan /auth/google/callback
+        source: '/auth/google/:path*',
         destination: `${apiBase}/auth/google/:path*`
       },
-      // Tambahkan aturan /auth/* lain di sini jika ada dan TIDAK bentrok dengan halaman frontend
     ];
-  },
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: '**' },
-      { protocol: 'http', hostname: '**' },
-    ],
   },
 };
 

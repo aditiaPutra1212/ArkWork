@@ -10,8 +10,6 @@ export const ADMIN_COOKIE = process.env.ADMIN_COOKIE_NAME || 'admin_token';
 export const EMP_COOKIE = process.env.EMP_COOKIE_NAME || 'emp_token';
 export const USER_COOKIE = process.env.USER_COOKIE_NAME || 'user_token';
 
-export type Role = 'admin' | 'employer' | 'user';
-
 // Interface untuk memperluas Request Express
 declare global {
   namespace Express {
@@ -19,6 +17,7 @@ declare global {
       id: string;
       email?: string;
       role: string;
+      employerId?: string; // Tambahkan employerId jika ada
     }
     interface Request {
       auth?: { userId: string; role: string; eid?: string | null };
@@ -27,17 +26,12 @@ declare global {
 }
 
 /**
- * Helper: Ambil token dari Cookie
+ * Helper: Ambil token dari Cookie (Robust)
  */
 function getCookieToken(req: Request, name: string): string | undefined {
-  // 1. Cek req.cookies (dari cookie-parser)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const rc = (req as any).cookies;
-  if (rc && typeof rc === 'object' && rc[name]) {
-    return rc[name] as string;
-  }
-  
-  // 2. Fallback: Parse manual header 'Cookie'
+  if (rc && typeof rc === 'object' && rc[name]) return rc[name] as string;
+
   const raw = req.headers.cookie || '';
   try {
     const parts = raw.split(';');
@@ -45,118 +39,106 @@ function getCookieToken(req: Request, name: string): string | undefined {
       const [key, val] = part.trim().split('=');
       if (key === name && val) return decodeURIComponent(val);
     }
-  } catch {
-    return undefined;
-  }
+  } catch { return undefined; }
   return undefined;
 }
 
 /**
- * Middleware Utama: Auth Required (Hybrid: Passport Session + JWT)
- * Digunakan untuk User / Candidate
+ * Middleware: Auth Required (Hybrid)
+ * Untuk User / Candidate
  */
 export function authRequired(req: Request, res: Response, next: NextFunction) {
-  // A. STRATEGI 1: Cek Login Google (Passport Session)
   if (req.isAuthenticated && req.isAuthenticated()) {
     const user = req.user as any;
-    
-    // Standarisasi req.auth (untuk controller baru)
-    req.auth = { 
-      userId: user.id, 
-      role: user.role || 'user',
-      eid: null 
-    };
+    req.auth = { userId: user.id, role: user.role || 'user', eid: null };
     return next();
   }
 
-  // B. STRATEGI 2: Cek Login Manual (JWT Cookie)
   const token = getCookieToken(req, USER_COOKIE);
-
-  if (!token) {
-    // Tidak ada session Google & Tidak ada Token Cookie
-    return res.status(401).json({ message: 'Unauthorized: Silakan login.' });
-  }
+  if (!token) return res.status(401).json({ message: 'Unauthorized: Silakan login.' });
 
   try {
-    // Verifikasi Token
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-
-    // PENTING: Hydrate req.user agar Controller yang pakai style Passport tetap jalan
-    (req as any).user = {
-      id: decoded.uid,      // Mapping: uid (JWT) -> id (App)
-      email: decoded.email,
-      role: decoded.role || 'user'
-    };
-
-    // Standarisasi req.auth
-    req.auth = {
-      userId: decoded.uid,
-      role: (decoded.role as string) || 'user',
-      eid: null
-    };
-
+    (req as any).user = { id: decoded.uid, email: decoded.email, role: decoded.role || 'user' };
+    req.auth = { userId: decoded.uid, role: (decoded.role as string) || 'user', eid: null };
     return next();
-
   } catch (err) {
-    console.error('[AUTH] Token Invalid:', err);
-    return res.status(401).json({ message: 'Session expired, please login again.' });
+    return res.status(401).json({ message: 'Session expired' });
   }
 }
 
 /**
- * Middleware Khusus Employer
+ * Middleware Khusus Employer (FIXED: Hybrid Session + JWT)
  */
 export function employerRequired(req: Request, res: Response, next: NextFunction) {
-  const token = getCookieToken(req, EMP_COOKIE);
-  
-  if (!token) return res.status(401).json({ message: 'No employer token found' });
+  // 1. STRATEGI 1: Cek Session Passport (Penting agar sinkron dengan /me)
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const user = req.user as any;
+    const role = (user.role || '').toLowerCase();
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
-    
-    // Cek Role
-    if (decoded.role !== 'employer' && decoded.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied: Employers only' });
+    if (role === 'employer' || role === 'admin') {
+      req.auth = { 
+        userId: user.id, 
+        role: user.role, 
+        eid: user.employerId || user.id 
+      };
+      return next();
     }
-
-    req.auth = { 
-        userId: decoded.uid, 
-        role: decoded.role, 
-        eid: decoded.eid || null 
-    };
-    
-    return next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid employer session' });
   }
+
+  // 2. STRATEGI 2: Cek JWT Cookie (emp_token)
+  const token = getCookieToken(req, EMP_COOKIE);
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      const role = (decoded.role as string || '').toLowerCase();
+
+      if (role === 'employer' || role === 'admin') {
+        req.auth = { 
+          userId: decoded.uid, 
+          role: decoded.role as string, 
+          eid: (decoded.eid as string) || null 
+        };
+        // Hydrate req.user untuk controller
+        (req as any).user = { id: decoded.uid, role: decoded.role, employerId: decoded.eid };
+        return next();
+      }
+    } catch (err) {
+      console.error('[AUTH] Employer Token Invalid');
+    }
+  }
+
+  return res.status(401).json({ message: 'Unauthorized: Employer access required' });
 }
 
 /**
- * Middleware Khusus Admin
+ * Middleware Khusus Admin (Hybrid)
  */
 export function adminRequired(req: Request, res: Response, next: NextFunction) {
-  const token = getCookieToken(req, ADMIN_COOKIE);
-
-  if (!token) return res.status(401).json({ message: 'No admin token found' });
-
-  try {
-    const decoded = jwt.verify(token, JWT_ADMIN_SECRET) as JwtPayload; // Note: Pakai Secret Admin
-
-    // Cek Role (ekstra proteksi)
-    if (decoded.role !== 'admin') {
-      return res.status(403).json({ message: 'Admins only' });
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    const user = req.user as any;
+    if (user.role === 'admin') {
+      req.auth = { userId: user.id, role: 'admin' };
+      return next();
     }
-
-    req.auth = { userId: decoded.uid, role: 'admin' };
-    return next();
-  } catch (err) {
-    return res.status(401).json({ message: 'Invalid admin session' });
   }
+
+  const token = getCookieToken(req, ADMIN_COOKIE);
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_ADMIN_SECRET) as JwtPayload;
+      if (decoded.role === 'admin') {
+        req.auth = { userId: decoded.uid, role: 'admin' };
+        return next();
+      }
+    } catch (err) { /* ignore */ }
+  }
+
+  return res.status(403).json({ message: 'Admins only' });
 }
 
-// --- Legacy helpers (tetap disimpan jika ada file lain yang import ini) ---
+// --- Legacy helpers ---
 export function readUserAuth(req: Request) {
-    // Fungsi ini dipanggil manual jika butuh data tanpa lewat middleware route
     const token = getCookieToken(req, USER_COOKIE);
     if (!token) throw new Error('No token');
     const decoded = jwt.verify(token, JWT_SECRET) as any;
@@ -168,11 +150,4 @@ export function readEmployerAuth(req: Request) {
     if (!token) throw new Error('No token');
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     return { uid: decoded.uid, role: decoded.role, eid: decoded.eid };
-}
-
-export function readAdminAuth(req: Request) {
-    const token = getCookieToken(req, ADMIN_COOKIE);
-    if (!token) throw new Error('No token');
-    const decoded = jwt.verify(token, JWT_ADMIN_SECRET) as any;
-    return { uid: decoded.uid, role: 'admin' };
 }

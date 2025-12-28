@@ -10,101 +10,45 @@ const API =
   process.env.NEXT_PUBLIC_API_URL ||
   'http://localhost:4000';
 
-function pickCompanyName(payload: any): string | null {
-  // coba berbagai kemungkinan bentuk payload BE
-  const e =
-    payload?.employer ||
-    payload?.data?.employer ||
-    payload?.data ||
-    payload ||
-    null;
-
-  const name =
-    e?.displayName ??
-    e?.display_name ??
-    e?.company ??
-    e?.legalName ??
-    e?.legal_name ??
-    null;
-
-  return name ? String(name) : null;
+/* ------------------- Types ------------------- */
+interface DashboardStats {
+  activeJobs: number;
+  totalApplicants: number;
+  interviews: number;
 }
 
-/* ------- Mini Chart (SVG, tanpa lib) ------- */
-function AreaChart({
-  data,
-  height = 140,
-  strokeWidth = 2,
-  color = '#2563eb', // blue-600
-  fill = 'rgba(37, 99, 235, .12)',
-  padding = 12,
-}: {
-  data: number[];
-  height?: number;
-  strokeWidth?: number;
-  color?: string;
-  fill?: string;
-  padding?: number;
-}) {
+interface ChartSeries {
+  apps: number[];
+  posted: number[];
+  views: number[];
+  labels: string[];
+}
+
+interface EmployerData {
+  id: string;
+  displayName: string;
+  companyName: string;
+  logoUrl: string | null;
+}
+
+/* ------- AreaChart Component (Tetap Sama) ------- */
+function AreaChart({ data, height = 140, strokeWidth = 2, color = '#2563eb', fill = 'rgba(37, 99, 235, .12)', padding = 12 }: any) {
   const width = 520;
   const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
+  const min = 0;
   const h = height - padding * 2;
   const w = width - padding * 2;
   const step = w / Math.max(data.length - 1, 1);
-
-  const points = data.map((v, i) => {
-    const x = padding + i * step;
-    const norm = (v - min) / (max - min || 1);
-    const y = padding + (1 - norm) * h;
-    return [x, y];
-  });
-
-  const path = points
-    .map((p, i) => (i === 0 ? `M ${p[0]} ${p[1]}` : `L ${p[0]} ${p[1]}`))
-    .join(' ');
-
-  const area = `${path} L ${padding + (data.length - 1) * step} ${height - padding} L ${padding} ${height - padding
-    } Z`;
+  const points = data.map((v: any, i: any) => [padding + i * step, padding + (1 - (v / max)) * h]);
+  const path = points.map((p: any, i: any) => (i === 0 ? `M ${p[0]} ${p[1]}` : `L ${p[0]} ${p[1]}`)).join(' ');
+  const area = `${path} L ${padding + (data.length - 1) * step} ${height - padding} L ${padding} ${height - padding} Z`;
 
   return (
     <div className="w-full overflow-hidden">
       <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full">
-        {/* grid halus */}
-        <g opacity=".4">
-          {[0, 1, 2, 3].map((i) => {
-            const y = padding + (i / 3) * h;
-            return (
-              <line
-                key={i}
-                x1={padding}
-                y1={y}
-                x2={width - padding}
-                y2={y}
-                stroke="#e5e7eb"
-                strokeWidth="1"
-              />
-            );
-          })}
-        </g>
-
-        {/* area fill */}
-        <path d={area} fill={fill} />
-
-        {/* line */}
-        <path
-          d={path}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-
-        {/* titik */}
-        {points.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="2.5" fill={color} />
-        ))}
+        <g opacity=".4">{[0, 1, 2, 3].map((i) => <line key={i} x1={padding} y1={padding + (i / 3) * h} x2={width - padding} y2={padding + (i / 3) * h} stroke="#e5e7eb" strokeWidth="1" />)}</g>
+        <path d={area} fill={fill} /><path d={path} fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round" strokeLinecap="round" />
+        {points.map(([x, y]: any, i: any) => <circle key={i} cx={x} cy={y} r="2.5" fill={color} />)}
       </svg>
     </div>
   );
@@ -112,139 +56,117 @@ function AreaChart({
 
 export default function EmployerHome() {
   const t = useTranslations('emp.overview');
-  const [companyName, setCompanyName] = useState<string>('');
+  
+  const [employer, setEmployer] = useState<EmployerData | null>(null);
+  const [stats, setStats] = useState<DashboardStats>({ activeJobs: 0, totalApplicants: 0, interviews: 0 });
+  const [seriesData, setSeriesData] = useState<ChartSeries>({ apps: [], posted: [], views: [], labels: [] });
   const [loading, setLoading] = useState<boolean>(true);
 
-  // fetch identitas employer (harus include cookie)
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
       try {
         const base = API.replace(/\/+$/, '');
-        const r = await fetch(`${base}/api/employers/auth/me`, {
-          credentials: 'include',
-        });
-        const j = await r.json().catch(() => ({} as any));
-        // console.log('[auth/me] =>', j);
-        const name = pickCompanyName(j);
-        if (name) setCompanyName(name);
+        
+        // 1. Ambil Profil Employer
+        const resAuth = await fetch(`${base}/api/employers/auth/me`, { credentials: 'include' });
+        const dataAuth = await resAuth.json();
+
+        // 2. Ambil Statistik Dashboard (Endpoint yang baru kita perbaiki di Backend)
+        const resDash = await fetch(`${base}/api/employers/dashboard`, { credentials: 'include' });
+        const dataDash = await resDash.json();
+
+        if (dataAuth.ok) {
+          setEmployer({
+            id: dataAuth.employer.id,
+            displayName: dataAuth.employer.displayName,
+            companyName: dataAuth.employer.legalName || dataAuth.employer.displayName,
+            logoUrl: dataAuth.employer.logoUrl,
+          });
+        }
+
+        // SET DATA REAL DARI BACKEND
+        if (dataDash.stats) {
+          setStats(dataDash.stats);
+          setSeriesData(dataDash.series);
+        }
+
       } catch (e) {
-        // silent
+        console.error('Error loading dashboard:', e);
       } finally {
         setLoading(false);
       }
-    })();
+    };
+
+    fetchData();
   }, []);
 
-  // headline stats (dummy)
-  const stats = [
-    { label: t('activeJobs'), value: 3 },
-    { label: t('totalApplicants'), value: 47 },
-    { label: t('interviews'), value: 6 },
+  const statCards = [
+    { label: t('activeJobs'), value: stats.activeJobs },
+    { label: t('totalApplicants'), value: stats.totalApplicants },
+    { label: t('interviews'), value: stats.interviews },
   ];
-
-  // time series dummy (7 titik = 7 hari/minggu)
-  const series = useMemo(
-    () => ({
-      jobs: [1, 1, 2, 1, 1, 1, 1],
-      apps: [12, 16, 18, 14, 19, 22, 23],
-      views: [280, 320, 330, 310, 360, 390, 440],
-    }),
-    []
-  );
 
   return (
     <>
       <Nav />
-      <main className="min-h-[60vh] bg-slate-50 relative overflow-hidden">
-        {/* Background decoration */}
-        <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10" />
-
-        <div className="mx-auto max-w-6xl px-4 py-8">
-          <header className="mb-6">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h1 className="text-2xl font-semibold text-emerald-950">{t('title')}</h1>
-                <p className="text-sm text-slate-600">
-                  {t('subtitle')}
-                </p>
-              </div>
-
-              {/* Badge nama perusahaan */}
-              <div className="inline-flex max-w-xs items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/50 px-3 py-2 shadow-sm">
-                <span className="text-xs text-slate-500">{t('company')}</span>
-                <span className="truncate text-sm font-medium text-slate-900">
-                  {loading ? '...' : companyName || '—'}
-                </span>
-              </div>
+      <main className="min-h-[85vh] bg-slate-50 relative overflow-hidden font-sans">
+        <div className="mx-auto max-w-6xl px-4 py-10">
+          {/* Header & Identity Card (Sama seperti sebelumnya) */}
+          <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-3xl font-bold text-emerald-950 tracking-tight">{t('title')}</h1>
+              <p className="text-slate-600 mt-1">{t('subtitle')}</p>
             </div>
-
-            {!companyName && !loading && (
-              <p className="mt-2 text-xs text-amber-600">
-                {t('noCompany')}
-              </p>
-            )}
+            <div className="inline-flex items-center gap-4 rounded-2xl border border-emerald-100/80 bg-white/80 backdrop-blur-sm pl-3 pr-6 py-3 shadow-sm">
+                <div className="relative h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center font-bold text-emerald-700">
+                    {employer?.logoUrl ? <img src={employer.logoUrl} className="rounded-xl object-cover h-full w-full" /> : employer?.displayName?.charAt(0)}
+                </div>
+                <div className="flex flex-col">
+                    <span className="text-[10px] uppercase text-slate-400 font-bold">{t('company')}</span>
+                    <span className="text-sm font-semibold text-slate-900">{loading ? '...' : employer?.displayName}</span>
+                </div>
+            </div>
           </header>
 
-          {/* Stats ringkas */}
-          <section className="grid gap-4 sm:grid-cols-3">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-sm hover:shadow-emerald-100/50 transition-shadow"
-              >
-                <p className="text-sm text-slate-500">{s.label}</p>
-                <p className="mt-1 text-2xl font-semibold text-slate-900">{s.value}</p>
+          {/* Stats Cards */}
+          <section className="grid gap-5 sm:grid-cols-3 mb-8">
+            {statCards.map((s, idx) => (
+              <div key={idx} className="rounded-2xl border border-emerald-100/60 bg-white p-5 shadow-sm transition-all hover:-translate-y-1">
+                <p className="text-sm font-medium text-slate-500">{s.label}</p>
+                <p className="mt-2 text-3xl font-bold text-emerald-950">{loading ? '-' : s.value}</p>
               </div>
             ))}
           </section>
 
-          {/* Performance Chart */}
-          <section className="mt-8">
-            <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-emerald-950">{t('performance')}</h3>
-                <span className="text-xs text-slate-500">{t('autoUpdated')}</span>
+          {/* Performance Charts - MENGGUNAKAN DATA REAL */}
+          <section className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
+            <h3 className="text-lg font-bold text-emerald-950 mb-6">{t('performance')}</h3>
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-3 min-h-[160px]">
+                {/* Gunakan data seriesData.apps dari backend */}
+                <AreaChart data={seriesData.apps.length > 0 ? seriesData.apps : [0,0,0,0,0,0,0]} height={180} />
               </div>
 
-              <div className="mt-4 grid gap-4 lg:grid-cols-3">
-                <div className="lg:col-span-3">
-                  <AreaChart data={series.apps} />
-                </div>
-
-                <div className="rounded-xl border border-emerald-100 bg-white p-3">
-                  <p className="text-xs text-slate-500">{t('apps')}</p>
-                  <p className="mt-1 text-xl font-semibold text-blue-600">
-                    {series.apps.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
-                  </p>
-                  <div className="mt-2">
-                    <AreaChart data={series.apps} height={90} />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-emerald-100 bg-white p-3">
-                  <p className="text-xs text-slate-500">{t('views')}</p>
-                  <p className="mt-1 text-xl font-semibold text-amber-600">
-                    {series.views.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
-                  </p>
-                  <div className="mt-2">
-                    <AreaChart data={series.views} height={90} color="#d97706" fill="rgba(217,119,6,.12)" />
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-emerald-100 bg-white p-3">
-                  <p className="text-xs text-slate-500">{t('posted')}</p>
-                  <p className="mt-1 text-xl font-semibold text-emerald-600">
-                    {series.jobs.reduce((a, b) => a + b, 0).toLocaleString('id-ID')}
-                  </p>
-                  <div className="mt-2">
-                    <AreaChart data={series.jobs} height={90} color="#059669" fill="rgba(5,150,105,.12)" />
-                  </div>
-                </div>
+              {/* Grafik Lamaran */}
+              <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase">{t('apps')}</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.totalApplicants}</p>
+                <AreaChart data={seriesData.apps.length > 0 ? seriesData.apps : [0,0,0,0,0,0,0]} height={80} color="#2563eb" />
               </div>
 
-              <p className="mt-3 text-[11px] text-slate-500">
-                {t('note')}
-              </p>
+              {/* Grafik Views */}
+              <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase">{t('views')}</p>
+                <p className="text-2xl font-bold text-amber-600">{seriesData.views.reduce((a,b)=>a+b, 0)}</p>
+                <AreaChart data={seriesData.views.length > 0 ? seriesData.views : [0,0,0,0,0,0,0]} height={80} color="#d97706" />
+              </div>
+
+              {/* Grafik Posted */}
+              <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase">{t('posted')}</p>
+                <p className="text-2xl font-bold text-emerald-600">{stats.activeJobs}</p>
+                <AreaChart data={seriesData.posted.length > 0 ? seriesData.posted : [0,0,0,0,0,0,0]} height={80} color="#059669" />
+              </div>
             </div>
           </section>
         </div>

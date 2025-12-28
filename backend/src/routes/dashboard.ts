@@ -1,14 +1,10 @@
 import { Router } from "express";
+import { getDashboardStats } from "../controllers/employerDashboard.controller";
+import { attachEmployerId } from "./employer";
+
 const router = Router();
 
-// GET /api/dashboard
-router.get("/", (_req, res) => {
-  res.json({
-    widgets: [
-      { id: 1, name: "Users", value: 120 },
-      { id: 2, name: "Revenue", value: 540000 }
-    ]
-  });
-});
+// Gunakan attachEmployerId agar session employer (emp_session) terbaca dengan benar
+router.get("/", attachEmployerId, getDashboardStats);
 
 export default router;

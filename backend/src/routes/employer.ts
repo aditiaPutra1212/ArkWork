@@ -10,6 +10,9 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
 import { startTrial, activatePremium } from '../services/billing';
 
+// [OPTIONAL] Import Controller Dashboard Stats jika Anda memilikinya
+// import { getDashboardStats } from '../controllers/employerDashboard.controller';
+
 export const employerRouter = Router();
 
 /* ================== TYPE AUGMENTATION ================== */
@@ -123,22 +126,106 @@ async function uniqueSlug(base: string) {
   return s;
 }
 
+function fixUrl(url: string | null | undefined, baseUrl: string) {
+  if (!url) return null;
+  if (url.startsWith('http')) return url;
+  const cleanPath = url.replace(/\\/g, '/');
+  return `${baseUrl}${cleanPath.startsWith('/') ? '' : '/'}${cleanPath}`;
+}
+
+/* ================== UPLOAD CONFIG ================== */
+
+const uploadsRoot = path.join(process.cwd(), 'public', 'uploads');
+fs.mkdirSync(uploadsRoot, { recursive: true });
+
+function pickEmployerIdForStorage(req: Request): string {
+  if (req.employerId) return req.employerId;
+  const byHeader = (req.headers['x-employer-id'] as string | undefined)?.trim();
+  const byToken = authFromToken(req)?.employerId;
+  return byHeader || byToken || 'unknown';
+}
+
+const storage = multer.diskStorage({
+  destination: (req, _file, cb) => {
+    const eid = pickEmployerIdForStorage(req);
+    const dir = path.join(uploadsRoot, 'employers', eid);
+    fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = (path.extname(file.originalname) || '.jpg').toLowerCase();
+    cb(null, `logo-${Date.now()}${ext}`); 
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  fileFilter: (_req, file, cb) => {
+    if (!/^image\/(png|jpe?g|webp)$/i.test(file.mimetype)) {
+      return cb(new Error('Only PNG/JPG/WebP allowed'));
+    }
+    cb(null, true);
+  },
+});
+
+type MulterReq = Request & { file?: Express.Multer.File };
+
 /* ================== ENDPOINTS ================== */
 
-// Get Current Employer (Me)
+// =======================================================
+// FIX: Get Current Employer (Me) + STATS
+// =======================================================
 async function handleMe(req: Request, res: Response) {
   const auth = await resolveEmployerAuth(req);
   if (!auth?.employerId) {
     return res.status(401).json({ ok: false, message: 'Unauthorized' });
   }
 
+  // 1. Ambil Data Employer
   const employer = await prisma.employer.findUnique({
     where: { id: auth.employerId },
-    select: { id: true, slug: true, displayName: true, legalName: true, website: true },
+    select: { 
+      id: true, 
+      slug: true, 
+      displayName: true, 
+      legalName: true, 
+      website: true,
+      logoUrl: true,
+    },
   });
+
   if (!employer) {
     return res.status(404).json({ ok: false, message: 'Employer not found' });
   }
+
+  // 2. HITUNG STATISTIK (Active Jobs, Applicants, Interviews)
+  // FIX: Menggunakan 'in' array + 'as any' untuk menangkap semua variasi penulisan (ACTIVE/Active/active)
+  const [activeJobsCount, totalApplicants, totalInterviews] = await Promise.all([
+    // Hitung Lowongan Aktif
+    prisma.job.count({
+      where: {
+        employerId: auth.employerId,
+        // PERBAIKAN UTAMA DI SINI:
+        // Cek apakah statusnya 'Active' (Title case) ATAU 'ACTIVE' (Uppercase) ATAU 'active'
+        status: { in: ['Active', 'ACTIVE', 'active'] as any },
+      }
+    }),
+    // Hitung Total Pelamar
+    prisma.jobApplication.count({
+      where: {
+        job: { employerId: auth.employerId }
+      }
+    }),
+    // Hitung Interview
+    prisma.jobApplication.count({
+        where: {
+          job: { employerId: auth.employerId },
+          // Cek semua variasi penulisan status interview
+          status: { in: ['INTERVIEW', 'Interview', 'interview'] as any } 
+        }
+    })
+  ]);
 
   const adminUserId = auth.adminUserId;
   const admin = adminUserId
@@ -156,6 +243,9 @@ async function handleMe(req: Request, res: Response) {
     employer.legalName ||
     'Company';
 
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+  // 3. Response JSON dengan field 'stats'
   return res.json({
     ok: true,
     role: 'employer',
@@ -165,6 +255,13 @@ async function handleMe(req: Request, res: Response) {
       displayName: employer.displayName ?? fallbackName,
       legalName: employer.legalName,
       website: employer.website,
+      logoUrl: fixUrl(employer.logoUrl, baseUrl),
+    },
+    // Ini yang dibaca Frontend untuk Dashboard Stats
+    stats: {
+      activeJobs: activeJobsCount,
+      totalApplicants: totalApplicants,
+      interviews: totalInterviews,
     },
     admin: admin
       ? { id: admin.id, email: admin.email, fullName: admin.fullName, isOwner: admin.isOwner }
@@ -236,34 +333,41 @@ employerRouter.post('/step2', async (req, res) => {
     const { employerId, ...profile } = req.body || {};
     if (!employerId) return res.status(400).json({ error: 'employerId required' });
 
-    await prisma.employerProfile.upsert({
-      where: { employerId },
-      update: {
-        industry: profile.industry ?? undefined,
-        size: profile.size ?? undefined,
-        foundedYear: profile.foundedYear ?? undefined,
-        about: profile.about ?? undefined,
-        hqCity: profile.hqCity ?? undefined,
-        hqCountry: profile.hqCountry ?? undefined,
-        logoUrl: profile.logoUrl ?? undefined,
-        bannerUrl: profile.bannerUrl ?? undefined,
-      },
-      create: {
-        employerId,
-        industry: profile.industry ?? null,
-        size: profile.size ?? null,
-        foundedYear: profile.foundedYear ?? null,
-        about: profile.about ?? null,
-        hqCity: profile.hqCity ?? null,
-        hqCountry: profile.hqCountry ?? null,
-        logoUrl: profile.logoUrl ?? null,
-        bannerUrl: profile.bannerUrl ?? null,
-      },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.employerProfile.upsert({
+        where: { employerId },
+        update: {
+          industry: profile.industry ?? undefined,
+          size: profile.size ?? undefined,
+          foundedYear: profile.foundedYear ?? undefined,
+          about: profile.about ?? undefined,
+          hqCity: profile.hqCity ?? undefined,
+          hqCountry: profile.hqCountry ?? undefined,
+          logoUrl: profile.logoUrl ?? undefined,
+          bannerUrl: profile.bannerUrl ?? undefined,
+        },
+        create: {
+          employerId,
+          industry: profile.industry ?? null,
+          size: profile.size ?? null,
+          foundedYear: profile.foundedYear ?? null,
+          about: profile.about ?? null,
+          hqCity: profile.hqCity ?? null,
+          hqCountry: profile.hqCountry ?? null,
+          logoUrl: profile.logoUrl ?? null,
+          bannerUrl: profile.bannerUrl ?? null,
+        },
+      });
 
-    await prisma.employer.update({
-      where: { id: employerId },
-      data: { onboardingStep: 'VERIFY' },
+      const updateData: any = { onboardingStep: 'VERIFY' };
+      if (profile.logoUrl) {
+        updateData.logoUrl = profile.logoUrl;
+      }
+
+      await tx.employer.update({
+        where: { id: employerId },
+        data: updateData,
+      });
     });
 
     return res.json({ ok: true });
@@ -273,9 +377,7 @@ employerRouter.post('/step2', async (req, res) => {
   }
 });
 
-// =========================================================
-// [FIXED] Route Update Basic Profile (Dashboard)
-// =========================================================
+// Update Basic Profile
 employerRouter.post('/update-basic', async (req, res) => {
   try {
     const { employerId, displayName, website, size, about, hqCity } = req.body || {};
@@ -284,29 +386,15 @@ employerRouter.post('/update-basic', async (req, res) => {
       return res.status(400).json({ ok: false, message: 'Employer ID required' });
     }
 
-    // 1. Update tabel Employer
     await prisma.employer.update({
       where: { id: employerId },
-      data: {
-        displayName: displayName,
-        website: website
-      }
+      data: { displayName, website }
     });
 
-    // 2. Update tabel EmployerProfile
     await prisma.employerProfile.upsert({
       where: { employerId },
-      create: {
-        employerId,
-        size: size,
-        about: about,
-        hqCity: hqCity
-      },
-      update: {
-        size: size,
-        about: about,
-        hqCity: hqCity
-      }
+      create: { employerId, size, about, hqCity },
+      update: { size, about, hqCity }
     });
 
     return res.json({ ok: true, message: 'Profile updated successfully' });
@@ -329,41 +417,34 @@ employerRouter.post('/step3', async (req, res) => {
     const plan = await prisma.plan.findUnique({ where: { slug: planSlug } });
     if (!plan || !plan.active) return res.status(400).json({ error: 'Plan not available' });
 
-    // Trial
     if ((plan.trialDays ?? 0) > 0) {
       const { trialEndsAt } = await startTrial({
         employerId,
         planId: plan.id,
         trialDays: plan.trialDays,
       });
-
       await prisma.employer.update({
         where: { id: employerId },
         data: { onboardingStep: 'VERIFY' },
       });
-
       return res.json({ ok: true, mode: 'trial', trialEndsAt: trialEndsAt.toISOString() });
     }
 
     const amount = Number(plan.amount ?? 0);
 
-    // Free Tier
     if (amount === 0) {
       const { premiumUntil } = await activatePremium({
         employerId,
         planId: plan.id,
         interval: (plan.interval as 'month' | 'year') || 'month',
       });
-
       await prisma.employer.update({
         where: { id: employerId },
         data: { onboardingStep: 'VERIFY' },
       });
-
       return res.json({ ok: true, mode: 'free_active', premiumUntil: premiumUntil.toISOString() });
     }
 
-    // Paid Tier
     await prisma.employer.update({
       where: { id: employerId },
       data: { currentPlanId: plan.id, onboardingStep: 'VERIFY' },
@@ -376,7 +457,7 @@ employerRouter.post('/step3', async (req, res) => {
   }
 });
 
-// Step 5: Submit Verification
+// Step 5: Verification
 employerRouter.post('/step5', async (req, res) => {
   try {
     const { employerId, note } = req.body || {};
@@ -397,78 +478,47 @@ employerRouter.post('/step5', async (req, res) => {
   }
 });
 
-/* ================== UPLOAD CONFIG ================== */
-const uploadsRoot = path.join(process.cwd(), 'public', 'uploads');
-fs.mkdirSync(uploadsRoot, { recursive: true });
-
-function pickEmployerIdForStorage(req: Request): string {
-  const byAttach = (req.employerId as string | null) || undefined;
-  const byHeader = (req.headers['x-employer-id'] as string | undefined)?.trim();
-  const byToken = authFromToken(req)?.employerId;
-  return byAttach || byHeader || byToken || 'unknown';
-}
-
-const storage = multer.diskStorage({
-  destination: (req, _file, cb) => {
-    const eid = pickEmployerIdForStorage(req);
-    const dir = path.join(uploadsRoot, 'employers', eid);
-    fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (_req, file, cb) => {
-    const ext = (path.extname(file.originalname) || '.jpg').toLowerCase();
-    cb(null, 'logo' + ext);
-  },
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 2 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (!/^image\/(png|jpe?g|webp)$/i.test(file.mimetype)) {
-      return cb(new Error('Only PNG/JPG/WebP allowed'));
-    }
-    cb(null, true);
-  },
-});
-
-type MulterReq = Request & { file?: Express.Multer.File };
-
-// Route: Upload Logo
-employerRouter.post('/profile/logo', upload.single('file'), async (req, res) => {
+// Upload Logo
+employerRouter.post(
+    '/profile/logo', 
+    attachEmployerId, 
+    upload.single('file'), 
+    async (req, res) => {
+      
   const mreq = req as MulterReq;
-  const auth = await resolveEmployerAuth(req);
-  const employerId =
-    req.employerId ||
-    (mreq.body?.employerId as string | undefined) ||
-    auth?.employerId ||
-    null;
+  const employerId = req.employerId;
 
-  if (!employerId) return res.status(400).json({ message: 'employerId required' });
-  if (!mreq.file) return res.status(400).json({ message: 'file required' });
-
-  // Ensure file is in correct folder if uploaded as 'unknown'
-  const dir = path.join(uploadsRoot, 'employers', employerId);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-    const from = path.join(uploadsRoot, 'employers', 'unknown', mreq.file.filename);
-    const to = path.join(dir, mreq.file.filename);
-    try { fs.renameSync(from, to); } catch {}
+  if (!employerId) {
+    return res.status(401).json({ message: 'Unauthorized / Employer ID missing' });
+  }
+  
+  if (!mreq.file) {
+    return res.status(400).json({ message: 'File required' });
   }
 
   const publicUrl = `/uploads/employers/${employerId}/${mreq.file.filename}`;
 
-  await prisma.employerProfile.upsert({
-    where: { employerId },
-    create: { employerId, logoUrl: publicUrl },
-    update: { logoUrl: publicUrl },
-  });
-
-  return res.json({ ok: true, url: publicUrl });
+  try {
+      await prisma.$transaction([
+        prisma.employer.update({
+          where: { id: employerId },
+          data: { logoUrl: publicUrl },
+        }),
+        prisma.employerProfile.upsert({
+          where: { employerId },
+          create: { employerId, logoUrl: publicUrl },
+          update: { logoUrl: publicUrl },
+        })
+      ]);
+      
+      return res.json({ ok: true, url: publicUrl });
+  } catch (err) {
+      console.error("DB Update Error", err);
+      return res.status(500).json({ message: 'Database error' });
+  }
 });
 
-// Route: Get Profile Data
-// [UPDATED] Menambahkan Base URL agar gambar tidak hilang saat refresh
+// Get Profile Data
 employerRouter.get('/profile', async (req, res) => {
   try {
     let targetId = (req.query.employerId as string)?.trim();
@@ -498,16 +548,8 @@ employerRouter.get('/profile', async (req, res) => {
       return res.status(404).json({ ok: false, message: 'Employer not found' });
     }
 
-    // --- FIX URL HELPER ---
-    // Mendapatkan alamat server saat ini (misal http://localhost:4000)
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-
-    const fixUrl = (url: string | null | undefined) => {
-      if (!url) return null;
-      if (url.startsWith('http')) return url; // Kalau sudah lengkap, biarkan
-      return `${baseUrl}${url}`; // Kalau cuma /uploads/..., tambahkan domain
-    };
-    // ----------------------
+    const finalLogoUrl = employer.logoUrl || employer.profile?.logoUrl;
 
     const data = {
       id: employer.id,
@@ -521,11 +563,8 @@ employerRouter.get('/profile', async (req, res) => {
       about: employer.profile?.about,
       hqCity: employer.profile?.hqCity,
       hqCountry: employer.profile?.hqCountry,
-      
-      // Gunakan fixUrl di sini:
-      logoUrl: fixUrl(employer.profile?.logoUrl),
-      bannerUrl: fixUrl(employer.profile?.bannerUrl),
-      
+      logoUrl: fixUrl(finalLogoUrl, baseUrl),
+      bannerUrl: fixUrl(employer.profile?.bannerUrl, baseUrl),
       foundedYear: employer.profile?.foundedYear,
     };
 

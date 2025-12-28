@@ -358,6 +358,17 @@ export default function JobsPage() {
     setDetailJob(job);
     setCvFile(null);
     setDetailOpen(true);
+
+    // RECORD VIEW (Fire & Forget)
+    try {
+      const base = (API_BASE || "").replace(/\/+$/, "");
+      if (base) {
+        fetch(`${base}/api/jobs/${job.id}/view`, { method: "POST", credentials: "include" })
+          .catch(e => console.warn("[View] Failed to record view", e));
+      }
+    } catch (err) {
+      console.warn("[View] Error", err);
+    }
   }
 
   // ===== APPLY (FormData + CV PDF) =====

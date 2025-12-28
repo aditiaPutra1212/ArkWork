@@ -165,6 +165,9 @@ jobsRouter.get('/employer/jobs', async (req, res) => {
 // ------------------------------------------------------------------
 // 👇 PERBAIKAN 1 & 3: Endpoint aman, terfilter, & sembunyikan soft-delete
 // ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// 👇 PERBAIKAN 1 & 3: Endpoint aman, terfilter, & sembunyikan soft-delete
+// ------------------------------------------------------------------
 jobsRouter.get('/employer-jobs', attachEmployerId, async (req, res) => {
   try {
     const employerId = req.employerId;
@@ -201,6 +204,15 @@ jobsRouter.get('/employer-jobs', attachEmployerId, async (req, res) => {
 // ------------------------------------------------------------------
 // 👆 Akhir dari Perbaikan 1 & 3
 // ------------------------------------------------------------------
+
+/**
+ * =========================================================
+ * VIEW RECORDING (NEW)
+ * POST /api/jobs/:id/view
+ * =========================================================
+ */
+import { recordJobView } from '../controllers/jobs.view.controller';
+jobsRouter.post('/jobs/:id/view', recordJobView);
 
 /* =========================================================
    CREATE

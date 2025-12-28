@@ -1,58 +1,65 @@
-// src/controllers/employer.Controller.ts
 import { Request, Response } from 'express';
-import { prisma } from '../lib/prisma'; // Pastikan path ini benar (cek folder lib mas)
+import path from 'path';
 import fs from 'fs';
+import { prisma } from '../lib/prisma'; 
 
+// --- 1. UPLOAD LOGO ---
 export const uploadLogo = async (req: Request, res: Response) => {
   try {
-    // 1. Validasi User Login (Sesuaikan dengan middleware auth Mas)
-    // Biasanya tersimpan di req.user atau req.employer
-    const employerId = (req as any).user?.id || (req as any).employer?.id; 
+    // Coba ambil ID dari Body (FormData) ATAU dari Session/Auth
+    const employerId = req.body.employerId || (req as any).user?.id || (req as any).employer?.id;
 
     if (!employerId) {
-      return res.status(401).json({ message: "Unauthorized: Silakan login ulang" });
+      // Hapus file yang terlanjur ter-upload jika tidak ada ID, agar tidak nyampah
+      if (req.file) fs.unlinkSync(req.file.path); 
+      return res.status(401).json({ ok: false, message: "Unauthorized: ID Perusahaan tidak ditemukan." });
     }
 
-    // 2. Cek File
     if (!req.file) {
-      return res.status(400).json({ message: "File logo tidak ditemukan" });
+      return res.status(400).json({ ok: false, message: "Tidak ada file gambar yang diunggah." });
     }
 
-    // 3. Path File untuk Database (misal: /uploads/logos/logo-123.png)
-    const fileUrl = `/uploads/logos/${req.file.filename}`;
+    // --- PERBAIKAN PATH URL ---
+    // Menggunakan nama file yang digenerate oleh Multer.
+    // Asumsi di index.ts: app.use('/uploads', express.static('public/uploads'))
+    // Kita hardcode path agar sesuai dengan folder penyimpanan 'employers'
+    const filename = req.file.filename;
+    
+    // PENTING: Gunakan forward slash (/) bukan backslash (\) agar terbaca browser
+    const logoUrl = `/uploads/employers/${filename}`;
 
-    // 4. Simpan ke Database (Upsert: Update jika ada, Create jika belum)
-    await prisma.employerProfile.upsert({
-      where: { employerId: employerId },
-      create: {
-        employerId: employerId,
-        logoUrl: fileUrl,
-        // Isi field wajib lain default jika perlu (misal: companyName diambil dari user)
-      },
-      update: {
-        logoUrl: fileUrl
+    // --- UPDATE DATABASE ---
+    // Kita update tabel 'Employer' langsung (sesuai fungsi updateBasic di bawah)
+    const updatedEmployer = await prisma.employer.update({
+      where: { id: employerId },
+      data: { 
+        logoUrl: logoUrl 
       }
     });
 
-    return res.status(200).json({ 
+    return res.json({ 
+      ok: true, 
       message: "Logo berhasil disimpan", 
-      logoUrl: fileUrl 
+      logoUrl: updatedEmployer.logoUrl 
     });
 
   } catch (error) {
     console.error("Error upload logo:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ ok: false, message: "Gagal menyimpan logo ke database." });
   }
 };
 
+// --- 2. UPDATE BASIC PROFILE ---
 export const updateBasic = async (req: Request, res: Response) => {
   try {
     const { employerId, displayName, website, size, about, hqCity } = req.body;
+
     if (!employerId) {
       return res.status(400).json({ ok: false, message: "Employer ID is missing" });
     }
 
     // Update ke Database Prisma
+    // Pastikan field 'size' di database tipe String. Jika Int, perlu parseInt(size)
     const updated = await prisma.employer.update({
       where: { id: employerId },
       data: {
@@ -71,3 +78,27 @@ export const updateBasic = async (req: Request, res: Response) => {
     return res.status(500).json({ ok: false, message: "Server error updating profile" });
   }
 };
+
+// --- 3. GET PROFILE (Opsional, untuk memastikan data terambil) ---
+export const getProfile = async (req: Request, res: Response) => {
+    try {
+        const { employerId } = req.query; // Atau dari params/auth
+        
+        if (!employerId || typeof employerId !== 'string') {
+            return res.status(400).json({ ok: false, message: "ID diperlukan" });
+        }
+
+        const employer = await prisma.employer.findUnique({
+            where: { id: employerId }
+        });
+
+        if (!employer) {
+            return res.status(404).json({ ok: false, message: "Employer tidak ditemukan" });
+        }
+
+        res.json({ ok: true, data: employer });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ ok: false, message: "Error fetch profile" });
+    }
+}
