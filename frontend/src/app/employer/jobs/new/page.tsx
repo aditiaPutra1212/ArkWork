@@ -88,8 +88,8 @@ export default function NewJobPage() {
     (async () => {
       try {
         const base = API.replace(/\/+$/, '');
-        // ⬇️ GANTI: pakai endpoint yang baca DB
-        const r = await fetch(`${base}/api/employers/me`, {
+        // ⬇️ GANTI: pakai endpoint yang baca DB (samakan dengan Dashboard)
+        const r = await fetch(`${base}/api/employers/auth/me`, {
           credentials: 'include',
         });
 
@@ -411,8 +411,8 @@ export default function NewJobPage() {
       {toast && (
         <div className="fixed inset-x-0 bottom-6 z-[60] flex justify-center px-4">
           <div className={`pointer-events-auto w-full max-w-md rounded-2xl border p-4 shadow-2xl backdrop-blur ${toast.type === 'ok'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-              : 'border-rose-200 bg-rose-50 text-rose-900'
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+            : 'border-rose-200 bg-rose-50 text-rose-900'
             }`}>
             <div className="flex items-start gap-3">
               <div className="grid h-6 w-6 place-items-center rounded-full bg-black/10">
