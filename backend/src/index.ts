@@ -40,7 +40,8 @@ import adminJobsRouter from './routes/admin-jobs';
 import profileRouter from './routes/profile';
 
 // --- BARIS BARU: Import Dashboard Router ---
-import dashboardRouter from './routes/dashboard'; 
+import dashboardRouter from './routes/dashboard';
+import wilayahRouter from './routes/wilayah';
 
 // DEV helper routes
 import authDev from './routes/auth-dev';
@@ -131,7 +132,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: NODE_ENV === 'production', 
+      secure: NODE_ENV === 'production',
       sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 1000 * 60 * 60 * 24,
     },
@@ -143,8 +144,8 @@ app.use(passport.session());
 
 /* --- RATE LIMITING --- */
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  limit: 20, 
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
   store: new (RateLimitRedisStore as any)({ sendCommand: (...args: string[]) => redisClient.sendCommand(args) }),
 });
 
@@ -173,8 +174,8 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, status: 'healthy' }))
 /* ================= ROUTES ================= */
 
 // Auth
-app.use('/auth', authRouter); 
-app.use('/auth', googleRouter); 
+app.use('/auth', authRouter);
+app.use('/auth', googleRouter);
 
 // Employer APIs
 app.use('/api/employers/auth', employerAuthRouter);
@@ -182,7 +183,7 @@ app.use('/api/employers', employerRouter);
 app.use('/api/employers/applications', employerApplicationsRouter);
 
 // --- BARIS PENTING: Pendaftaran Route Dashboard ---
-app.use('/api/employers/dashboard', dashboardRouter); 
+app.use('/api/employers/dashboard', dashboardRouter);
 
 // Admin APIs
 app.use('/api/admin', adminRouter);
@@ -200,6 +201,7 @@ app.use('/api/payments', paymentsRouter);
 app.use('/api', jobsRouter);
 app.use('/api', applicationsRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/wilayah', wilayahRouter);
 
 /* 404 Handler */
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));

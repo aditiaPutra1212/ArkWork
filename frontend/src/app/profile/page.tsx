@@ -86,12 +86,12 @@ function ToastBanner({ toast, onClose }: { toast: Toast; onClose: () => void }) 
 type Opt = { id: string; name: string };
 
 function WilayahSelect({
-                           value,
-                           onChange,
-                           labelProv = "Provinsi",
-                           labelKab = "Kabupaten/Kota",
-                           labelKec = "Kecamatan",
-                       }: {
+    value,
+    onChange,
+    labelProv = "Provinsi",
+    labelKab = "Kabupaten/Kota",
+    labelKec = "Kecamatan",
+}: {
     value: string;
     onChange: (v: string) => void;
     labelProv?: string;
@@ -190,12 +190,12 @@ function WilayahSelect({
     }, [prov, kab, kec]);
 
     const Select = ({
-                        value,
-                        setValue,
-                        options,
-                        placeholder,
-                        disabled,
-                    }: {
+        value,
+        setValue,
+        options,
+        placeholder,
+        disabled,
+    }: {
         value: Opt | null;
         setValue: (o: Opt | null) => void;
         options: Opt[];
@@ -226,8 +226,8 @@ function WilayahSelect({
                 ))}
             </select>
             <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-900/50">
-        ▾
-      </span>
+                ▾
+            </span>
         </div>
     );
 
@@ -267,10 +267,10 @@ function WilayahSelect({
 
             {/* Lokasi terpilih */}
             <div className={`rounded-xl border p-3 text-sm flex justify-between items-center bg-emerald-50 ${GREEN.cardBorder}`}>
-        <span className={GREEN.textBody}>
-          Lokasi saat ini:{" "}
-            <span className={`font-semibold ${GREEN.textTitle}`}>{value || "-"}</span>
-        </span>
+                <span className={GREEN.textBody}>
+                    Lokasi saat ini:{" "}
+                    <span className={`font-semibold ${GREEN.textTitle}`}>{value || "-"}</span>
+                </span>
                 {value && (
                     <button
                         type="button"
@@ -301,6 +301,7 @@ export default function ProfilePage() {
     const [email, setEmail] = useState("");
     const [location, setLocation] = useState("");
     const [phone, setPhone] = useState("");
+    const [skills, setSkills] = useState(""); // Add skills state
 
     // State Avatar
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -326,6 +327,7 @@ export default function ProfilePage() {
                     setEmail(d.email || "");
                     setLocation(d.location || "");
                     setPhone(d.phone || "");
+                    setSkills(d.skills || ""); // Set skills from API
 
                     if (d.photoUrl) {
                         const fullUrl = d.photoUrl.startsWith("http")
@@ -348,7 +350,7 @@ export default function ProfilePage() {
     async function save() {
         setBusySave(true);
         try {
-            const payload = { name, location, phone };
+            const payload = { name, location, phone, skills }; // Include skills in payload
 
             const res = await fetch(`${API_URL}/api/profile`, {
                 method: "PUT",
@@ -510,19 +512,32 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    {/* Optional footer actions (outline) */}
-                    <div className="mt-6 flex justify-end">
-                        <button
-                            onClick={() => router.push("/")}
-                            className={[
-                                "rounded-xl border px-4 py-2 text-sm font-medium transition",
-                                GREEN.btnOutline,
-                            ].join(" ")}
-                            type="button"
-                        >
-                            Kembali
-                        </button>
+                    {/* Skills */}
+                    <div className="md:col-span-2">
+                        <Label>Keahlian (Skills)</Label>
+                        <Input
+                            value={skills}
+                            onChange={(e) => setSkills(e.target.value)}
+                            placeholder="Contoh: React, Node.js, Project Management (pisahkan dengan koma)"
+                        />
+                        <p className={`mt-1 text-xs ${GREEN.textMuted}`}>
+                            Masukkan minimal 3 keahlian untuk meningkatkan skor profil.
+                        </p>
                     </div>
+                </div>
+
+                {/* Optional footer actions (outline) */}
+                <div className="mt-6 flex justify-end">
+                    <button
+                        onClick={() => router.push("/")}
+                        className={[
+                            "rounded-xl border px-4 py-2 text-sm font-medium transition",
+                            GREEN.btnOutline,
+                        ].join(" ")}
+                        type="button"
+                    >
+                        Kembali
+                    </button>
                 </div>
             </div>
         </div>

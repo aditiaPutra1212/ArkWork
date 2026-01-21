@@ -62,6 +62,8 @@ export default function NewJobPage() {
   const [kab, setKab] = useState('');
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [cities, setCities] = useState<City[]>([]);
+  const [isLoadingProv, setIsLoadingProv] = useState(false);
+  const [isLoadingKab, setIsLoadingKab] = useState(false);
 
   /* -------- Form -------- */
   const [form, setForm] = useState({
@@ -136,12 +138,15 @@ export default function NewJobPage() {
   useEffect(() => {
     (async () => {
       try {
-        const r = await fetch(
-          'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'
-        );
-        const j = (await r.json()) as Province[];
-        setProvinces(j);
-      } catch { }
+        setIsLoadingProv(true);
+        const r = await fetch('/api/wilayah/provinces');
+        const j = await r.json().catch(() => ({}));
+        setProvinces(Array.isArray(j?.items) ? j.items : []);
+      } catch (err) {
+        console.warn('[provinces] fetch error:', err);
+      } finally {
+        setIsLoadingProv(false);
+      }
     })();
   }, []);
 
@@ -154,15 +159,19 @@ export default function NewJobPage() {
     }
     (async () => {
       try {
-        const r = await fetch(
-          `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${prov}.json`
-        );
-        const j = (await r.json()) as City[];
-        setCities(j);
+        setIsLoadingKab(true);
+        const r = await fetch(`/api/wilayah/regencies/${prov}`);
+        const j = await r.json().catch(() => ({}));
+        setCities(Array.isArray(j?.items) ? j.items : []);
         setKab('');
         const pName = provinces.find((p) => p.id === prov)?.name || '';
         set('location', pName);
-      } catch { }
+      } catch (err) {
+        console.warn('[regencies] fetch error:', err);
+        setCities([]);
+      } finally {
+        setIsLoadingKab(false);
+      }
     })();
   }, [prov, provinces]);
 
@@ -293,7 +302,9 @@ export default function NewJobPage() {
           {/* Lokasi via Emsifa */}
           <div className="grid gap-4 sm:grid-cols-3">
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">{t('fields.province')}</span>
+              <span className="mb-1 block text-xs text-slate-600">
+                {t('fields.province')} {isLoadingProv && '⏳'}
+              </span>
               <select value={prov} onChange={(e) => setProv(e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none">
                 <option value="">-- pilih --</option>
                 {provinces.map((p) => (
@@ -302,8 +313,10 @@ export default function NewJobPage() {
               </select>
             </label>
             <label className="block">
-              <span className="mb-1 block text-xs text-slate-600">{t('fields.city')}</span>
-              <select value={kab} onChange={(e) => setKab(e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" disabled={!prov}>
+              <span className="mb-1 block text-xs text-slate-600">
+                {t('fields.city')} {isLoadingKab && '⏳'}
+              </span>
+              <select value={kab} onChange={(e) => setKab(e.target.value)} className="w-full rounded-xl border border-emerald-200 px-3 py-2 text-sm focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none" disabled={!prov || isLoadingKab}>
                 <option value="">-- pilih --</option>
                 {cities.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>

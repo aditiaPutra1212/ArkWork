@@ -1022,56 +1022,92 @@ function WilayahSelect({
     const [regencies, setRegencies] = useState<Opt[]>([]);
     const [districts, setDistricts] = useState<Opt[]>([]);
 
+    const [loadingProv, setLoadingProv] = useState(false);
+    const [loadingKab, setLoadingKab] = useState(false);
+    const [loadingKec, setLoadingKec] = useState(false);
+
     const [prov, setProv] = useState<Opt | null>(null);
     const [kab, setKab] = useState<Opt | null>(null);
     const [kec, setKec] = useState<Opt | null>(null);
 
+    // Initial Load Provinces
     useEffect(() => {
         (async () => {
+            setLoadingProv(true);
             try {
                 const r = await fetch('/api/wilayah/provinces');
+                if (!r.ok) throw new Error('Failed');
                 const data = await r.json();
                 setProvinces(data.items || []);
-            } catch { setProvinces([]); }
+            } catch {
+                setProvinces([]);
+            } finally {
+                setLoadingProv(false);
+            }
         })();
     }, []);
 
+    // Load Regencies
     useEffect(() => {
-        if (!prov) { setRegencies([]); setKab(null); setDistricts([]); setKec(null); return; }
+        if (!prov) {
+            setRegencies([]); setKab(null);
+            setDistricts([]); setKec(null);
+            return;
+        }
         (async () => {
+            setLoadingKab(true);
             try {
                 const r = await fetch(`/api/wilayah/regencies/${prov.id}`);
+                if (!r.ok) throw new Error('Failed');
                 const data = await r.json();
-                setRegencies(data.items || []); setKab(null); setDistricts([]); setKec(null);
-            } catch { setRegencies([]); setKab(null); }
+                setRegencies(data.items || []);
+                setKab(null); setDistricts([]); setKec(null);
+            } catch {
+                setRegencies([]); setKab(null);
+            } finally {
+                setLoadingKab(false);
+            }
         })();
     }, [prov?.id]);
 
+    // Load Districts
     useEffect(() => {
-        if (!kab) { setDistricts([]); setKec(null); return; }
+        if (!kab) {
+            setDistricts([]); setKec(null);
+            return;
+        }
         (async () => {
+            setLoadingKec(true);
             try {
                 const r = await fetch(`/api/wilayah/districts/${kab.id}`);
+                if (!r.ok) throw new Error('Failed');
                 const data = await r.json();
-                setDistricts(data.items || []); setKec(null);
-            } catch { setDistricts([]); setKec(null); }
+                setDistricts(data.items || []);
+                setKec(null);
+            } catch {
+                setDistricts([]); setKec(null);
+            } finally {
+                setLoadingKec(false);
+            }
         })();
     }, [kab?.id]);
 
     useEffect(() => {
         const parts = [kec?.name, kab?.name, prov?.name].filter(Boolean);
+        // Only trigger change if we have at least prov selected, or empty
         onChange(parts.join(', '));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [prov, kab, kec]);
 
     const SelectBox = ({
-        value, setValue, options, placeholder, disabled
+        value, setValue, options, placeholder, disabled, loading
     }: {
         value: Opt | null;
         setValue: (o: Opt | null) => void;
         options: Opt[];
         placeholder: string;
         disabled?: boolean;
+        loading?: boolean;
     }) => (
         <div className="relative">
             <select
@@ -1081,20 +1117,22 @@ function WilayahSelect({
                     const o = options.find((x) => x.id === val) || null;
                     setValue(o);
                 }}
-                disabled={disabled}
+                disabled={disabled || loading}
                 className={[
                     'w-full appearance-none rounded-xl border bg-white px-3.5 py-2.5 pr-10 text-sm outline-none transition',
                     GREEN.inputBorder,
                     GREEN.inputFocus,
-                    disabled ? 'bg-emerald-50 text-emerald-900/60' : 'text-emerald-950',
+                    (disabled || loading) ? 'bg-emerald-50 text-emerald-900/60 cursor-wait' : 'text-emerald-950',
                 ].join(' ')}
             >
-                <option value="">{placeholder}</option>
+                <option value="">{loading ? 'Sedang memuat data...' : placeholder}</option>
                 {options.map((o) => (
                     <option key={o.id} value={o.id}>{o.name}</option>
                 ))}
             </select>
-            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-900/50">▾</span>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-emerald-900/50">
+                {loading ? '⏳' : '▾'}
+            </span>
         </div>
     );
 
@@ -1103,17 +1141,36 @@ function WilayahSelect({
             <div className="grid gap-3 sm:grid-cols-3">
                 <div>
                     <span className="mb-1 block text-sm text-emerald-900/80">{labelProv}</span>
-                    <SelectBox value={prov} setValue={setProv} options={provinces} placeholder="Pilih provinsi…" />
+                    <SelectBox
+                        value={prov} setValue={setProv}
+                        options={provinces} loading={loadingProv}
+                        placeholder="Pilih provinsi…"
+                    />
                 </div>
                 <div>
                     <span className="mb-1 block text-sm text-emerald-900/80">{labelKab}</span>
-                    <SelectBox value={kab} setValue={setKab} options={regencies} placeholder="Pilih kab/kota…" disabled={!prov} />
+                    <SelectBox
+                        value={kab} setValue={setKab}
+                        options={regencies} loading={loadingKab}
+                        placeholder="Pilih kab/kota…"
+                        disabled={!prov}
+                    />
                 </div>
                 <div>
                     <span className="mb-1 block text-sm text-emerald-900/80">{labelKec}</span>
-                    <SelectBox value={kec} setValue={setKec} options={districts} placeholder="Pilih kecamatan…" disabled={!kab} />
+                    <SelectBox
+                        value={kec} setValue={setKec}
+                        options={districts} loading={loadingKec}
+                        placeholder="Pilih kecamatan…"
+                        disabled={!kab}
+                    />
                 </div>
             </div>
+
+            {/* Error Feedback if items empty but not loading and parent selected */}
+            {prov && !loadingKab && regencies.length === 0 && (
+                <p className="text-xs text-red-500">Gagal memuat kota. Coba pilih provinsi lain lalu kembali lagi.</p>
+            )}
 
             {value && (
                 <div className="text-xs text-emerald-900/60">

@@ -32,7 +32,7 @@ const MIDTRANS_PRODUCTION =
 
 /* --------------------------------- Types --------------------------------- */
 type Mode = "signin" | "signup";
-type Step = 1 | 2 | 3 | 4;
+type Step = 1 | 2 | 3;
 
 type Plan = {
   id: string;
@@ -160,7 +160,7 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
     try {
       const j = await res.json();
       msg = j?.error || j?.message || msg;
-    } catch {}
+    } catch { }
     throw new Error(msg);
   }
   return res.json();
@@ -196,7 +196,7 @@ function writePayments(arr: PaymentRecord[]) {
   localStorage.setItem(LS_PAYMENTS_KEY, JSON.stringify(arr));
   try {
     new BroadcastChannel("ark_payments").postMessage({ type: "payment:new" });
-  } catch {}
+  } catch { }
   localStorage.setItem("ark:payment:ping", JSON.stringify({ ts: Date.now() }));
   window.dispatchEvent(new CustomEvent("ark:payment"));
 }
@@ -300,6 +300,14 @@ export default function Page() {
       setEmployerId(resp.employerId);
       localStorage.setItem("ark_employer_id", resp.employerId);
 
+      // Otomatis isi data profile dari data step 1
+      setProfile((prev) => ({
+        ...prev,
+        name: company.trim(),
+        email: email.trim(),
+        website: normalizeUrl(website) || "",
+      }));
+
       setStep(2);
       setMode("signup");
     } catch (err: unknown) {
@@ -322,7 +330,7 @@ export default function Page() {
     socials: {},
   });
 
-  const fileRef = useRef<HTMLInputElement | null>(null);
+  // fileRef removed as Step2 is deleted
 
   function validateStep2() {
     if (profile.name.trim().length < 2) return "Nama perusahaan wajib diisi.";
@@ -355,7 +363,7 @@ export default function Page() {
   const [selectedSlug, setSelectedSlug] = useState<string>("");
 
   useEffect(() => {
-    if (mode !== "signup" || step !== 3) return;
+    if (mode !== "signup" || step !== 2) return;
     (async () => {
       try {
         setPlansLoading(true);
@@ -378,7 +386,7 @@ export default function Page() {
   }, [mode, step]);
 
   useEffect(() => {
-    if (mode !== "signup" || step !== 3) return;
+    if (mode !== "signup" || step !== 2) return;
     if (typeof window === "undefined") return;
     if (window.snap || !MIDTRANS_CLIENT_KEY) return;
     const s = document.createElement("script");
@@ -401,6 +409,9 @@ export default function Page() {
   async function submitStep3() {
     if (!employerId) throw new Error("EmployerId belum tersedia.");
     if (!selectedSlug) throw new Error("Silakan pilih paket.");
+
+    // Kirim step 2 (profil) secara implisit
+    await submitStep2();
 
     // simpan pilihan paket di backend dulu
     await apiPost("/api/employers/step3", {
@@ -473,7 +484,7 @@ export default function Page() {
       try {
         const j = await res.json();
         msg = j?.error || j?.message || msg;
-      } catch {}
+      } catch { }
       throw new Error(msg);
     }
 
@@ -581,7 +592,7 @@ export default function Page() {
 
     try {
       if (!employerId) throw new Error("EmployerId belum tersedia.");
-      if (step <= 2) await submitStep2();
+      // submitStep2 sudah dipanggil di submitStep3
       if (!paid) throw new Error("Selesaikan pembayaran terlebih dahulu.");
 
       await apiPost("/api/employers/step5", {
@@ -610,9 +621,8 @@ export default function Page() {
   /* ------------------------------ Stepper UI ------------------------------ */
   const steps = [
     { n: 1, label: "Buat Akun" },
-    { n: 2, label: "Profil" },
-    { n: 3, label: "Pilih Paket" },
-    { n: 4, label: "Verifikasi" },
+    { n: 2, label: "Pilih Paket" },
+    { n: 3, label: "Verifikasi" },
   ];
 
   /* --------------------------------- Render --------------------------------- */
@@ -992,30 +1002,8 @@ export default function Page() {
                 </form>
               )}
 
-              {/* ------------------------------- STEP 2 ------------------------------- */}
+              {/* ------------------------------- STEP 2: PAKET ------------------------------- */}
               {step === 2 && (
-                <Step2
-                  profile={profile}
-                  setProfile={setProfile}
-                  fileRef={fileRef}
-                  onBack={() => setStep(1)}
-                  onNext={async () => {
-                    try {
-                      setBusy(true);
-                      setError(null);
-                      await submitStep2();
-                      setStep(3);
-                    } catch (e: any) {
-                      setError(e?.message || "Gagal menyimpan profil.");
-                    } finally {
-                      setBusy(false);
-                    }
-                  }}
-                />
-              )}
-
-              {/* ------------------------------- STEP 3 ------------------------------- */}
-              {step === 3 && (
                 <Step3
                   plans={plans}
                   loading={plansLoading}
@@ -1023,13 +1011,13 @@ export default function Page() {
                   setSelectedSlug={setSelectedSlug}
                   currentPlan={currentPlan}
                   busy={busy}
-                  onBack={() => setStep(2)}
+                  onBack={() => setStep(1)}
                   onNext={async () => {
                     try {
                       setBusy(true);
                       setError(null);
                       await submitStep3();
-                      setStep(4);
+                      setStep(3);
                     } catch (e: any) {
                       setError(e?.message || "Gagal memulai pembayaran.");
                     } finally {
@@ -1039,15 +1027,15 @@ export default function Page() {
                 />
               )}
 
-              {/* ------------------------------- STEP 4 (VERIFIKASI) ------------------------------- */}
-              {step === 4 && (
+              {/* ------------------------------- STEP 3 (VERIFIKASI) ------------------------------- */}
+              {step === 3 && (
                 <VerifySummary
                   profile={profile}
                   currentPlan={currentPlan}
                   paid={paid}
                   setPaid={setPaid}
                   busy={busy}
-                  onBack={() => setStep(3)}
+                  onBack={() => setStep(2)}
                   onSubmit={onFinish}
                 />
               )}
@@ -1059,243 +1047,7 @@ export default function Page() {
   );
 }
 
-/* ------------------------------ Subcomponents ------------------------------ */
-function Step2({
-  profile,
-  setProfile,
-  fileRef,
-  onBack,
-  onNext,
-}: {
-  profile: CompanyProfile;
-  setProfile: Dispatch<SetStateAction<CompanyProfile>>;
-  fileRef: RefObject<HTMLInputElement>;
-  onBack: () => void;
-  onNext: () => void;
-}) {
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="h-16 w-16 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
-          {profile.logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.logo}
-              alt="Logo preview"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-slate-400 text-xs">
-              No logo
-            </div>
-          )}
-        </div>
-        <div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (!f) return;
-              const reader = new FileReader();
-              reader.onload = (ev) =>
-                setProfile((p) => ({
-                  ...p,
-                  logo: String(ev.target?.result || ""),
-                }));
-              reader.readAsDataURL(f);
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium hover:bg-slate-50"
-          >
-            Unggah Logo
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block text-sm text-slate-600">
-            Nama Perusahaan
-          </span>
-          <input
-            value={profile.name}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, name: e.target.value }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-            placeholder="e.g. ArkWork Indonesia, Inc."
-          />
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm text-slate-600">
-            Email Perusahaan
-          </span>
-          <input
-            type="email"
-            value={profile.email}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, email: e.target.value }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-            placeholder="hr@company.com"
-          />
-        </label>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block text-sm text-slate-600">Industri</span>
-          <select
-            value={profile.industry}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, industry: e.target.value }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-          >
-            <option value="">Pilih industri</option>
-            <option>E-Commerce</option>
-            <option>Energy</option>
-            <option>Manufacturing</option>
-            <option>Financial Services</option>
-            <option>Technology</option>
-          </select>
-        </label>
-        <label className="block">
-          <span className="mb-1 block text-sm text-slate-600">Ukuran</span>
-          <select
-            value={profile.size}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, size: e.target.value }))
-            }
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-          >
-            <option value="">Pilih ukuran</option>
-            <option>1-10</option>
-            <option>11-50</option>
-            <option>51-200</option>
-            <option>201-500</option>
-            <option>501-1000</option>
-            <option>1001-5000</option>
-            <option>5001-10000</option>
-            <option>10000+</option>
-          </select>
-        </label>
-      </div>
-
-      <label className="block">
-        <span className="mb-1 block text-sm text-slate-600">
-          Tentang perusahaan
-        </span>
-        <textarea
-          value={profile.about}
-          onChange={(e) => setProfile((p) => ({ ...p, about: e.target.value }))}
-          rows={4}
-          className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-          placeholder="Visi, misi, budaya kerja, dsb."
-        />
-      </label>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1 block text-sm text-slate-600">
-            Alamat kantor
-          </span>
-          <textarea
-            value={profile.address}
-            onChange={(e) =>
-              setProfile((p) => ({ ...p, address: e.target.value }))
-            }
-            rows={3}
-            className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-            placeholder="Jalan, nomor, dll."
-          />
-        </label>
-        <div className="grid gap-4">
-          <label className="block">
-            <span className="mb-1 block text-sm text-slate-600">
-              Kota / Kabupaten
-            </span>
-            <input
-              value={profile.city}
-              onChange={(e) =>
-                setProfile((p) => ({ ...p, city: e.target.value }))
-              }
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              placeholder="Jakarta Selatan"
-            />
-          </label>
-          <label className="block">
-            <span className="mb-1 block text-sm text-slate-600">
-              Website (opsional)
-            </span>
-            <input
-              value={profile.website}
-              onChange={(e) =>
-                setProfile((p) => ({ ...p, website: e.target.value }))
-              }
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              placeholder="company.com"
-            />
-          </label>
-        </div>
-      </div>
-
-      <div>
-        <span className="mb-2 block text-sm font-medium text-slate-700">
-          Website & Sosial
-        </span>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {(
-            [
-              "website",
-              "linkedin",
-              "instagram",
-              "facebook",
-              "tiktok",
-              "youtube",
-            ] as const
-          ).map((key) => (
-            <input
-              key={key}
-              value={profile.socials[key] || ""}
-              onChange={(e) =>
-                setProfile((p) => ({
-                  ...p,
-                  socials: { ...p.socials, [key]: e.target.value },
-                }))
-              }
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              placeholder={key[0].toUpperCase() + key.slice(1)}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={onBack}
-          className="rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium hover:bg-slate-50"
-        >
-          Kembali
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          className="rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
-        >
-          Selanjutnya
-        </button>
-      </div>
-    </div>
-  );
-}
+// Step2 component removed as it is no longer used in the onboarding flow.
 
 function Step3({
   plans,

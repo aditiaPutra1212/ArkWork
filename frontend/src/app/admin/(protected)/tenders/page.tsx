@@ -242,11 +242,11 @@ export default function AdminTendersPage() {
       const rows: any[] = Array.isArray(res)
         ? res
         : Array.isArray(res?.items) // Kompatibel jika backend kirim { items: [...] }
-        ? res.items
-        : Array.isArray(res?.data)
-        ? res.data
-        : [];
-      
+          ? res.items
+          : Array.isArray(res?.data)
+            ? res.data
+            : [];
+
       // Backend (admin-tenders.ts) seharusnya sudah mengurutkan by createdAt desc
       // Tapi kita urutkan lagi di sini untuk jaga-jaga
       rows.sort((a, b) => +new Date(b?.createdAt || 0) - +new Date(a?.createdAt || 0));
@@ -298,10 +298,10 @@ export default function AdminTendersPage() {
         documents: f.documentsCsv.split(',').map((s) => s.trim()).filter(Boolean),
         deadline: new Date(f.deadline + 'T00:00:00').toISOString(),
       };
-      
+
       // Memanggil path API yang benar
       await api(PATH_ADMIN_TENDERS, { json: payload }); // Method default adalah POST
-      
+
       alert('Tender created!');
       setF((s) => ({
         ...s,
@@ -505,7 +505,7 @@ export default function AdminTendersPage() {
           </div>
 
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Documents (comma separated)</label>
+            <label className="text-sm font-medium">Link Document</label>
             <input
               value={f.documentsCsv}
               onChange={(e) => onChange('documentsCsv', e.target.value)}
@@ -670,7 +670,7 @@ function EditTenderModal({
     try {
       // Memanggil path API yang benar dengan method: 'PUT'
       await api(`${PATH_ADMIN_TENDERS}/${data.id}`, { method: 'PUT', json: payload, expectJson: false });
-      
+
       onClose();
       onUpdated();
     } catch (e: any) {
@@ -803,7 +803,7 @@ function EditTenderModal({
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium">Documents (comma separated)</label>
+              <label className="text-sm font-medium">Link Documnet</label>
               <input
                 value={documentsCsv}
                 onChange={(e) => setDocumentsCsv(e.target.value)}

@@ -29,7 +29,7 @@ type AcceptedItem = { jobId: string | number; title: string; date: string };
 /** ================== Constants / Keys ================== */
 const LS_USERS_KEY = 'ark_users';
 const NAV_NAME_KEY_PREFIX = 'ark_nav_name:';
-const LS_CV_DRAFTS = 'ark_cv_drafts';
+const LS_CV_DRAFTS = 'ark_cv_drafts_struct_v2';
 const LS_APPS = 'ark_apps';
 const LS_JOBS = 'ark_jobs';
 
@@ -165,50 +165,61 @@ export default function Dashboard() {
   }, []);
 
   const refreshProfileStats = useCallback(async (email: string) => {
-    console.log("[refreshProfileStats] Refreshing for email:", email);
-    const users = readUsersSafe();
-    const u = users.find((x: StoredUser) => x.email === email);
-    console.log("[refreshProfileStats] Found user data in localStorage:", u);
-
-    const navName = typeof window !== 'undefined' ? localStorage.getItem(NAV_NAME_KEY_PREFIX + email) ?? '' : '';
-    const nameFinal = (navName || u?.name || user?.name || '').trim();
-    setDisplayName(nameFinal || t('fallback.there'));
-
-    const skillsCsv = u?.profile?.skills ?? '';
-    const skillsArr = skillsCsv.split(',').map((s: string) => s.trim()).filter(Boolean);
-    setSkillsCount(skillsArr.length);
-
-    const filled = Boolean(nameFinal) && Boolean(u?.profile?.location) && Boolean(u?.profile?.phone);
-    setProfileFilled(filled);
-
-    const metaKey = u?.profile?.cv?.key;
-    let cvOk = false;
-    if (metaKey) cvOk = await idbHas('cv_files', metaKey);
-    setHasCv(cvOk);
-    console.log(`[refreshProfileStats] CV Check (key: ${metaKey}):`, cvOk);
-
     try {
+      // 1. Coba fetch data asli dari server
+      const res = await fetch('/api/profile', { headers: { 'Accept': 'application/json' } });
+      const json = await res.json();
+      const serverData = json.ok ? json.data : null;
+
+      // 2. Fallback ke localStorage jika server error / null
+      const users = readUsersSafe();
+      const u = users.find((x: StoredUser) => x.email === email);
+
+      const nameFinal = (serverData?.name || u?.name || user?.name || '').trim();
+      setDisplayName(nameFinal || t('fallback.there'));
+
+      // Skills dari server (prioritas) atau local
+      const skillsCsv = serverData?.skills || u?.profile?.skills || '';
+      const skillsArr = skillsCsv.split(',').map((s: string) => s.trim()).filter(Boolean);
+      setSkillsCount(skillsArr.length);
+
+      const loc = serverData?.location || u?.profile?.location;
+      const ph = serverData?.phone || u?.profile?.phone;
+      const filled = Boolean(nameFinal) && Boolean(loc) && Boolean(ph);
+      setProfileFilled(filled);
+
+      // CV Check
+      const metaKey = u?.profile?.cv?.key;
+      let cvOk = false;
+      if (metaKey) cvOk = await idbHas('cv_files', metaKey);
+
+      // Jika di server ada cvUrl, anggap OK juga
+      if (serverData?.cvUrl) cvOk = true;
+
+      setHasCv(cvOk);
+
+      // Draft check
+      let localHasCvDraft = false;
       if (typeof window !== 'undefined') {
         const allDrafts = JSON.parse(localStorage.getItem(LS_CV_DRAFTS) ?? '{}');
-        setHasCvDraft(Boolean(allDrafts?.[email]));
-        console.log("[refreshProfileStats] CV Draft Check:", Boolean(allDrafts?.[email]));
+        localHasCvDraft = Boolean(allDrafts?.[email]);
+        setHasCvDraft(localHasCvDraft);
       }
-    } catch { setHasCvDraft(false); }
 
-    const acceptedApps = readAcceptedApps(email);
-    setAccepted(acceptedApps);
-    console.log("[refreshProfileStats] Accepted Apps:", acceptedApps);
+      const acceptedApps = readAcceptedApps(email);
+      setAccepted(acceptedApps);
 
-    let score = 0;
-    score += nameFinal ? 1 : 0;
-    score += u?.profile?.location ? 1 : 0;
-    score += u?.profile?.phone ? 1 : 0;
-    score += cvOk || hasCvDraft ? 1 : 0;
-    score += skillsArr.length >= 3 ? 1 : 0;
-    const pct = Math.round((score / 5) * 100);
-    setProgress(pct);
-    console.log(`[refreshProfileStats] Progress: ${pct}% (Score: ${score}/5)`);
-
+      let score = 0;
+      score += nameFinal ? 1 : 0;
+      score += loc ? 1 : 0;
+      score += ph ? 1 : 0;
+      score += (cvOk || localHasCvDraft) ? 1 : 0;
+      score += skillsArr.length >= 3 ? 1 : 0;
+      const pct = Math.round((score / 5) * 100);
+      setProgress(pct);
+    } catch (e) {
+      console.error("[Dashboard] refreshProfileStats error:", e);
+    }
   }, [readUsersSafe, readAcceptedApps, t, user?.name]);
 
   // -------- Effect Utama untuk Proteksi Rute & Memuat Data --------
@@ -406,7 +417,6 @@ export default function Dashboard() {
             </div>
             {accepted.length === 0 ? (
               <div className="rounded-xl border border-dashed border-emerald-200 bg-emerald-50/30 p-5 text-center">
-                <p className="text-sm text-slate-600">Belum ada lamaran yang ditandai sebagai <span className="font-medium text-emerald-700">diterima</span>.</p>
                 <Link href="/applications" className="mt-3 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500 shadow-sm shadow-emerald-600/20">
                   Lihat Semua Lamaran <ArrowRightIcon className="h-4 w-4" />
                 </Link>

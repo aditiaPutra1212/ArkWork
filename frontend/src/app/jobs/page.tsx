@@ -34,7 +34,12 @@ type JobDTO = {
   salaryMin?: number | null;
   salaryMax?: number | null;
   currency?: string | null;
+  remoteMode?: "ON_SITE" | "REMOTE" | "HYBRID" | null;
+  experienceMinYears?: number | null;
+  education?: string | null;
+  tags?: string[] | null;
   requirements?: string | null;
+  deadline?: string | null;
 };
 
 type Job = {
@@ -53,8 +58,10 @@ type Job = {
   salaryMax?: number | null;
   currency?: string | null;
   requirements?: string | null;
-  experience?: "0-1" | "1-3" | "3-5" | "5+" | "Any";
-  education?: "SMA/SMK" | "D3" | "S1" | "S2" | "S3" | "Any";
+  experience?: string | null;
+  education?: string | null;
+  tags?: string[] | null;
+  deadline?: string | null;
 };
 
 /* ---------- Helpers ---------- */
@@ -77,10 +84,9 @@ function mapFunctionFromTextServer(j: JobDTO): Job["function"] {
   if (/\b(operator|technician|maintenance|operations?)\b/.test(txt)) return "Operations";
   return "Engineering";
 }
-function mapRemoteFromServer(location: string, title?: string, desc?: string): Job["remote"] {
-  const lc = `${location} ${title ?? ""} ${desc ?? ""}`.toLowerCase();
-  if (/\bremote\b/.test(lc)) return "Remote";
-  if (/\bhybrid\b/.test(lc)) return "Hybrid";
+function mapRemoteFromServer(j: JobDTO): Job["remote"] {
+  if (j.remoteMode === "REMOTE") return "Remote";
+  if (j.remoteMode === "HYBRID") return "Hybrid";
   return "On-site";
 }
 function inferExpFromText(text?: string | null): Job["experience"] {
@@ -125,16 +131,15 @@ function normalizeServer(arr: JobDTO[]): Job[] {
   return (arr || [])
     .filter((j) => j.isActive !== false)
     .map((j) => {
-      const baseTxt = `${j.title} ${j.requirements ?? ""} ${j.description ?? ""}`;
       return {
         id: String(j.id),
         title: j.title,
         company: j.company,
         location: j.location || "Indonesia",
-        industry: "Oil & Gas",
+        industry: "Oil & Gas", // Default static if not in DB
         contract: mapContractFromServer(j.employment),
         function: mapFunctionFromTextServer(j),
-        remote: mapRemoteFromServer(j.location, j.title, j.description),
+        remote: mapRemoteFromServer(j),
         posted: isoStore(j.postedAt),
         description: j.description || "",
         logo: j.logoUrl || null,
@@ -142,8 +147,10 @@ function normalizeServer(arr: JobDTO[]): Job[] {
         salaryMax: j.salaryMax ?? null,
         currency: j.currency ?? null,
         requirements: j.requirements ?? null,
-        experience: inferExpFromText(baseTxt),
-        education: inferEduFromText(baseTxt),
+        experience: j.experienceMinYears != null ? `${j.experienceMinYears}+` : null,
+        education: j.education || null,
+        tags: j.tags || [],
+        deadline: j.deadline || null,
       } as Job;
     });
 }
@@ -558,8 +565,8 @@ export default function JobsPage() {
                         <Meta icon={<BriefcaseIcon className="h-4 w-4" />} text={job.contract} />
                         <Meta icon={<LayersIcon className="h-4 w-4" />} text={job.industry} />
                         <Meta icon={<GlobeIcon className="h-4 w-4" />} text={job.remote} />
-                        {job.experience && job.experience !== "Any" ? <Meta icon={<CogIcon className="h-4 w-4" />} text={`${job.experience} thn`} /> : null}
-                        {job.education && job.education !== "Any" ? <Meta icon={<LayersIcon className="h-4 w-4" />} text={job.education} /> : null}
+                        {job.experience && <Meta icon={<CogIcon className="h-4 w-4" />} text={job.experience === "0+" ? "Fresh Grad" : `${job.experience} thn`} />}
+                        {job.education && job.education !== "Any" && <Meta icon={<LayersIcon className="h-4 w-4" />} text={job.education} />}
                         {(job.salaryMin != null || job.salaryMax != null) && <Meta icon={<MoneyIcon className="h-4 w-4" />} text={formatSalary(job.salaryMin, job.salaryMax, job.currency)} />}
                       </div>
 
@@ -759,7 +766,7 @@ function DetailModal({
               <InfoRow label="Kontrak" value={job.contract} />
               <InfoRow label="Mode Kerja" value={job.remote} />
               {(job.salaryMin != null || job.salaryMax != null) && <InfoRow label="Gaji" value={formatSalary(job.salaryMin, job.salaryMax, job.currency)} />}
-              {job.experience && job.experience !== "Any" ? <InfoRow label="Pengalaman" value={`${job.experience} tahun`} /> : null}
+              {job.experience ? <InfoRow label="Pengalaman" value={job.experience === "0+" ? "Lulusan Baru" : `${job.experience} tahun`} /> : null}
               {job.education && job.education !== "Any" ? <InfoRow label="Pendidikan" value={job.education} /> : null}
             </div>
 
