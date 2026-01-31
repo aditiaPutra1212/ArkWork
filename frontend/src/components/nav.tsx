@@ -316,17 +316,26 @@ export default function Nav() {
                 onClick={() => setMenuOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
-                className="flex items-center gap-2 rounded-2xl border border-neutral-200 px-2 py-1.5 transition-colors hover:border-[#16A34A] hover:bg-[#E9F9F1] dark:border-neutral-800 dark:hover:border-[#16A34A] dark:hover:bg-neutral-900"
+                className={isEmployer
+                  ? "flex items-center justify-center rounded-full border-2 border-[#16A34A] p-0.5 transition-all hover:shadow-[0_0_12px_rgba(22,163,74,0.5)] active:scale-95 bg-white dark:bg-neutral-900"
+                  : "flex items-center gap-2 rounded-2xl border border-neutral-200 px-2 py-1.5 transition-colors hover:border-[#16A34A] hover:bg-[#E9F9F1] dark:border-neutral-800 dark:hover:border-[#16A34A] dark:hover:bg-neutral-900"
+                }
               >
-                <Avatar src={photoURL} alt={displayName} size={32} />
-                <div className="hidden sm:flex flex-col max-w-[180px] text-left">
-                  <span className="truncate text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-                    {displayName}
-                  </span>
-                </div>
-                <ChevronDownIcon
-                  className={`h-4 w-4 text-neutral-500 transition-transform ${menuOpen ? "rotate-180" : ""}`}
-                />
+                {isEmployer ? (
+                  <ChevronDownIcon className="h-5 w-5 text-[#16A34A]" />
+                ) : (
+                  <>
+                    <Avatar src={photoURL} alt={displayName} size={32} />
+                    <div className="hidden sm:flex flex-col max-w-[180px] text-left">
+                      <span className="truncate text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+                        {displayName}
+                      </span>
+                    </div>
+                    <ChevronDownIcon
+                      className={`h-4 w-4 text-neutral-500 transition-transform ${menuOpen ? "rotate-180" : ""}`}
+                    />
+                  </>
+                )}
               </button>
 
               {/* Dropdown */}
@@ -344,11 +353,13 @@ export default function Nav() {
               >
                 <div className="px-3 py-3 border-b border-neutral-200 dark:border-neutral-800">
                   <div className="flex items-center gap-3">
-                    <Avatar src={photoURL} alt={displayName} size={40} />
+                    {!isEmployer && <Avatar src={photoURL} alt={displayName} size={40} />}
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">
-                        {displayName}
-                      </p>
+                      {!isEmployer && (
+                        <p className="text-sm font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+                          {displayName}
+                        </p>
+                      )}
                       {!!email && (
                         <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">
                           {email}

@@ -188,6 +188,19 @@ async function getCurrentUserId(): Promise<string | null> {
   }
 }
 
+async function checkIsEmployer(): Promise<boolean> {
+  const base = (API_BASE || "").replace(/\/+$/, "");
+  if (!base) return false;
+  try {
+    const r = await fetch(`${base}/api/employers/auth/me`, { credentials: "include" });
+    if (!r.ok) return false;
+    const j = await r.json().catch(() => ({}));
+    return j?.role === "employer";
+  } catch {
+    return false;
+  }
+}
+
 /* ---------------- Page: JOBS ---------------- */
 export default function JobsPage() {
   const t = useTranslations("jobs");
@@ -210,6 +223,7 @@ export default function JobsPage() {
   // CV states
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [isApplying, setIsApplying] = useState(false);
+  const [isEmployer, setIsEmployer] = useState(false); // NEW
 
   // toast
   const [toast, setToast] = useState<{ type: "ok" | "err"; msg: string } | null>(null);
@@ -234,6 +248,9 @@ export default function JobsPage() {
           }
         } catch { }
       }
+      // Check employer
+      const emp = await checkIsEmployer();
+      setIsEmployer(emp);
     })();
   }, []);
 
@@ -621,6 +638,7 @@ export default function JobsPage() {
           cvFile={cvFile}
           setCvFile={setCvFile}
           isApplying={isApplying}
+          isEmployer={isEmployer} // Pass prop
         />
       )}
 
@@ -711,6 +729,7 @@ function DetailModal({
   cvFile,
   setCvFile,
   isApplying = false,
+  isEmployer = false,
 }: {
   job: Job;
   postedText: string;
@@ -721,6 +740,7 @@ function DetailModal({
   cvFile: File | null;
   setCvFile: (f: File | null) => void;
   isApplying?: boolean;
+  isEmployer?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -780,37 +800,41 @@ function DetailModal({
               </Section>
             ) : null}
 
-            {/* ==== Upload CV ==== */}
-            <Section title="Unggah CV (PDF, maks 2 MB)">
-              <div className="flex items-center gap-3">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="application/pdf"
-                  onChange={onPick}
-                  className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border file:border-neutral-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-semibold hover:file:bg-[#E9F9F1] hover:file:text-[#16A34A] hover:file:border-[#16A34A] transition-all"
-                />
-              </div>
-              {cvFile ? (
-                <p className="mt-2 text-xs text-slate-600">
-                  Dipilih: <span className="font-medium">{cvFile.name}</span> ({(cvFile.size / 1024).toFixed(0)} KB)
-                </p>
-              ) : (
-                <p className="mt-2 text-xs text-slate-500">Wajib unggah CV dalam format PDF.</p>
-              )}
-            </Section>
+            {/* ==== Upload CV (Hide if Employer) ==== */}
+            {!isEmployer && (
+              <Section title="Unggah CV (PDF, maks 2 MB)">
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={onPick}
+                    className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border file:border-neutral-300 file:bg-white file:px-3 file:py-1.5 file:text-sm file:font-semibold hover:file:bg-[#E9F9F1] hover:file:text-[#16A34A] hover:file:border-[#16A34A] transition-all"
+                  />
+                </div>
+                {cvFile ? (
+                  <p className="mt-2 text-xs text-slate-600">
+                    Dipilih: <span className="font-medium">{cvFile.name}</span> ({(cvFile.size / 1024).toFixed(0)} KB)
+                  </p>
+                ) : (
+                  <p className="mt-2 text-xs text-slate-500">Wajib unggah CV dalam format PDF.</p>
+                )}
+              </Section>
+            )}
           </div>
 
           <div className="px-6 pb-6 pt-3 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button onClick={onReport} className="rounded-xl border border-red-500 bg-white px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">Laporkan</button>
             <button onClick={onClose} className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:border-[#16A34A] hover:text-[#16A34A] hover:bg-[#E9F9F1] transition-colors">Tutup</button>
-            <button
-              onClick={onApply}
-              disabled={disabled || isApplying}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all shadow-sm ${isApplying ? "bg-neutral-400" : "bg-emerald-900 hover:bg-emerald-800 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"}`}
-            >
-              {isApplying ? "Mengirim..." : "Lamar Sekarang"}
-            </button>
+            {!isEmployer && (
+              <button
+                onClick={onApply}
+                disabled={disabled || isApplying}
+                className={`rounded-xl px-4 py-2 text-sm font-semibold text-white transition-all shadow-sm ${isApplying ? "bg-neutral-400" : "bg-emerald-900 hover:bg-emerald-800 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"}`}
+              >
+                {isApplying ? "Mengirim..." : "Lamar Sekarang"}
+              </button>
+            )}
           </div>
         </div>
       </div>
