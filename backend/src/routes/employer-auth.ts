@@ -13,8 +13,8 @@ const SESSION_HOURS = 12;
 function makeCookie(sessionId: string) {
   return serializeCookie(EMP_COOKIE, sessionId, {
     httpOnly: true,
-    secure: true,      // required with SameSite=None; allowed on localhost
-    sameSite: "none",  // allow cross-site requests to include cookie
+    secure: process.env.NODE_ENV === "production", // 👈 FIX: Jangan paksa true di localhost
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 👈 FIX: lax untuk localhost
     path: "/",
     maxAge: SESSION_HOURS * 60 * 60,
   });
@@ -23,8 +23,8 @@ function makeCookie(sessionId: string) {
 function clearCookie() {
   return serializeCookie(EMP_COOKIE, "", {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     path: "/",
     maxAge: 0,
   });

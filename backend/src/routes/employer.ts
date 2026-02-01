@@ -154,7 +154,7 @@ const storage = multer.diskStorage({
   },
   filename: (_req, file, cb) => {
     const ext = (path.extname(file.originalname) || '.jpg').toLowerCase();
-    cb(null, `logo-${Date.now()}${ext}`); 
+    cb(null, `logo-${Date.now()}${ext}`);
   },
 });
 
@@ -185,11 +185,11 @@ async function handleMe(req: Request, res: Response) {
   // 1. Ambil Data Employer
   const employer = await prisma.employer.findUnique({
     where: { id: auth.employerId },
-    select: { 
-      id: true, 
-      slug: true, 
-      displayName: true, 
-      legalName: true, 
+    select: {
+      id: true,
+      slug: true,
+      displayName: true,
+      legalName: true,
       website: true,
       logoUrl: true,
     },
@@ -206,9 +206,7 @@ async function handleMe(req: Request, res: Response) {
     prisma.job.count({
       where: {
         employerId: auth.employerId,
-        // PERBAIKAN UTAMA DI SINI:
-        // Cek apakah statusnya 'Active' (Title case) ATAU 'ACTIVE' (Uppercase) ATAU 'active'
-        status: { in: ['Active', 'ACTIVE', 'active'] as any },
+        isActive: true, // 👈 FIX: Gunakan isActive (skema Prisma)
       }
     }),
     // Hitung Total Pelamar
@@ -219,22 +217,21 @@ async function handleMe(req: Request, res: Response) {
     }),
     // Hitung Interview
     prisma.jobApplication.count({
-        where: {
-          job: { employerId: auth.employerId },
-          // Cek semua variasi penulisan status interview
-          status: { in: ['INTERVIEW', 'Interview', 'interview'] as any } 
-        }
+      where: {
+        job: { employerId: auth.employerId },
+        status: 'shortlist' as any // 👈 FIX: Sesuai enum ApplicationStatus
+      }
     })
   ]);
 
   const adminUserId = auth.adminUserId;
   const admin = adminUserId
     ? await prisma.employerAdminUser
-        .findUnique({
-          where: { id: adminUserId },
-          select: { id: true, email: true, fullName: true, isOwner: true },
-        })
-        .catch(() => null as any)
+      .findUnique({
+        where: { id: adminUserId },
+        select: { id: true, email: true, fullName: true, isOwner: true },
+      })
+      .catch(() => null as any)
     : null;
 
   const fallbackName =
@@ -381,7 +378,7 @@ employerRouter.post('/step2', async (req, res) => {
 employerRouter.post('/update-basic', async (req, res) => {
   try {
     const { employerId, displayName, website, size, about, hqCity } = req.body || {};
-    
+
     if (!employerId) {
       return res.status(400).json({ ok: false, message: 'Employer ID required' });
     }
@@ -480,25 +477,25 @@ employerRouter.post('/step5', async (req, res) => {
 
 // Upload Logo
 employerRouter.post(
-    '/profile/logo', 
-    attachEmployerId, 
-    upload.single('file'), 
-    async (req, res) => {
-      
-  const mreq = req as MulterReq;
-  const employerId = req.employerId;
+  '/profile/logo',
+  attachEmployerId,
+  upload.single('file'),
+  async (req, res) => {
 
-  if (!employerId) {
-    return res.status(401).json({ message: 'Unauthorized / Employer ID missing' });
-  }
-  
-  if (!mreq.file) {
-    return res.status(400).json({ message: 'File required' });
-  }
+    const mreq = req as MulterReq;
+    const employerId = req.employerId;
 
-  const publicUrl = `/uploads/employers/${employerId}/${mreq.file.filename}`;
+    if (!employerId) {
+      return res.status(401).json({ message: 'Unauthorized / Employer ID missing' });
+    }
 
-  try {
+    if (!mreq.file) {
+      return res.status(400).json({ message: 'File required' });
+    }
+
+    const publicUrl = `/uploads/employers/${employerId}/${mreq.file.filename}`;
+
+    try {
       await prisma.$transaction([
         prisma.employer.update({
           where: { id: employerId },
@@ -510,13 +507,13 @@ employerRouter.post(
           update: { logoUrl: publicUrl },
         })
       ]);
-      
+
       return res.json({ ok: true, url: publicUrl });
-  } catch (err) {
+    } catch (err) {
       console.error("DB Update Error", err);
       return res.status(500).json({ message: 'Database error' });
-  }
-});
+    }
+  });
 
 // Get Profile Data
 employerRouter.get('/profile', async (req, res) => {
