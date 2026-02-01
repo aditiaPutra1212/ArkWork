@@ -1,152 +1,130 @@
 import { Router, Request, Response } from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, Content, Part } from "@google/generative-ai";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// --- CONFIGURATION ---
+const API_KEY = process.env.GEMINI_API_KEY;
 const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";
 
-if (!GEMINI_API_KEY) {
-  console.warn("[ArkWork Agent] GEMINI_API_KEY belum di-set.");
+if (!API_KEY) {
+  logger.error("[ArkWork Agent] FATAL: GEMINI_API_KEY is missing in .env");
 }
 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(API_KEY || "");
 
-type MsgIn = { role: string; content: string };
-type Profile = {
-  name?: string;
-  role?: string;
-  skills?: string;
-  location?: string;
-  experienceYears?: number;
-  interests?: string;
-};
+// --- SYSTEM PROMPT ---
+// A single, robust system prompt that defines the persona and capabilities.
+// We let the AI decide how to handle "intent" based on context, rather than brittle if/else code.
+const SYSTEM_INSTRUCTION = `
+Kamu adalah **ArkWork Agent**, asisten cerdas untuk platform karier **ArkWork**.
+Spesialisasi: **Industri Minyak & Gas (Oil & Gas)**, Energi, dan Konstruksi.
 
-function toGeminiHistory(messages: MsgIn[]) {
-  return messages
-    .filter((m) => m.content?.trim())
-    .map((m) => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: m.content }],
-    }));
-}
+**Tugas Utama:**
+1.  Membantu jobseeker menemukan karier yang tepat di industri migas.
+2.  Menjawab pertanyaan seputar berita/tren energi terkini.
+3.  Membantu rekruter (Employer) membuat Job Description (JD) yang menarik.
+4.  Memberikan tips interview dan pengembangan karier.
 
-function buildSystemPrompt(intent: string, profile?: Profile) {
-  const base = `
-Kamu adalah **ArkWork Agent**, asisten situs ArkWork.
-Jawablah dalam **Bahasa Indonesia** yang jelas, ringkas, profesional.
-Fokus: migas (oil & gas), LNG, utilities, serta **karier & rekrutmen**.
+**Gaya Bicara:**
+- Profesional, membantu, dan to-the-point.
+- Gunakan Bahasa Indonesia yang baik dan formal namun luwes.
+- Gunakan format Markdown (bold, list, headings) agar mudah dibaca.
 
-**Aturan umum (WAJIB):**
-- Jawab dalam **Markdown** terstruktur (heading, bullet/numbered list, tabel bila cocok).
-- Jika jawaban panjang, **mulai dengan TL;DR** (1–2 kalimat).
-- Beri **langkah praktis** (step-by-step), checklist, contoh konkret.
-- Jangan mengarang angka/fakta real-time; sebutkan asumsi bila perlu.
-- Untuk karier/konsultasi: jelaskan **alasan**, **alternatif**, dan **risiko** singkat.
-- Hindari klaim medis/keuangan/hukum spesifik; beri disclaimer ringan & sarankan ahli bila perlu.
-- Saat menyebut sumber, **tanpa link palsu**; cukup nama sumber/keyword yang bisa dicari.
+**Batasan:**
+- Jika ditanya hal di luar konteks karier/migas, jawab dengan sopan bahwa fokusmu adalah di bidang tersebut, tapi tetap usahakan membantu jika masih relevan (misal soft skill).
+- Jangan berikan nasihat hukum/medis/finansial yang mengikat.
 
-**Profil pengguna (opsional):**
-${profile ? JSON.stringify(profile, null, 2) : "(tidak ada profil)"}  
+**Contoh Template Jawaban:**
+- Jika diminta JD: Berikan struktur "Judul", "Deskripsi", "Tanggung Jawab", "Kualifikasi".
+- Jika ditanya tips: Berikan poin-poin praktis.
 `;
 
-  const modes: Record<string, string> = {
-    news: `
-Mode: **Berita**
-- Ringkas padat + poin penting + konteks singkat.
-- Boleh sarankan keyword pencarian di O&G Monitor.
-`,
-    jobs: `
-Mode: **Rekomendasi Kerja (Jobseeker)**
-- Beri: role target, alasan cocok, skill gap, sertifikasi opsional, contoh keyword lowongan, rencana 30/60/90 hari (list).
-- Jika profil minim, tanyakan 1–2 klarifikasi singkat.
-`,
-    consult: `
-Mode: **Konsultasi**
-- Struktur: *Masalah → Opsi & trade-off → Rencana aksi (bullet) → Risiko → Next steps (3–5 butir)*.
-`,
-    employer: `
-Mode: **Employer (Perusahaan)**
-- Bantu kebutuhan rekrutmen end-to-end:
-  - **Job Description** (template siap salin: ringkasan, tanggung jawab, kualifikasi, nice-to-have, benefit).
-  - **Screening criteria & scorecard** (w/ bobot sederhana), **pertanyaan interview** (teknis & behavioral).
-  - **Rencana proses** (SLA, tahap, stakeholder), **email templates** (invitation, rejection, offer).
-  - **Posting tips** (judul yang marketable, kata kunci, kanal distribusi).
-  - **Kepatuhan & etika** (hindari diskriminasi, privasi kandidat).
-- Jika info kurang (lokasi, seniority, range gaji, tipe kontrak): ajukan **1–2 klarifikasi singkat**.
-- Outputkan bagian-bagian dalam sub-heading dan checklist agar mudah dipakai.
-`,
-  };
+// --- TYPES ---
+type Message = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
 
-  const mode = modes[intent] || modes.news;
-  return base + "\n" + mode + "\nBalas dalam **Markdown**, ringkas, to the point, dan mudah dieksekusi.";
+// --- HELPER: Convert Frontend Messages to Gemini History ---
+function transformHistory(messages: Message[]): Content[] {
+  // Gemini expects { role: 'user' | 'model', parts: [...] }
+  // Filter out empty messages to prevent API errors
+  return messages
+    .filter(m => m.content && m.content.trim() !== "")
+    .map(m => {
+      const role = m.role === "user" ? "user" : "model";
+      return {
+        role: role,
+        parts: [{ text: m.content }] as Part[]
+      };
+    });
 }
 
-/** Heuristik ringan untuk auto-deteksi intent bila tidak dikirim oleh client */
-function inferIntent(text: string, fallback: string): "news" | "jobs" | "consult" | "employer" {
-  const q = (text || "").toLowerCase();
-
-  // employer keywords
-  const employerKws = [
-    "employer", "perusahaan", "rekrut", "rekrutmen", "hr", "talent", "kandidat",
-    "lowongan", "post job", "posting job", "job posting",
-    "jd", "job description", "deskripsi pekerjaan",
-    "screening", "scorecard", "wawancara", "interview",
-    "template email", "offer", "rejection", "kontrak", "salary", "gaji", "benefit",
-    "pipeline", "ats", "lamaran", "pelamar", "shortlist"
-  ];
-  if (employerKws.some(k => q.includes(k))) return "employer";
-
-  // jobs (jobseeker) keywords
-  const jobsKws = [
-    "lamar", "apply", "cv", "resume", "portofolio", "skill",
-    "sertifikasi", "career", "karier", "rekomendasi role",
-    "fresh graduate", "magang", "intern", "interview tips"
-  ];
-  if (jobsKws.some(k => q.includes(k))) return "jobs";
-
-  // consult keywords
-  const consultKws = ["konsultasi", "masalah", "roadmap", "langkah", "rencana", "strategy", "strategi"];
-  if (consultKws.some(k => q.includes(k))) return "consult";
-
-  // news default
-  return (fallback as any) || "news";
-}
-
+// --- ROUTE HANDLER ---
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const body = req.body ?? {};
-    const messages = (body.messages ?? []) as MsgIn[];
-    const user = messages[messages.length - 1]?.content || "";
-    const clientIntent: string = body.intent || "news";
-    const intent = inferIntent(user, clientIntent);
-    const profile: Profile | undefined = body.profile;
+    const { messages } = req.body;
 
-    if (!user?.trim()) {
-      return res.json({
-        answer:
-          "Halo! Saya ArkWork Agent. Saya bisa bantu **berita migas**, **rekomendasi kerja**, **konsultasi**, dan **kebutuhan employer** (JD, screening, email template, dsb). Coba: **“Bikinkan JD Production Engineer level mid di Jakarta + scorecard penilaian.”**",
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({
+        answer: "Maaf, saya tidak menerima pesan apapun. Silakan ketik sesuatu."
       });
     }
 
-    const system = buildSystemPrompt(intent, profile);
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    // 1. Get the last user message (the prompt)
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.role !== 'user') {
+      return res.status(400).json({ answer: "Format pesan salah. Pesan terakhir harus dari user." });
+    }
 
-    const chat = model.startChat({
-      history: [
-        { role: "user", parts: [{ text: system }] },
-        { role: "model", parts: [{ text: "Siap." }] },
-        ...toGeminiHistory(messages.slice(0, -1)),
-      ],
+    // 2. Prepare History (excluding the last message which is the prompt)
+    const historyMsgs = messages.slice(0, -1);
+    const history = transformHistory(historyMsgs);
+
+    // 3. Initialize Model
+    const model = genAI.getGenerativeModel({
+      model: MODEL_NAME,
+      systemInstruction: SYSTEM_INSTRUCTION
     });
 
-    const result = await chat.sendMessage(user);
-    const text = result.response.text();
+    // 4. Start Chat
+    const chat = model.startChat({
+      history: history,
+      generationConfig: {
+        maxOutputTokens: 1000,
+        temperature: 0.7,
+      }
+    });
 
-    return res.json({ answer: text?.trim() || "Maaf, saya tidak menemukan jawaban." });
-  } catch (err) {
-    console.error("[ArkWork Agent] Error:", err);
-    return res.status(500).json({ answer: "Maaf, terjadi kesalahan di server." });
+    // 5. Send Message
+    logger.info(`[ArkWork Agent] Sending message to ${MODEL_NAME}...`);
+    const result = await chat.sendMessage(lastMsg.content);
+    const response = await result.response;
+    const text = response.text();
+
+    // 6. Return Response
+    return res.json({ answer: text });
+
+  } catch (error: any) {
+    logger.error("[ArkWork Agent] Error generating response:", error);
+
+    let errorMessage = "Maaf, terjadi kesalahan pada sistem AI kami.";
+
+    // Handle specific Google API errors if needed (e.g. key expired, quota)
+    if (error.message?.includes("API key")) {
+      errorMessage = "Konfigurasi API Key bermasalah. Hubungi administrator.";
+    } else if (error.message?.includes("404")) {
+      errorMessage = `Model AI (${MODEL_NAME}) tidak ditemukan atau tidak didukung oleh API Key ini.`;
+    } else if (error.message?.includes("429") || error.message?.toLowerCase().includes("quota")) {
+      errorMessage = "⚠️ Kuota harian AI habis (429). Mohon coba lagi nanti atau hubungi Admin.";
+    }
+
+    return res.status(500).json({
+      answer: errorMessage,
+      debug: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
