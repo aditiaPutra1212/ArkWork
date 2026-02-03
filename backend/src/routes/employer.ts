@@ -340,8 +340,15 @@ employerRouter.post('/step2', async (req, res) => {
           about: profile.about ?? undefined,
           hqCity: profile.hqCity ?? undefined,
           hqCountry: profile.hqCountry ?? undefined,
+          address: profile.address ?? undefined,
           logoUrl: profile.logoUrl ?? undefined,
           bannerUrl: profile.bannerUrl ?? undefined,
+          linkedin: profile.linkedin ?? undefined,
+          twitter: profile.twitter ?? undefined,
+          instagram: profile.instagram ?? undefined,
+          facebook: profile.facebook ?? undefined,
+          youtube: profile.youtube ?? undefined,
+          website: profile.website ?? undefined,
         },
         create: {
           employerId,
@@ -351,14 +358,26 @@ employerRouter.post('/step2', async (req, res) => {
           about: profile.about ?? null,
           hqCity: profile.hqCity ?? null,
           hqCountry: profile.hqCountry ?? null,
+          address: profile.address ?? null,
           logoUrl: profile.logoUrl ?? null,
           bannerUrl: profile.bannerUrl ?? null,
+          linkedin: profile.linkedin ?? null,
+          twitter: profile.twitter ?? null,
+          instagram: profile.instagram ?? null,
+          facebook: profile.facebook ?? null,
+          youtube: profile.youtube ?? null,
+          website: profile.website ?? null,
         },
       });
 
-      const updateData: any = { onboardingStep: 'VERIFY' };
-      if (profile.logoUrl) {
-        updateData.logoUrl = profile.logoUrl;
+      // Avoid reverting DONE users back to VERIFY
+      const existing = await tx.employer.findUnique({ where: { id: employerId } });
+      const updateData: any = {};
+      if (profile.logoUrl) updateData.logoUrl = profile.logoUrl;
+
+      // Update onboarding status only if not finished
+      if (existing?.onboardingStep === 'PACKAGE' || existing?.onboardingStep === 'JOB') {
+        updateData.onboardingStep = 'VERIFY';
       }
 
       await tx.employer.update({
@@ -558,8 +577,17 @@ employerRouter.get('/profile', async (req, res) => {
       industry: employer.profile?.industry,
       size: employer.profile?.size,
       about: employer.profile?.about,
+      address: employer.profile?.address,
       hqCity: employer.profile?.hqCity,
       hqCountry: employer.profile?.hqCountry,
+      // Socials
+      linkedin: employer.profile?.linkedin,
+      twitter: employer.profile?.twitter,
+      instagram: employer.profile?.instagram,
+      facebook: employer.profile?.facebook,
+      youtube: employer.profile?.youtube,
+      website: employer.profile?.website, // Public website
+
       logoUrl: fixUrl(finalLogoUrl, baseUrl),
       bannerUrl: fixUrl(employer.profile?.bannerUrl, baseUrl),
       foundedYear: employer.profile?.foundedYear,

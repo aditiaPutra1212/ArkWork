@@ -155,9 +155,13 @@ model EmployerProfile {
   bannerUrl   String?      @map("banner_url")
   hqCity      String?      @map("hq_city")
   hqCountry   String?      @map("hq_country")
+  address     String?      @map("address") // Street address
   linkedin    String?
   twitter     String?
   instagram   String?
+  facebook    String?
+  youtube     String?
+  website     String? // Website khusus profile/public, beda dengan main URL perusahaan
   createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   employer    Employer     @relation(fields: [employerId], references: [id], onDelete: Cascade)

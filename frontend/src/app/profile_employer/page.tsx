@@ -33,6 +33,7 @@ type ProfileResp = {
   industry?: string | null;
   size?: string | null;
   foundedYear?: number | null;
+  address?: string | null;
 };
 
 /* ====================== Helpers ====================== */
@@ -119,6 +120,7 @@ export default function ProfileEmployerPage() {
           if (prof) {
             setAbout(prof.about || '');
             setCity(prof.hqCity || '');
+            setAddress(prof.address || '');
             // Prioritize profile logo if valid
             if (prof.logoUrl) setLogoUrl(prof.logoUrl);
 
@@ -127,6 +129,9 @@ export default function ProfileEmployerPage() {
               instagram: prof.instagram || '',
               linkedin: prof.linkedin || '',
               twitter: prof.twitter || '',
+              facebook: (prof as any).facebook || '',
+              youtube: (prof as any).youtube || '',
+              websitePublic: (prof as any).website || '',
             }));
           }
         }
@@ -205,9 +210,13 @@ export default function ProfileEmployerPage() {
           employerId,
           about: about || undefined,
           hqCity: city || undefined,
+          address: address || undefined,
           linkedin: normalizeUrl(social.linkedin) || undefined,
           instagram: normalizeUrl(social.instagram) || undefined,
           twitter: normalizeUrl(social.twitter) || undefined,
+          facebook: normalizeUrl(social.facebook) || undefined,
+          youtube: normalizeUrl(social.youtube) || undefined,
+          website: normalizeUrl(social.websitePublic) || undefined,
         } as any,
       });
 
