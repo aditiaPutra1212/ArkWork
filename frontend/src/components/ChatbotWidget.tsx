@@ -173,19 +173,26 @@ export default function ChatbotWidget({ chatApi = DEFAULT_CHAT_API }: { chatApi?
         }),
       });
 
-      let reply = '⚠️ Server tidak mengembalikan jawaban.';
+      let reply = '';
       try {
         const data = await res.json();
-        reply = (res.ok && (data.answer || data.message)) || reply;
+        // Prioritize answer, then message, then generic error
+        reply = data.answer || data.message || data.error;
       } catch { }
+
+      if (!reply) {
+        if (res.status === 429) reply = '⚠️ Kuota harian AI habis (429). Silakan coba lagi nanti.';
+        else if (!res.ok) reply = `⚠️ Terjadi kesalahan server (${res.status}).`;
+        else reply = '⚠️ Server tidak mengembalikan jawaban.';
+      }
 
       const a: Msg = { id: rid(), role: 'assistant', text: reply, ts: Date.now() };
       setMsgs((m) => [...m, a]);
-    } catch {
+    } catch (e: any) {
       const a: Msg = {
         id: rid(),
         role: 'assistant',
-        text: '⚠️ Gagal terhubung ke ArkWork Agent.',
+        text: `⚠️ Gagal terhubung: ${e.message || 'Network Error'}`,
         ts: Date.now(),
       };
       setMsgs((m) => [...m, a]);
