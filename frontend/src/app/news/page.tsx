@@ -117,7 +117,7 @@ export default function NewsPage() {
         <h1 className="mb-6 text-3xl font-bold text-emerald-950 tracking-tight">{t('news.title')}</h1>
 
         {/* Controls */}
-        <div className="mb-6 grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-emerald-100 md:grid-cols-7 md:gap-4 md:p-6">
+        <div className="mb-6 grid gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-emerald-100 md:grid-cols-6 md:gap-4 md:p-6">
           <div className="flex flex-col gap-1">
             <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.scope')}</span>
             <select
@@ -131,27 +131,7 @@ export default function NewsPage() {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.country')}</span>
-            <select
-              className="w-full rounded-lg border border-emerald-100 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none bg-white"
-              value={country}
-              onChange={(e) => setCountry(e.target.value)}
-              title="Pilih ALL untuk lintas negara"
-            >
-              <option value="ALL">{t('news.filters.countryOpt.all')}</option>
-              <option value="ID">{t('news.filters.countryOpt.id')}</option>
-              <option value="US">{t('news.filters.countryOpt.us')}</option>
-              <option value="GB">{t('news.filters.countryOpt.gb')}</option>
-              <option value="AE">{t('news.filters.countryOpt.ae')}</option>
-              <option value="SG">{t('news.filters.countryOpt.sg')}</option>
-              <option value="AU">{t('news.filters.countryOpt.au')}</option>
-              <option value="CA">{t('news.filters.countryOpt.ca')}</option>
-              <option value="DE">{t('news.filters.countryOpt.de')}</option>
-              <option value="FR">{t('news.filters.countryOpt.fr')}</option>
-              <option value="JP">{t('news.filters.countryOpt.jp')}</option>
-            </select>
-          </div>
+
 
           <div className="flex flex-col gap-1">
             <span className="text-[11px] font-medium uppercase tracking-wide text-emerald-600/80">{t('news.filters.period')}</span>

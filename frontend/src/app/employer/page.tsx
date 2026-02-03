@@ -103,7 +103,6 @@ export default function EmployerHome() {
   const statCards = [
     { label: t('activeJobs'), value: stats.activeJobs },
     { label: t('totalApplicants'), value: stats.totalApplicants },
-    { label: t('interviews'), value: stats.interviews },
   ];
 
   return (
@@ -129,7 +128,7 @@ export default function EmployerHome() {
           </header>
 
           {/* Stats Cards */}
-          <section className="grid gap-5 sm:grid-cols-3 mb-8">
+          <section className="grid gap-5 sm:grid-cols-2 mb-8">
             {statCards.map((s, idx) => (
               <div key={idx} className="rounded-2xl border border-emerald-100/60 bg-white p-5 shadow-sm transition-all hover:-translate-y-1">
                 <p className="text-sm font-medium text-slate-500">{s.label}</p>
