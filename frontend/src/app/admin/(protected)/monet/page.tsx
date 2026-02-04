@@ -181,9 +181,8 @@ export default function MonetPlansPage() {
                   <div className="text-xs text-slate-500">/{p.interval}</div>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs ${
-                    p.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
-                  }`}
+                  className={`rounded-full px-2 py-0.5 text-xs ${p.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                    }`}
                 >
                   {p.active ? 'Active' : 'Inactive'}
                 </span>

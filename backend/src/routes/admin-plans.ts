@@ -35,11 +35,11 @@ r.get('/', requireAdmin, async (req: Request, res: Response, next: NextFunction)
 
     const where: Prisma.PlanWhereInput | undefined = q
       ? {
-          OR: [
-            { name: { contains: q, mode: Prisma.QueryMode.insensitive } },
-            { slug: { contains: q, mode: Prisma.QueryMode.insensitive } },
-          ],
-        }
+        OR: [
+          { name: { contains: q, mode: Prisma.QueryMode.insensitive } },
+          { slug: { contains: q, mode: Prisma.QueryMode.insensitive } },
+        ],
+      }
       : undefined;
 
     const items = await prisma.plan.findMany({ where, orderBy: [{ amount: 'asc' }, { name: 'asc' }] });
@@ -160,16 +160,42 @@ r.put('/:id', requireAdmin, async (req, res, next) => {
 /* ================= DELETE ================= */
 r.delete('/:id', requireAdmin, async (req, res, next) => {
   try {
-    await prisma.plan.delete({ where: { id: req.params.id } });
+    const { id } = req.params;
+
+    // Cek dulu apakah plan ada
+    const plan = await prisma.plan.findUnique({ where: { id } });
+    if (!plan) return res.status(404).json({ error: 'Plan not found' });
+
+    // Lakukan Hard Delete dengan membersihkan relasi terlebih dahulu dalam transaksi
+    await prisma.$transaction(async (tx) => {
+      // 1. Putuskan relasi dengan Payment (Payment history tetap ada, tapi plan jadi null)
+      await tx.payment.updateMany({
+        where: { planId: id },
+        data: { planId: null },
+      });
+
+      // 2. Putuskan relasi dengan Employer (Employer jadi tidak punya plan)
+      await tx.employer.updateMany({
+        where: { currentPlanId: id },
+        data: { currentPlanId: null },
+      });
+
+      // 3. Hapus Item Subscription terlebih dahulu (karena cascade delete mungkin tidak menanganinya di level Prisma jika relation kompleks)
+      //    Namun di schema: SubscriptionItem cascade delete on Subscription delete. Aman.
+
+      // 4. Hapus Subscription (Subscription butuh Plan, jadi harus dihapus)
+      await tx.subscription.deleteMany({
+        where: { planId: id },
+      });
+
+      // 5. Akhirnya hapus Plan
+      await tx.plan.delete({
+        where: { id },
+      });
+    });
+
     res.status(204).end();
   } catch (e: any) {
-    if (e?.code === 'P2025') return res.status(404).json({ error: 'Plan not found' });
-    if (e?.code === 'P2003') {
-      return res.status(409).json({
-        error:
-          'Plan is referenced by other records (payments/subscriptions). Deactivate it instead of deleting.',
-      });
-    }
     next(e);
   }
 });
