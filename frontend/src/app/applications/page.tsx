@@ -92,6 +92,8 @@ export default function Applications() {
     const json: any = await res.json().catch(() => ({}));
     const raw = Array.isArray(json?.rows) ? json.rows : Array.isArray(json?.data) ? json.data : null;
 
+    console.log('DEBUG: API Response raw rows:', raw);
+
     if (!Array.isArray(raw)) {
       throw new Error('Format API tidak sesuai: rows tidak ditemukan');
     }
@@ -100,7 +102,7 @@ export default function Applications() {
       jobId: r.jobId ?? r.id ?? '',
       title: r.title ?? r.jobTitle ?? `Job ${r.jobId ?? r.id ?? ''}`,
       location: r.location ?? '-',
-      appliedAt: toIsoString(r.appliedAt ?? r.createdAt ?? new Date()),
+      appliedAt: toIsoString(r.appliedAt ?? r.createdAt ?? r.created_at ?? new Date()),
       status: normalizeStatus(r.status),
     }));
 
@@ -409,21 +411,13 @@ function formatDate(s: string) {
   const d = new Date(s);
   if (Number.isNaN(d.getTime())) return String(s);
 
-  const diff = Date.now() - d.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  if (days < 1) {
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours < 1) {
-      const mins = Math.max(1, Math.floor(diff / (1000 * 60)));
-      return `${mins} menit lalu`;
-    }
-    return `${hours} jam lalu`;
-  }
-  if (days < 30) return `${days} hari lalu`;
-
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: 'numeric',
+    month: 'long',
     year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-  }).format(d);
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d) + ' WIB';
 }
