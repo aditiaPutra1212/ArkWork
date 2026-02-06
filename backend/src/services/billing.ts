@@ -65,7 +65,11 @@ async function notifyTrialStarted(employerId: string, employerName: string, end:
     console.warn('[MAILER] No recipients for TRIAL email. employerId=', employerId);
     return;
   }
-  await sendEmail(to, 'Trial ArkWork Anda aktif', htmlTrialStarted(employerName, end));
+  try {
+    await sendEmail(to, 'Trial ArkWork Anda aktif', htmlTrialStarted(employerName, end));
+  } catch (err) {
+    console.error('[MAILER] Failed to send TRIAL email (non-fatal):', err);
+  }
 }
 async function notifyPremiumActivated(employerId: string, employerName: string, until: Date) {
   const to = await getRecipients(employerId);
@@ -73,7 +77,11 @@ async function notifyPremiumActivated(employerId: string, employerName: string, 
     console.warn('[MAILER] No recipients for PREMIUM email. employerId=', employerId);
     return;
   }
-  await sendEmail(to, 'Pembayaran berhasil — Premium aktif', htmlPremiumActivated(employerName, until));
+  try {
+    await sendEmail(to, 'Pembayaran berhasil — Premium aktif', htmlPremiumActivated(employerName, until));
+  } catch (err) {
+    console.error('[MAILER] Failed to send PREMIUM email (non-fatal):', err);
+  }
 }
 
 /* mutations */

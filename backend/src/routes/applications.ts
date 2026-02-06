@@ -3,18 +3,18 @@
 import { Router, Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
 // Import ApplicationStatus
-import { Prisma, ApplicationStatus } from '@prisma/client'; 
+import { Prisma, ApplicationStatus } from '@prisma/client';
 import fs from 'node:fs';
 import { authRequired } from '../middleware/role';
-import { uploadCV } from '../middleware/upload'; 
+import { uploadCV } from '../middleware/upload';
 
 const router = Router();
 
 // GET /api/users/applications
 router.get('/users/applications', authRequired, async (req: Request, res: Response) => {
   try {
-    const auth = (req as any).auth; 
-    const userId = auth?.userId || auth?.sub; 
+    const auth = (req as any).auth;
+    const userId = auth?.userId || auth?.sub;
 
     if (!userId) {
       return res.status(401).json({ ok: false, error: 'UNAUTHENTICATED' });
@@ -23,7 +23,15 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
     const apps = await prisma.jobApplication.findMany({
       where: { applicantId: userId },
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        jobId: true,
+        createdAt: true,
+        status: true,
+        cvUrl: true,
+        cvFileName: true,
+        cvFileType: true,
+        cvFileSize: true,
         job: {
           select: {
             id: true,
@@ -36,6 +44,8 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
       },
     });
 
+    console.log('DEBUG: Prisma returned apps:', JSON.stringify(apps, null, 2));
+
     const rows = apps.map((a) => ({
       id: a.id,
       jobId: a.jobId,
@@ -47,11 +57,11 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
       status: a.status,
       cv: a.cvUrl
         ? {
-            url: a.cvUrl,
-            name: a.cvFileName,
-            type: a.cvFileType,
-            size: a.cvFileSize,
-          }
+          url: a.cvUrl,
+          name: a.cvFileName,
+          type: a.cvFileType,
+          size: a.cvFileSize,
+        }
         : null,
     }));
 
@@ -65,7 +75,7 @@ router.get('/users/applications', authRequired, async (req: Request, res: Respon
 
 // POST /api/applications
 router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Request, res: Response) => {
-  
+
   const cleanupFile = () => {
     if (req.file) {
       try { fs.unlinkSync(req.file.path); } catch (err) { }
@@ -74,7 +84,7 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
 
   try {
     const jobId = String(req.body?.jobId || '').trim();
-    
+
     if (!jobId) {
       cleanupFile();
       return res.status(400).json({ ok: false, error: 'Job ID diperlukan.' });
@@ -101,7 +111,7 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
     let cvData: null | { url: string; name: string; type: string; size: number } = null;
     if (req.file) {
       cvData = {
-        url: `/uploads/${req.file.filename}`, 
+        url: `/uploads/${req.file.filename}`,
         name: req.file.originalname,
         type: req.file.mimetype,
         size: req.file.size,
@@ -110,14 +120,14 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
 
     // --- BAGIAN YANG DIPERBAIKI ---
     const result = await prisma.jobApplication.upsert({
-      where: { 
-        jobId_applicantId: { jobId, applicantId: userId } 
+      where: {
+        jobId_applicantId: { jobId, applicantId: userId }
       },
       create: {
         jobId,
         applicantId: userId,
         // Ganti PENDING ke submitted (sesuai skema database kamu)
-        status: ApplicationStatus.submitted, 
+        status: ApplicationStatus.submitted,
         ...(cvData ? {
           cvUrl: cvData.url,
           cvFileName: cvData.name,
@@ -134,10 +144,10 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
         } : {}),
         updatedAt: new Date(),
         // Ganti PENDING ke submitted juga disini
-        status: ApplicationStatus.submitted, 
+        status: ApplicationStatus.submitted,
       },
-      include: { 
-        job: { select: { id: true, title: true } } 
+      include: {
+        job: { select: { id: true, title: true } }
       },
     });
     // -----------------------------
@@ -152,7 +162,7 @@ router.post('/applications', authRequired, uploadCV.single('cv'), async (req: Re
         status: result.status,
         createdAt: result.createdAt,
         cv: result.cvUrl ? {
-            url: result.cvUrl, name: result.cvFileName
+          url: result.cvUrl, name: result.cvFileName
         } : null,
       },
     });

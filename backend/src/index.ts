@@ -155,6 +155,7 @@ app.use((_req, res, next) => {
   function conv(x: any): any {
     if (x === null || x === undefined) return x;
     if (typeof x === 'bigint') return x.toString();
+    if (x instanceof Date) return x;
     if (Array.isArray(x)) return x.map(conv);
     if (typeof x === 'object') {
       const o: any = {};
