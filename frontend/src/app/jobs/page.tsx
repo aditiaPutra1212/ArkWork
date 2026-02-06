@@ -30,6 +30,7 @@ type JobDTO = {
   postedAt: string; // ISO
   company: string;
   logoUrl: string | null;
+  industry?: string | null; // 👈 ADDED
   isActive: boolean;
   salaryMin?: number | null;
   salaryMax?: number | null;
@@ -59,6 +60,7 @@ type Job = {
   currency?: string | null;
   requirements?: string | null;
   experience?: string | null;
+  experienceRaw?: number | null; // 👈 ADDED
   education?: string | null;
   tags?: string[] | null;
   deadline?: string | null;
@@ -75,7 +77,7 @@ function sortByPosted(a: Job, b: Job, newest = true) {
 function mapContractFromServer(e: string): Job["contract"] {
   const v = (e || "").toLowerCase();
   if (v.includes("part")) return "Part-time";
-  if (v.includes("contract")) return "Contract";
+  if (v.includes("contract") || v.includes("pkwt")) return "Contract"; // 👈 UPDATED
   return "Full-time";
 }
 function mapFunctionFromTextServer(j: JobDTO): Job["function"] {
@@ -94,28 +96,20 @@ function inferExpFromText(text?: string | null): Job["experience"] {
   const range = t.match(/(\d+)\s*[-–]\s*(\d+)\s*(tahun|thn|year|years|yrs?)\b/);
   if (range) {
     const [min, max] = [+range[1], +range[2]];
-    if (min <= 0 && max <= 1) return "0-1";
-    if (min <= 1 && max <= 3) return "1-3";
-    if (min <= 3 && max <= 5) return "3-5";
-    return "5+";
+    if (min <= 0 && max <= 1) return "0-1"; // Range is fine if inferred
+    return `${min}-${max}`;
   }
   const minOnly = t.match(/\b(min(?:imal)?|>=?)\s*(\d+)\s*(tahun|thn|years?|yrs?)\b/);
   if (minOnly) {
     const m = +minOnly[2];
-    if (m <= 1) return "0-1";
-    if (m <= 3) return "1-3";
-    if (m <= 5) return "3-5";
-    return "5+";
+    return `${m}+`;
   }
   const plus = t.match(/(\d+)\s*\+\s*(tahun|thn|years?|yrs?)\b/);
   if (plus) {
     const m = +plus[1];
-    if (m <= 1) return "0-1";
-    if (m <= 3) return "1-3";
-    if (m <= 5) return "3-5";
-    return "5+";
+    return `${m}+`;
   }
-  if (/\b(fresh\s*grad|lulusan\s*baru|entry[-\s]*level)\b/.test(t)) return "0-1";
+  if (/\b(fresh\s*grad|lulusan\s*baru|entry[-\s]*level)\b/.test(t)) return "0";
   return "Any";
 }
 function inferEduFromText(text?: string | null): Job["education"] {
@@ -127,6 +121,23 @@ function inferEduFromText(text?: string | null): Job["education"] {
   if (/\b(sma|smk|smu|slta|high\s*school)\b/.test(t)) return "SMA/SMK";
   return "Any";
 }
+function mapExperienceFromNumber(n?: number | null): Job["experience"] {
+  if (n == null) return null;
+  if (n === 0) return "0"; // Fresh Grad
+  return String(n);
+}
+
+function parseExperienceToNumber(expStr?: string | null): number | null {
+  if (!expStr) return null;
+  const match = expStr.match(/(\d+)/);
+  return match ? parseInt(match[1]) : null;
+}
+
+function mapEducationFromServer(e?: string | null): Job["education"] {
+  if (!e) return null;
+  if (e === "SMA_SMK") return "SMA/SMK";
+  return e as Job["education"];
+}
 function normalizeServer(arr: JobDTO[]): Job[] {
   return (arr || [])
     .filter((j) => j.isActive !== false)
@@ -136,7 +147,7 @@ function normalizeServer(arr: JobDTO[]): Job[] {
         title: j.title,
         company: j.company,
         location: j.location || "Indonesia",
-        industry: "Oil & Gas", // Default static if not in DB
+        industry: (j.industry as Job["industry"]) || "Oil & Gas", // 👈 UPDATED
         contract: mapContractFromServer(j.employment),
         function: mapFunctionFromTextServer(j),
         remote: mapRemoteFromServer(j),
@@ -147,8 +158,9 @@ function normalizeServer(arr: JobDTO[]): Job[] {
         salaryMax: j.salaryMax ?? null,
         currency: j.currency ?? null,
         requirements: j.requirements ?? null,
-        experience: j.experienceMinYears != null ? `${j.experienceMinYears}+` : null,
-        education: j.education || null,
+        experience: mapExperienceFromNumber(j.experienceMinYears) ?? inferExpFromText(j.description),
+        experienceRaw: j.experienceMinYears ?? parseExperienceToNumber(inferExpFromText(j.description)),
+        education: mapEducationFromServer(j.education) ?? inferEduFromText(j.description),
         tags: j.tags || [],
         deadline: j.deadline || null,
       } as Job;
@@ -355,7 +367,11 @@ export default function JobsPage() {
       const okCon = filters.contract === "" || j.contract === filters.contract;
       const okFun = filters.func === "" || j.function === filters.func;
       const okRem = filters.remote === "" || j.remote === filters.remote;
-      const okExp = filters.exp === "" || (j.experience ?? "Any") === (filters.exp as Job["experience"]);
+      // Experience: Input is "years I have". Job requirement must be <= my years.
+      const expNum = parseInt(filters.exp);
+      const isExpValid = !isNaN(expNum);
+      const okExp = filters.exp === "" || !isExpValid || (j.experienceRaw != null && j.experienceRaw <= expNum);
+
       const okEdu = filters.edu === "" || (j.education ?? "Any") === (filters.edu as Job["education"]);
       return okQ && okLoc && okInd && okCon && okFun && okRem && okExp && okEdu;
     });
@@ -531,11 +547,9 @@ export default function JobsPage() {
         <aside className="hidden lg:col-span-3 lg:block">
           <FilterCard>
             <FilterInput label={t("filters.location")} value={filters.loc} onChange={(v) => setFilters((s) => ({ ...s, loc: v }))} icon={<PinIcon className="h-4 w-4" />} />
-            <FilterSelect label={t("filters.industry")} value={filters.industry} onChange={(v) => setFilters((s) => ({ ...s, industry: v }))} options={["", "Oil & Gas", "Renewable Energy", "Mining"]} icon={<LayersIcon className="h-4 w-4" />} />
             <FilterSelect label={t("filters.contract")} value={filters.contract} onChange={(v) => setFilters((s) => ({ ...s, contract: v }))} options={["", "Full-time", "Contract", "Part-time"]} icon={<BriefcaseIcon className="h-4 w-4" />} />
-            <FilterSelect label={t("filters.function")} value={filters.func} onChange={(v) => setFilters((s) => ({ ...s, func: v }))} options={["", "Engineering", "Operations", "Management"]} icon={<CogIcon className="h-4 w-4" />} />
             <FilterSelect label={t("filters.workmode")} value={filters.remote} onChange={(v) => setFilters((s) => ({ ...s, remote: v }))} options={["", "On-site", "Remote", "Hybrid"]} icon={<GlobeIcon className="h-4 w-4" />} />
-            <FilterSelect label={"Pengalaman"} value={filters.exp} onChange={(v) => setFilters((s) => ({ ...s, exp: v }))} options={["", "0-1", "1-3", "3-5", "5+"]} icon={<LayersIcon className="h-4 w-4" />} />
+            <FilterInput label="Pengalaman (Tahun)" value={filters.exp} onChange={(v) => setFilters((s) => ({ ...s, exp: v }))} icon={<LayersIcon className="h-4 w-4" />} />
             <FilterSelect label={"Pendidikan"} value={filters.edu} onChange={(v) => setFilters((s) => ({ ...s, edu: v }))} options={["", "SMA/SMK", "D3", "S1", "S2", "S3"]} icon={<LayersIcon className="h-4 w-4" />} />
             <div className="pt-3 flex items-center justify-between">
               <span className="text-sm text-emerald-600">{t("filters.results", { count: items.length })}</span>
@@ -580,9 +594,8 @@ export default function JobsPage() {
                       <div className="mt-3 grid grid-cols-2 sm:grid-cols-6 gap-2 text-[13px]">
                         <Meta icon={<PinIcon className="h-4 w-4" />} text={job.location} />
                         <Meta icon={<BriefcaseIcon className="h-4 w-4" />} text={job.contract} />
-                        <Meta icon={<LayersIcon className="h-4 w-4" />} text={job.industry} />
                         <Meta icon={<GlobeIcon className="h-4 w-4" />} text={job.remote} />
-                        {job.experience && <Meta icon={<CogIcon className="h-4 w-4" />} text={job.experience === "0+" ? "Fresh Grad" : `${job.experience} thn`} />}
+                        {job.experience && <Meta icon={<CogIcon className="h-4 w-4" />} text={job.experience === "0" ? "Fresh Grad" : `${job.experience} thn`} />}
                         {job.education && job.education !== "Any" && <Meta icon={<LayersIcon className="h-4 w-4" />} text={job.education} />}
                         {(job.salaryMin != null || job.salaryMax != null) && <Meta icon={<MoneyIcon className="h-4 w-4" />} text={formatSalary(job.salaryMin, job.salaryMax, job.currency)} />}
                       </div>

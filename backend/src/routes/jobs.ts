@@ -4,7 +4,7 @@ import { attachEmployerId } from './employer'; // 👈 PERBAIKAN 1: Impor middle
 
 export const jobsRouter = Router();
 
-/**
+/*
  * Helper: normalize job object to DTO
  */
 function toJobDTO(x: any) {
@@ -29,6 +29,7 @@ function toJobDTO(x: any) {
     postedAt,
     company: x?.employer?.displayName ?? 'Company',
     logoUrl: x?.employer?.profile?.logoUrl ?? null,
+    industry: x?.employer?.profile?.industry ?? null,
     isActive: typeof x?.isActive === 'boolean' ? x.isActive : null,
     isDraft: typeof x?.isDraft === 'boolean' ? x.isDraft : null,
     // --- NEW FIELDS ---
@@ -139,7 +140,12 @@ jobsRouter.get('/jobs', async (req, res) => {
         deadline: true,
         tags: true,
         requirements: true,
-        employer: { select: { displayName: true, profile: { select: { logoUrl: true } } } },
+        employer: {
+          select: {
+            displayName: true,
+            profile: { select: { logoUrl: true, industry: true } },
+          },
+        },
       },
     });
 
@@ -179,7 +185,12 @@ jobsRouter.get('/employer/jobs', async (req, res) => {
         deadline: true,
         tags: true,
         requirements: true,
-        employer: { select: { displayName: true, profile: { select: { logoUrl: true } } } },
+        employer: {
+          select: {
+            displayName: true,
+            profile: { select: { logoUrl: true, industry: true } },
+          },
+        },
       },
     });
 
@@ -228,7 +239,12 @@ jobsRouter.get('/employer-jobs', attachEmployerId, async (req, res) => {
         deadline: true,
         tags: true,
         requirements: true,
-        employer: { select: { displayName: true, profile: { select: { logoUrl: true } } } },
+        employer: {
+          select: {
+            displayName: true,
+            profile: { select: { logoUrl: true, industry: true } },
+          },
+        },
       },
     });
 
