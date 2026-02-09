@@ -19,25 +19,7 @@ const RedisStore = require("connect-redis").RedisStore;
 import { rateLimit } from 'express-rate-limit';
 import { RedisStore as RateLimitRedisStore } from 'rate-limit-redis';
 
-// Routes Imports
-import authRouter from './routes/auth';
-import newsRouter from './routes/news';
-import chatRouter from './routes/chat';
-import adminRouter from './routes/admin';
-import { employerRouter } from './routes/employer';
-import employerAuthRouter from './routes/employer-auth';
-import adminPlansRouter from './routes/admin-plans';
-import paymentsRouter from './routes/payments';
-import tendersRouter from './routes/tenders';
-import adminTendersRouter from './routes/admin-tenders';
-import { jobsRouter } from './routes/jobs';
-import reportsRouter from './routes/reports';
-import ratesRouter from './routes/rates';
-import googleRouter from './routes/google';
-import applicationsRouter from './routes/applications';
-import employerApplicationsRouter from './routes/employer-applications';
-import adminJobsRouter from './routes/admin-jobs';
-import profileRouter from './routes/profile';
+
 
 // --- BARIS BARU: Import Dashboard Router ---
 import dashboardRouter from './routes/dashboard';
